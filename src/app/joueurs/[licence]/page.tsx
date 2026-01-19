@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
-import { smartPingAPI } from '@/lib/smartping/api'
+import { SmartPingAPI } from '@/lib/smartping/api'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import GraphiqueProgression from '@/components/player/GraphiqueProgression'
 
 interface PlayerPageProps {
   params: Promise<{
@@ -37,6 +37,16 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   const progression = history && history.length >= 2
     ? history[0].fftt_points - history[history.length - 1].fftt_points
     : 0
+
+  // Récupérer les statistiques depuis l'API SmartPing
+  const api = new SmartPingAPI()
+  let stats = null
+  try {
+    stats = await api.getStatsJoueur(licence)
+  } catch (e) {
+    // En cas d'erreur API, on continue sans les stats
+    console.error('Erreur stats joueur:', e)
+  }
 
   return (
     <div className="container-custom">
@@ -92,7 +102,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
       {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="card text-center">
+        <div className="card text-center border-l-4 border-blue-500">
           <div className="text-sm text-gray-600 mb-2">Classement actuel</div>
           <div className="text-4xl font-bold text-primary">
             {player.fftt_points_exact || player.fftt_points}
@@ -100,7 +110,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           <div className="text-sm text-gray-500 mt-1">points</div>
         </div>
         
-        <div className="card text-center">
+        <div className="card text-center border-l-4 border-green-500">
           <div className="text-sm text-gray-600 mb-2">Progression</div>
           <div className={`text-4xl font-bold ${progression >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {progression > 0 ? '+' : ''}{progression}
@@ -110,9 +120,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           </div>
         </div>
 
-        <div className="card text-center">
+        <div className="card text-center border-l-4 border-yellow-500">
           <div className="text-sm text-gray-600 mb-2">Meilleur classement</div>
-          <div className="text-4xl font-bold text-accent-yellow">
+          <div className="text-4xl font-bold text-yellow-600">
             {history && history.length > 0
               ? Math.max(...history.map(h => h.fftt_points))
               : player.fftt_points_exact || player.fftt_points}
@@ -120,48 +130,59 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           <div className="text-sm text-gray-500 mt-1">points</div>
         </div>
 
-        <div className="card text-center">
-          <div className="text-sm text-gray-600 mb-2">Ancienneté</div>
-          <div className="text-4xl font-bold text-accent-cyan">
-            {new Date().getFullYear() - (player.created_at ? new Date(player.created_at).getFullYear() : new Date().getFullYear())}
+        <div className="card text-center border-l-4 border-cyan-500">
+          <div className="text-sm text-gray-600 mb-2">Matchs joués</div>
+          <div className="text-4xl font-bold text-cyan-600">
+            {stats?.total || 0}
           </div>
-          <div className="text-sm text-gray-500 mt-1">saisons</div>
+          <div className="text-sm text-gray-500 mt-1">parties</div>
         </div>
       </div>
 
-      {/* Graphique de progression */}
-      {history && history.length > 1 && (
-        <div className="card mb-8">
-          <h2 className="text-2xl font-bold text-primary mb-4">
-            <i className="fas fa-chart-line mr-2"></i>
-            Évolution du classement
-          </h2>
-          <div className="h-64 flex items-end justify-between gap-2">
-            {[...history].reverse().map((point, index) => {
-              const maxPoints = Math.max(...history.map(h => h.fftt_points))
-              const minPoints = Math.min(...history.map(h => h.fftt_points))
-              const range = maxPoints - minPoints || 1
-              const height = ((point.fftt_points - minPoints) / range) * 100
+      {/* Statistiques de parties */}
+      {stats && stats.total > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="card bg-green-50 border-l-4 border-green-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 font-semibold mb-1">Victoires</p>
+                <p className="text-3xl font-bold text-green-600">{stats.victoires}</p>
+              </div>
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <i className="fas fa-trophy text-3xl text-green-600"></i>
+              </div>
+            </div>
+          </div>
 
-              return (
-                <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                  <div 
-                    className="w-full bg-primary rounded-t-lg transition-all hover:bg-secondary cursor-pointer relative group"
-                    style={{ height: `${Math.max(height, 10)}%` }}
-                    title={`${point.fftt_points} pts - ${new Date(point.date).toLocaleDateString('fr-FR')}`}
-                  >
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                      {point.fftt_points} pts
-                    </div>
-                  </div>
-                  <span className="text-xs text-gray-500 -rotate-45 origin-top-left">
-                    {new Date(point.date).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })}
-                  </span>
-                </div>
-              )
-            })}
+          <div className="card bg-red-50 border-l-4 border-red-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 font-semibold mb-1">Défaites</p>
+                <p className="text-3xl font-bold text-red-600">{stats.defaites}</p>
+              </div>
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                <i className="fas fa-times-circle text-3xl text-red-600"></i>
+              </div>
+            </div>
+          </div>
+
+          <div className="card bg-blue-50 border-l-4 border-blue-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 font-semibold mb-1">Taux de victoire</p>
+                <p className="text-3xl font-bold text-blue-600">{stats.pourcentage}%</p>
+              </div>
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                <i className="fas fa-chart-pie text-3xl text-blue-600"></i>
+              </div>
+            </div>
           </div>
         </div>
+      )}
+
+      {/* Graphique de progression */}
+      {history && history.length > 1 && (
+        <GraphiqueProgression history={history} />
       )}
 
       {/* Historique */}
