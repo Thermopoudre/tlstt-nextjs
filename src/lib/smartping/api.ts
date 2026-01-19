@@ -85,6 +85,41 @@ export class SmartPingAPI {
   async getPouleClassement(poule: string): Promise<any[]> {
     return this.request('xml_result_equ.php', { cx_poule: poule })
   }
+
+  // Alias pour compatibilité
+  async getClassementPoule(pouleId: string): Promise<any[]> {
+    return this.getPouleClassement(pouleId)
+  }
+
+  // Récupérer les résultats d'une équipe
+  async getResultatsEquipe(pouleId: string, equipeId: string): Promise<any[]> {
+    return this.request('xml_result_equ.php', { 
+      cx_poule: pouleId,
+      equipe: equipeId 
+    })
+  }
+
+  // Récupérer les parties d'un joueur (historique détaillé)
+  async getPartiesJoueur(licence: string): Promise<any[]> {
+    return this.request('xml_partie_mysql.php', { licence })
+  }
+
+  // Récupérer les statistiques d'un joueur
+  async getStatsJoueur(licence: string): Promise<any> {
+    const parties = await this.getPartiesJoueur(licence)
+    
+    const victoires = parties.filter((p: any) => p.victoire === '1' || p.victoire === 'V').length
+    const defaites = parties.filter((p: any) => p.victoire === '0' || p.victoire === 'D').length
+    const total = parties.length
+
+    return {
+      total,
+      victoires,
+      defaites,
+      pourcentage: total > 0 ? Math.round((victoires / total) * 100) : 0,
+      parties
+    }
+  }
 }
 
 // Instance singleton
