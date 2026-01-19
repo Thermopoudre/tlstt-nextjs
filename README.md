@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏓 TLSTT - Toulon La Seyne Tennis de Table
 
-## Getting Started
+Site officiel du club de tennis de table TLSTT, construit avec Next.js et Supabase.
 
-First, run the development server:
+## 🚀 Technologies
+
+- **Next.js 16** - Framework React avec App Router
+- **TypeScript** - Typage statique
+- **Tailwind CSS** - Styles utilitaires
+- **Supabase** - Backend as a Service (PostgreSQL)
+- **Vercel** - Hébergement et déploiement
+
+## 📦 Installation
 
 ```bash
+# Installer les dépendances
+npm install
+
+# Configurer les variables d'environnement
+cp .env.example .env.local
+# Éditer .env.local avec vos clés Supabase
+
+# Lancer le serveur de développement
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🌐 URLs
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Production** : À venir sur Vercel
+- **Supabase** : https://iapvoyhvkzlvpbngwxmq.supabase.co
+- **Dev local** : http://localhost:3000
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📚 Documentation
 
-## Learn More
+- Voir `MIGRATION_PROGRESS.md` pour l'avancement de la migration
+- Voir `MIGRATION_MCP.md` pour le guide de migration complet
 
-To learn more about Next.js, take a look at the following resources:
+## 🎨 Design
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Couleur principale : `#10325F` (Bleu Marine TLSTT)
+- Couleur secondaire : `#E31C23` (Rouge Sport)
+- Polices : Montserrat (titres) + Open Sans (texte)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📄 License
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+© 2026 Toulon La Seyne Tennis de Table. Tous droits réservés.
