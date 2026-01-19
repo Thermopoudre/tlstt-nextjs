@@ -92,7 +92,7 @@ export default async function JoueursPage() {
                 </span>
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {playersByCategory![category].map(player => (
+                {playersByCategory![category].map((player: any) => (
                   <Link
                     key={player.id}
                     href={`/joueurs/${player.smartping_licence}`}
