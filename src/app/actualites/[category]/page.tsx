@@ -39,6 +39,30 @@ export default async function NewsPage({ params }: NewsPageProps) {
     console.error('Erreur Supabase:', error)
   }
 
+  // Récupérer les flux RSS externes pour TT et Handi
+  let rssItems: any[] = []
+  if (category === 'tt') {
+    try {
+      const rssRes = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/rss/fftt`, { 
+        next: { revalidate: 3600 } 
+      })
+      const rssData = await rssRes.json()
+      if (rssData.success) rssItems = rssData.items
+    } catch (e) {
+      console.error('Erreur RSS FFTT:', e)
+    }
+  } else if (category === 'handi') {
+    try {
+      const rssRes = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/rss/handisport`, { 
+        next: { revalidate: 3600 } 
+      })
+      const rssData = await rssRes.json()
+      if (rssData.success) rssItems = rssData.items
+    } catch (e) {
+      console.error('Erreur RSS Handisport:', e)
+    }
+  }
+
   return (
     <div className="container-custom">
       {/* Hero Section */}
@@ -104,6 +128,40 @@ export default async function NewsPage({ params }: NewsPageProps) {
           <p className="text-gray-500">
             Revenez bientôt pour découvrir les dernières nouvelles !
           </p>
+        </div>
+      )}
+
+      {/* Flux RSS externes */}
+      {rssItems.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-primary mb-6 border-b-2 border-primary pb-2">
+            <i className="fas fa-rss mr-2"></i>
+            Actualités {category === 'tt' ? 'FFTT' : 'Handisport France'}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {rssItems.map((item, index) => (
+              <a
+                key={index}
+                href={item.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="card hover:shadow-xl transition-all border-l-4 border-cyan-500"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i className="fas fa-external-link-alt text-cyan-600"></i>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-900 mb-2 line-clamp-2">{item.title}</h3>
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-2">{item.description}</p>
+                    <p className="text-xs text-gray-400">
+                      {new Date(item.pubDate).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
         </div>
       )}
 
