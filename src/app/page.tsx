@@ -249,17 +249,17 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="card bg-gradient-to-br from-secondary to-red-700 text-white p-8">
+          <div className="card bg-gradient-to-br from-gray-800 to-gray-900 text-white p-8">
             <div className="flex items-start gap-6">
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
                 <i className="fas fa-envelope-open-text text-3xl"></i>
               </div>
               <div>
                 <h3 className="text-2xl font-bold mb-3">Newsletter</h3>
-                <p className="text-red-100 mb-6">
+                <p className="text-gray-100 mb-6">
                   Restez informé de toutes les actualités du club : événements, résultats, nouveautés...
                 </p>
-                <Link href="/newsletter" className="btn-secondary bg-white text-secondary hover:bg-gray-100">
+                <Link href="/newsletter" className="btn-secondary bg-white text-gray-900 hover:bg-gray-100">
                   <i className="fas fa-paper-plane mr-2"></i>
                   S'abonner
                 </Link>

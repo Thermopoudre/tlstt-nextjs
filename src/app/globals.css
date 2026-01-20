@@ -1,11 +1,11 @@
 @import 'tailwindcss';
 
 @theme {
-  /* Couleurs TLSTT */
+  /* Couleurs TLSTT - Bleu/Blanc/Noir */
   --color-primary: #10325F;
   --color-primary-light: #1a4a7a;
-  --color-secondary: #E31C23;
-  --color-secondary-dark: #b9151b;
+  --color-secondary: #1f2937;
+  --color-secondary-dark: #111827;
   --color-accent-yellow: #FFD700;
   --color-accent-cyan: #00BFFF;
   

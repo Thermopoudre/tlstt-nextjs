@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
 
-type NewsCategory = 'ping' | 'club' | 'handi'
+type NewsCategory = 'tt' | 'club' | 'handi'
 
 interface NewsPageProps {
   params: Promise<{
@@ -11,13 +11,13 @@ interface NewsPageProps {
 }
 
 const categoryTitles: Record<NewsCategory, string> = {
-  ping: 'Actualités du Ping',
+  tt: 'Actualités du Tennis de Table',
   club: 'Actualités du Club',
   handi: 'Handisport'
 }
 
 const categoryDescriptions: Record<NewsCategory, string> = {
-  ping: 'Toutes les actualités du tennis de table professionnel et amateur',
+  tt: 'Toutes les actualités du tennis de table professionnel et amateur',
   club: 'Les dernières nouvelles du club TLSTT',
   handi: 'Actualités du tennis de table handisport'
 }

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 
-type NewsCategory = 'ping' | 'club' | 'handi'
+type NewsCategory = 'tt' | 'club' | 'handi'
 
 interface ArticlePageProps {
   params: Promise<{
@@ -55,7 +55,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               href={`/actualites/${category}`}
               className="text-gray-600 hover:text-primary"
             >
-              Actualités {category === 'ping' ? 'Ping' : category === 'club' ? 'Club' : 'Handisport'}
+              Actualités {category === 'tt' ? 'Tennis de Table' : category === 'club' ? 'Club' : 'Handisport'}
             </Link>
           </li>
           <li className="text-gray-400">/</li>
@@ -87,7 +87,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </span>
             <span className="flex items-center gap-2">
               <i className="fas fa-tag"></i>
-              {category === 'ping' ? 'Tennis de Table' : category === 'club' ? 'Club' : 'Handisport'}
+              {category === 'tt' ? 'Tennis de Table' : category === 'club' ? 'Club' : 'Handisport'}
             </span>
           </div>
 

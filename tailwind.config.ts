@@ -14,8 +14,8 @@ export default {
           light: '#1a4a7a',
         },
         secondary: {
-          DEFAULT: '#E31C23',
-          dark: '#b9151b',
+          DEFAULT: '#1f2937',
+          dark: '#111827',
         },
         accent: {
           yellow: '#FFD700',
