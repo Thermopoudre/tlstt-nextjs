@@ -10,15 +10,35 @@ export async function POST() {
     const pwd = process.env.SMARTPING_PASSWORD || ''
     const clubId = '08830083' // TLSTT
     
+    // Debug: vérifier les credentials
+    if (!appId || !pwd) {
+      return NextResponse.json({ 
+        error: 'Credentials SmartPing manquants',
+        hasAppId: !!appId,
+        hasPwd: !!pwd
+      }, { status: 500 })
+    }
+    
     const url = `https://www.smartping.com/smartping/xml_liste_joueur_o.php?appId=${appId}&pwd=${pwd}&club=${clubId}`
     
-    const response = await fetch(url)
+    console.log('🔄 Appel SmartPing API...')
+    const response = await fetch(url, { cache: 'no-store' })
     const xmlText = await response.text()
     
-    if (!response.ok || xmlText.includes('<error>')) {
+    console.log('📥 Réponse SmartPing:', xmlText.substring(0, 200))
+    
+    if (!response.ok) {
+      return NextResponse.json({ 
+        error: 'Erreur HTTP SmartPing', 
+        status: response.status,
+        preview: xmlText.substring(0, 500)
+      }, { status: 500 })
+    }
+    
+    if (xmlText.includes('<error>') || xmlText.includes('erreur')) {
       return NextResponse.json({ 
         error: 'Erreur API SmartPing', 
-        details: xmlText 
+        details: xmlText.substring(0, 500)
       }, { status: 500 })
     }
 
@@ -40,8 +60,13 @@ export async function POST() {
       }
     }
 
+    console.log(`✅ ${joueurs.length} joueurs trouvés`)
+
     if (joueurs.length === 0) {
-      return NextResponse.json({ error: 'Aucun joueur trouvé', xml: xmlText.substring(0, 500) }, { status: 404 })
+      return NextResponse.json({ 
+        error: 'Aucun joueur trouvé après parsing', 
+        xmlPreview: xmlText.substring(0, 1000)
+      }, { status: 404 })
     }
 
     let inserted = 0
