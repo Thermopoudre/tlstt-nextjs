@@ -28,7 +28,6 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
       title: 'Actualités',
       icon: 'fa-newspaper',
       path: '/admin/actualites',
-      badge: '3',
     },
     {
       title: 'Planning',
