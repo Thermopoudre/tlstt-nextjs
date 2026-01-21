@@ -18,18 +18,32 @@ export default async function EquipeDetailPage({ params }: PageProps) {
   let error = null
 
   try {
-    // Récupérer le classement de la poule
-    classement = await api.getClassementPoule(id)
+    // Récupérer le classement de la poule (retourne XML, parsing à faire)
+    const xmlResponse = await api.getClassementPoule('', id)
+    
+    // Parser le XML pour extraire le classement
+    if (typeof xmlResponse === 'string') {
+      const matches = xmlResponse.matchAll(/<classement>([\s\S]*?)<\/classement>/g)
+      for (const match of matches) {
+        const xml = match[1]
+        classement.push({
+          clt: xml.match(/<clt>([^<]*)<\/clt>/)?.[1] || '',
+          equipe: xml.match(/<equipe>([^<]*)<\/equipe>/)?.[1] || '',
+          joue: xml.match(/<joue>([^<]*)<\/joue>/)?.[1] || '0',
+          pts: xml.match(/<pts>([^<]*)<\/pts>/)?.[1] || '0',
+          numero: xml.match(/<numero>([^<]*)<\/numero>/)?.[1] || '',
+          vic: xml.match(/<vic>([^<]*)<\/vic>/)?.[1] || '0',
+          def: xml.match(/<def>([^<]*)<\/def>/)?.[1] || '0',
+        })
+      }
+    }
     
     // Trouver l'info de l'équipe TLSTT dans le classement
-    equipeInfo = classement.find((e: any) => e.club_id === '08830083') || classement[0]
+    equipeInfo = classement.find((e: any) => e.numero === '08830083') || classement[0]
     
-    // Récupérer les résultats des matchs de l'équipe
-    if (equipeInfo?.equipe_id) {
-      resultats = await api.getResultatsEquipe(id, equipeInfo.equipe_id)
-    }
   } catch (e: any) {
     error = e.message
+    console.error('Erreur API équipe:', e)
   }
 
   if (!classement.length && !error) {

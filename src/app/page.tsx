@@ -1,11 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
-import { SmartPingAPI } from '@/lib/smartping/api'
 import Link from 'next/link'
 import Image from 'next/image'
 
 export default async function HomePage() {
   const supabase = await createClient()
-  const api = new SmartPingAPI()
 
   // Récupérer les dernières actualités
   const { data: latestNews } = await supabase

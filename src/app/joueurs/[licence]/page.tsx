@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { SmartPingAPI } from '@/lib/smartping/api'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import GraphiqueProgression from '@/components/player/GraphiqueProgression'
@@ -38,15 +37,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     ? history[0].fftt_points - history[history.length - 1].fftt_points
     : 0
 
-  // Récupérer les statistiques depuis l'API SmartPing
-  const api = new SmartPingAPI()
-  let stats = null
-  try {
-    stats = await api.getStatsJoueur(licence)
-  } catch (e) {
-    // En cas d'erreur API, on continue sans les stats
-    console.error('Erreur stats joueur:', e)
-  }
+  // Les statistiques détaillées seront récupérées depuis SmartPing ultérieurement
+  // Pour l'instant, on utilise des valeurs par défaut
+  const stats = { total: 0, victoires: 0, defaites: 0, pourcentage: 0 }
 
   return (
     <div className="container-custom">

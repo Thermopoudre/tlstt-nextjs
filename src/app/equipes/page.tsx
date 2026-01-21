@@ -11,9 +11,26 @@ export default async function EquipesPage() {
 
   try {
     // Récupérer toutes les équipes du club TLSTT
-    equipes = await api.getEquipes('08830083')
+    const xmlResponse = await api.getEquipes('08830083')
+    
+    // Parser le XML pour extraire les équipes
+    if (typeof xmlResponse === 'string') {
+      const matches = xmlResponse.matchAll(/<equipe>([\s\S]*?)<\/equipe>/g)
+      for (const match of matches) {
+        const xml = match[1]
+        equipes.push({
+          libequipe: xml.match(/<libequipe>([^<]*)<\/libequipe>/)?.[1] || '',
+          libdivision: xml.match(/<libdivision>([^<]*)<\/libdivision>/)?.[1] || '',
+          liendivision: xml.match(/<liendivision>([^<]*)<\/liendivision>/)?.[1] || '',
+          idepr: xml.match(/<idepr>([^<]*)<\/idepr>/)?.[1] || '',
+          libepr: xml.match(/<libepr>([^<]*)<\/libepr>/)?.[1] || '',
+          libelle_division: xml.match(/<libdivision>([^<]*)<\/libdivision>/)?.[1] || 'Autres',
+        })
+      }
+    }
   } catch (e: any) {
     error = e.message
+    console.error('Erreur API équipes:', e)
   }
 
   // Grouper les équipes par division

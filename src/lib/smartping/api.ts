@@ -1,18 +1,60 @@
-// Classe pour interagir avec l'API SmartPing
+import crypto from 'crypto'
+
+// Classe pour interagir avec l'API SmartPing / FFTT
 export class SmartPingAPI {
   private appId: string
   private password: string
-  private baseUrl = 'https://www.smartping.com/smartping'
+  private baseUrl = 'http://www.fftt.com/mobile/pxml'
 
   constructor() {
     this.appId = process.env.SMARTPING_APP_ID || ''
     this.password = process.env.SMARTPING_PASSWORD || ''
   }
 
+  // Générer un numéro de série (15 caractères alphanumériques)
+  private generateSerie(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    let serie = ''
+    for (let i = 0; i < 15; i++) {
+      serie += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    return serie
+  }
+
+  // Générer le timestamp au format YYYYMMDDHHMMSSmmm
+  private generateTimestamp(): string {
+    const now = new Date()
+    const year = now.getFullYear().toString()
+    const month = (now.getMonth() + 1).toString().padStart(2, '0')
+    const day = now.getDate().toString().padStart(2, '0')
+    const hours = now.getHours().toString().padStart(2, '0')
+    const minutes = now.getMinutes().toString().padStart(2, '0')
+    const seconds = now.getSeconds().toString().padStart(2, '0')
+    const ms = now.getMilliseconds().toString().padStart(3, '0')
+    return `${year}${month}${day}${hours}${minutes}${seconds}${ms}`
+  }
+
+  // Crypter le timestamp avec HMAC-SHA1
+  private encryptTimestamp(timestamp: string): string {
+    // 1. MD5 du mot de passe
+    const md5Key = crypto.createHash('md5').update(this.password).digest('hex')
+    
+    // 2. HMAC-SHA1 du timestamp avec la clé MD5
+    const hmac = crypto.createHmac('sha1', md5Key)
+    hmac.update(timestamp)
+    return hmac.digest('hex')
+  }
+
   private async request(endpoint: string, params: Record<string, string> = {}): Promise<any> {
+    const serie = this.generateSerie()
+    const tm = this.generateTimestamp()
+    const tmc = this.encryptTimestamp(tm)
+
     const searchParams = new URLSearchParams({
-      appId: this.appId,
-      pwd: this.password,
+      serie,
+      tm,
+      tmc,
+      id: this.appId,
       ...params
     })
 
@@ -22,9 +64,9 @@ export class SmartPingAPI {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json'
+          'Accept': 'application/xml'
         },
-        next: { revalidate: 3600 } // Cache 1 heure
+        cache: 'no-store'
       })
 
       if (!response.ok) {
@@ -43,82 +85,78 @@ export class SmartPingAPI {
 
   private parseXMLResponse(xml: string): any {
     // Parser XML simple pour les réponses SmartPing
-    // Dans une vraie app, utiliser une lib comme fast-xml-parser
-    const jsonStr = xml
-      .replace(/<\?xml[^>]*\?>/g, '')
-      .replace(/<liste>/g, '[')
-      .replace(/<\/liste>/g, ']')
-      .replace(/<joueur>/g, '{')
-      .replace(/<\/joueur>/g, '},')
-      .replace(/<(\w+)>([^<]*)<\/\1>/g, '"$1":"$2",')
-      .replace(/,(\s*[}\]])/g, '$1')
-
-    try {
-      return JSON.parse(jsonStr)
-    } catch (error) {
-      console.error('XML Parse Error:', error)
-      return []
-    }
+    // Retourner le XML brut pour un parsing personnalisé
+    return xml
   }
 
-  // Récupérer la liste des joueurs d'un club
-  async getJoueurs(clubId: string = '08830083'): Promise<any[]> {
+  // Récupérer la liste des joueurs d'un club (base classement)
+  async getJoueurs(clubId: string = '08830083'): Promise<string> {
+    return this.request('xml_liste_joueur.php', { club: clubId })
+  }
+
+  // Récupérer la liste des licenciés d'un club (base SPID) - plus complet
+  async getLicencies(clubId: string = '08830083'): Promise<string> {
     return this.request('xml_liste_joueur_o.php', { club: clubId })
   }
 
-  // Récupérer le classement d'un joueur
-  async getJoueurClassement(licence: string): Promise<any> {
+  // Récupérer les licenciés avec infos classement (MEILLEUR endpoint)
+  async getLicenciesComplet(clubId: string = '08830083'): Promise<string> {
+    return this.request('xml_licence_b.php', { club: clubId })
+  }
+
+  // Récupérer le détail d'un joueur (base classement)
+  async getJoueurClassement(licence: string): Promise<string> {
     return this.request('xml_joueur.php', { licence })
   }
 
-  // Récupérer l'historique d'un joueur
-  async getJoueurHistorique(licence: string): Promise<any[]> {
-    return this.request('xml_histo_classement.php', { licence })
+  // Récupérer le détail d'un licencié (base SPID)
+  async getLicence(licence: string): Promise<string> {
+    return this.request('xml_licence.php', { licence })
+  }
+
+  // Récupérer le détail d'un licencié avec classement
+  async getLicenceComplet(licence: string): Promise<string> {
+    return this.request('xml_licence_b.php', { licence })
+  }
+
+  // Récupérer l'historique des classements
+  async getHistoriqueClassement(licence: string): Promise<string> {
+    return this.request('xml_histo_classement.php', { numlic: licence })
   }
 
   // Récupérer les équipes d'un club
-  async getEquipes(clubId: string = '08830083'): Promise<any[]> {
-    return this.request('xml_equipe_liste.php', { club: clubId })
+  async getEquipes(clubId: string = '08830083'): Promise<string> {
+    return this.request('xml_equipe.php', { numclu: clubId })
+  }
+
+  // Récupérer les résultats d'une poule
+  async getResultatsPoule(divisionId: string, pouleId: string): Promise<string> {
+    return this.request('xml_result_equ.php', { D1: divisionId, cx_poule: pouleId })
   }
 
   // Récupérer le classement d'une poule
-  async getPouleClassement(poule: string): Promise<any[]> {
-    return this.request('xml_result_equ.php', { cx_poule: poule })
+  async getClassementPoule(divisionId: string, pouleId: string): Promise<string> {
+    return this.request('xml_result_equ.php', { D1: divisionId, cx_poule: pouleId, action: 'classement' })
   }
 
-  // Alias pour compatibilité
-  async getClassementPoule(pouleId: string): Promise<any[]> {
-    return this.getPouleClassement(pouleId)
-  }
-
-  // Récupérer les résultats d'une équipe
-  async getResultatsEquipe(pouleId: string, equipeId: string): Promise<any[]> {
-    return this.request('xml_result_equ.php', { 
-      cx_poule: pouleId,
-      equipe: equipeId 
-    })
-  }
-
-  // Récupérer les parties d'un joueur (historique détaillé)
-  async getPartiesJoueur(licence: string): Promise<any[]> {
+  // Récupérer les parties d'un joueur (base classement mysql)
+  async getPartiesJoueur(licence: string): Promise<string> {
     return this.request('xml_partie_mysql.php', { licence })
   }
 
-  // Récupérer les statistiques d'un joueur
-  async getStatsJoueur(licence: string): Promise<any> {
-    const parties = await this.getPartiesJoueur(licence)
-    
-    const victoires = parties.filter((p: any) => p.victoire === '1' || p.victoire === 'V').length
-    const defaites = parties.filter((p: any) => p.victoire === '0' || p.victoire === 'D').length
-    const total = parties.length
+  // Récupérer les parties d'un joueur (base SPID)
+  async getPartiesJoueurSpid(licence: string): Promise<string> {
+    return this.request('xml_partie.php', { numlic: licence })
+  }
 
-    return {
-      total,
-      victoires,
-      defaites,
-      pourcentage: total > 0 ? Math.round((victoires / total) * 100) : 0,
-      parties
-    }
+  // Récupérer les actualités FFTT
+  async getActualites(): Promise<string> {
+    return this.request('xml_new_actu.php', {})
+  }
+
+  // Récupérer le détail d'un club
+  async getClubDetail(clubId: string = '08830083'): Promise<string> {
+    return this.request('xml_club_detail.php', { club: clubId })
   }
 }
 
