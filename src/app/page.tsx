@@ -236,9 +236,9 @@ export default async function HomePage() {
               <div className="w-16 h-16 bg-[#5bc0de] rounded-full flex items-center justify-center flex-shrink-0">
                 <i className="fas fa-user-plus text-3xl text-white"></i>
               </div>
-              <div>
-                <h3 className="text-2xl font-bold mb-3 text-[#5bc0de]">Nous Rejoindre</h3>
-                <p className="text-white/90 mb-6">
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold mb-3" style={{ color: '#5bc0de' }}>Nous Rejoindre</h3>
+                <p className="text-white mb-6">
                   Que vous soyez débutant ou confirmé, le TLSTT vous accueille toute l'année.
                   Première séance d'essai gratuite !
                 </p>
@@ -255,9 +255,9 @@ export default async function HomePage() {
               <div className="w-16 h-16 bg-[#5bc0de] rounded-full flex items-center justify-center flex-shrink-0">
                 <i className="fas fa-envelope-open-text text-3xl text-white"></i>
               </div>
-              <div>
-                <h3 className="text-2xl font-bold mb-3 text-[#5bc0de]">Newsletter</h3>
-                <p className="text-white/90 mb-6">
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold mb-3" style={{ color: '#5bc0de' }}>Newsletter</h3>
+                <p className="text-white mb-6">
                   Restez informé de toutes les actualités du club : événements, résultats, nouveautés...
                 </p>
                 <Link href="/newsletter" className="inline-block bg-[#5bc0de] text-white px-6 py-3 rounded-full font-bold hover:bg-[#4ab0ce] transition-colors">

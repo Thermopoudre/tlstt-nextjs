@@ -41,19 +41,22 @@ export default function HeroCarousel({ images }: { images: CarouselImage[] }) {
             style={{ backgroundImage: `url(${image.url})` }}
           />
           {/* Overlay - Bleu marine uni */}
-          <div className="absolute inset-0 bg-[#0f3057]/90" />
+          <div className="absolute inset-0 bg-[#0f3057]/85" />
           
           {/* Content */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center px-4 max-w-4xl">
-              <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 animate-fadeInUp">
-                {image.title.split(' ').map((word, i) => (
-                  <span key={i} className={word.toUpperCase() === 'TLSTT' || word.toLowerCase().includes('tennis') || word.toLowerCase().includes('table') ? 'text-[#5bc0de]' : ''}>
-                    {word}{' '}
-                  </span>
-                ))}
+              <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fadeInUp">
+                {image.title.split(' ').map((word, i) => {
+                  const isCyan = word.toUpperCase() === 'TLSTT' || word.toLowerCase().includes('tennis') || word.toLowerCase().includes('table')
+                  return (
+                    <span key={i} className={isCyan ? 'text-[#5bc0de]' : 'text-white'}>
+                      {word}{' '}
+                    </span>
+                  )
+                })}
               </h1>
-              <p className="text-xl md:text-2xl text-white/80 mb-8 animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
+              <p className="text-xl md:text-2xl text-white/90 mb-8 animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
                 {image.subtitle}
               </p>
               <div className="flex flex-wrap justify-center gap-4 animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
@@ -70,13 +73,13 @@ export default function HeroCarousel({ images }: { images: CarouselImage[] }) {
                     href="/club"
                     className="bg-[#5bc0de] text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-[#4ab0ce] transition-colors"
                   >
-                    <i className="fas fa-info-circle mr-2"></i>
-                    Découvrir le club
+                    <i className="fas fa-arrow-right mr-2"></i>
+                    Découvrir
                   </Link>
                 )}
                 <Link
                   href="/contact"
-                  className="bg-white/10 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/20 transition-colors border border-white/30"
+                  className="bg-white/20 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/30 transition-colors border border-white/40"
                 >
                   <i className="fas fa-envelope mr-2"></i>
                   Nous contacter
@@ -90,13 +93,13 @@ export default function HeroCarousel({ images }: { images: CarouselImage[] }) {
       {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-[#5bc0de] transition-colors"
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-[#5bc0de] transition-colors"
       >
         <i className="fas fa-chevron-left text-xl"></i>
       </button>
       <button
         onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-[#5bc0de] transition-colors"
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-[#5bc0de] transition-colors"
       >
         <i className="fas fa-chevron-right text-xl"></i>
       </button>
