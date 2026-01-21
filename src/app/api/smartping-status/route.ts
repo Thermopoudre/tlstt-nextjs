@@ -6,7 +6,7 @@ export async function GET() {
   const password = process.env.SMARTPING_PASSWORD || ''
   // Serie DOIT être fixe et initialisée une seule fois (via xml_initialisation.php)
   const serie = process.env.SMARTPING_SERIE || generateSerie()
-  const clubId = '08830083' // TLSTT
+  const clubId = '13830083' // TLSTT
   
   const status = {
     hasAppId: !!appId,

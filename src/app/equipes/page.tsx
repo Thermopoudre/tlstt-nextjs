@@ -11,7 +11,7 @@ export default async function EquipesPage() {
 
   try {
     // Récupérer toutes les équipes du club TLSTT
-    const xmlResponse = await api.getEquipes('08830083')
+    const xmlResponse = await api.getEquipes('13830083')
     
     // Parser le XML pour extraire les équipes
     if (typeof xmlResponse === 'string') {

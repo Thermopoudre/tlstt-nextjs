@@ -86,17 +86,17 @@ export class SmartPingAPI {
   }
 
   // Récupérer la liste des joueurs d'un club (base classement)
-  async getJoueurs(clubId: string = '08830083'): Promise<string> {
+  async getJoueurs(clubId: string = '13830083'): Promise<string> {
     return this.request('xml_liste_joueur.php', { club: clubId })
   }
 
   // Récupérer la liste des licenciés d'un club (base SPID) - plus complet
-  async getLicencies(clubId: string = '08830083'): Promise<string> {
+  async getLicencies(clubId: string = '13830083'): Promise<string> {
     return this.request('xml_liste_joueur_o.php', { club: clubId })
   }
 
   // Récupérer les licenciés avec infos classement (MEILLEUR endpoint)
-  async getLicenciesComplet(clubId: string = '08830083'): Promise<string> {
+  async getLicenciesComplet(clubId: string = '13830083'): Promise<string> {
     return this.request('xml_licence_b.php', { club: clubId })
   }
 
@@ -121,7 +121,7 @@ export class SmartPingAPI {
   }
 
   // Récupérer les équipes d'un club
-  async getEquipes(clubId: string = '08830083'): Promise<string> {
+  async getEquipes(clubId: string = '13830083'): Promise<string> {
     return this.request('xml_equipe.php', { numclu: clubId })
   }
 
@@ -151,7 +151,7 @@ export class SmartPingAPI {
   }
 
   // Récupérer le détail d'un club
-  async getClubDetail(clubId: string = '08830083'): Promise<string> {
+  async getClubDetail(clubId: string = '13830083'): Promise<string> {
     return this.request('xml_club_detail.php', { club: clubId })
   }
 }

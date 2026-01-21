@@ -39,7 +39,7 @@ export default async function EquipeDetailPage({ params }: PageProps) {
     }
     
     // Trouver l'info de l'équipe TLSTT dans le classement
-    equipeInfo = classement.find((e: any) => e.numero === '08830083') || classement[0]
+    equipeInfo = classement.find((e: any) => e.numero === '13830083') || classement[0]
     
   } catch (e: any) {
     error = e.message
@@ -127,7 +127,7 @@ export default async function EquipeDetailPage({ params }: PageProps) {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {classement.map((equipe: any, index: number) => {
-                    const isTLSTT = equipe.club_id === '08830083'
+                    const isTLSTT = equipe.club_id === '13830083'
                     return (
                       <tr
                         key={index}

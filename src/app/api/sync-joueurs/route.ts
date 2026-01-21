@@ -10,7 +10,7 @@ export async function POST() {
     const password = process.env.SMARTPING_PASSWORD || ''
     // Serie DOIT être fixe et initialisée une seule fois (via /api/smartping-init)
     const serie = process.env.SMARTPING_SERIE || ''
-    const clubId = '08830083' // TLSTT
+    const clubId = '13830083' // TLSTT
     
     if (!appId || !password) {
       return NextResponse.json({ 
