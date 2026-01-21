@@ -3,6 +3,7 @@ import Link from 'next/link'
 import HeroCarousel from '@/components/HeroCarousel'
 import NewsCard from '@/components/NewsCard'
 import PartnerCard from '@/components/PartnerCard'
+import LabelsSection from '@/components/home/LabelsSection'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -296,6 +297,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Section Labels FFTT */}
+      <LabelsSection />
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { Montserrat, Open_Sans } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
+import { AuthProvider } from '@/components/auth/AuthProvider'
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -39,11 +40,13 @@ export default function RootLayout({
         />
       </head>
       <body style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f4f6f9', fontFamily: 'var(--font-open-sans)', color: '#2c3e50' }}>
-        <Header />
-        <main style={{ flex: 1, padding: '2.5rem 0' }}>
-          {children}
-        </main>
-        <Footer />
+        <AuthProvider>
+          <Header />
+          <main style={{ flex: 1, padding: '2.5rem 0' }}>
+            {children}
+          </main>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   )
