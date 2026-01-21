@@ -8,10 +8,10 @@ type Player = {
   first_name: string
   last_name: string
   smartping_licence: string
-  fftt_points: string | number | null
-  fftt_points_exact: number | null
+  fftt_points: string | number | null      // Points arrondis (500, 600, etc.)
+  fftt_points_exact: number | null          // Points exacts (1823, etc.)
   fftt_category: string | null
-  category: string | null  // Contains national ranking like "N506"
+  category: string | null                   // "N506" si classé national, sinon catégorie
   admin_notes: string | null
 }
 
@@ -30,15 +30,19 @@ function parseNationalRanking(category: string | null): { isNational: boolean; r
   return { isNational: false, rank: 0 }
 }
 
+// Récupérer les points exacts (priorité: fftt_points_exact > fftt_points)
 function getPlayerPoints(player: Player): number {
-  if (player.fftt_points_exact) {
-    return Number(player.fftt_points_exact)
+  // Points exacts en priorité
+  if (player.fftt_points_exact !== null && player.fftt_points_exact !== undefined) {
+    const exact = Number(player.fftt_points_exact)
+    if (!isNaN(exact) && exact > 0) return exact
   }
-  if (player.fftt_points) {
+  // Fallback sur points arrondis
+  if (player.fftt_points !== null && player.fftt_points !== undefined) {
     const points = Number(player.fftt_points)
-    return isNaN(points) ? 0 : points
+    return isNaN(points) ? 500 : points
   }
-  return 0
+  return 500
 }
 
 export default function JoueursClient({ initialPlayers }: { initialPlayers: Player[] }) {
@@ -92,7 +96,7 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
             // N506 vs N800: 506 - 800 = -294 (N506 comes first)
             return rankA.rank - rankB.rank
           }
-          // Neither national: sort by points descending
+          // Neither national: sort by exact points descending
           return pointsB - pointsA
       }
     })
