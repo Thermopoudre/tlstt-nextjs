@@ -4,11 +4,14 @@ import crypto from 'crypto'
 export async function GET() {
   const appId = process.env.SMARTPING_APP_ID || ''
   const password = process.env.SMARTPING_PASSWORD || ''
+  // Serie DOIT être fixe et initialisée une seule fois (via xml_initialisation.php)
+  const serie = process.env.SMARTPING_SERIE || generateSerie()
   const clubId = '08830083' // TLSTT
   
   const status = {
     hasAppId: !!appId,
     hasPwd: !!password,
+    hasSerie: !!process.env.SMARTPING_SERIE,
     appIdLength: appId.length,
     pwdLength: password.length,
     clubId,
@@ -23,7 +26,6 @@ export async function GET() {
   }
 
   // Générer les paramètres d'authentification
-  const serie = generateSerie()
   const tm = generateTimestamp()
   const tmc = encryptTimestamp(tm, password)
 

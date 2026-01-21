@@ -8,6 +8,8 @@ export async function POST() {
   try {
     const appId = process.env.SMARTPING_APP_ID || ''
     const password = process.env.SMARTPING_PASSWORD || ''
+    // Serie DOIT être fixe et initialisée une seule fois (via /api/smartping-init)
+    const serie = process.env.SMARTPING_SERIE || ''
     const clubId = '08830083' // TLSTT
     
     if (!appId || !password) {
@@ -17,9 +19,14 @@ export async function POST() {
         hasPwd: !!password
       }, { status: 500 })
     }
+    
+    if (!serie) {
+      return NextResponse.json({ 
+        error: 'SMARTPING_SERIE non configuré. Appelez /api/smartping-init pour obtenir un numéro de série.',
+      }, { status: 500 })
+    }
 
     // Générer les paramètres d'authentification
-    const serie = generateSerie()
     const tm = generateTimestamp()
     const tmc = encryptTimestamp(tm, password)
 
@@ -149,16 +156,6 @@ export async function POST() {
     console.error('Sync error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
-}
-
-// Générer un numéro de série (15 caractères alphanumériques)
-function generateSerie(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-  let serie = ''
-  for (let i = 0; i < 15; i++) {
-    serie += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return serie
 }
 
 // Générer le timestamp au format YYYYMMDDHHMMSSmmm

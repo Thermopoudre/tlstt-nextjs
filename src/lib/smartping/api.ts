@@ -4,21 +4,14 @@ import crypto from 'crypto'
 export class SmartPingAPI {
   private appId: string
   private password: string
+  private serie: string
   private baseUrl = 'http://www.fftt.com/mobile/pxml'
 
   constructor() {
     this.appId = process.env.SMARTPING_APP_ID || ''
     this.password = process.env.SMARTPING_PASSWORD || ''
-  }
-
-  // Générer un numéro de série (15 caractères alphanumériques)
-  private generateSerie(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-    let serie = ''
-    for (let i = 0; i < 15; i++) {
-      serie += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-    return serie
+    // Serie DOIT être fixe et initialisée une seule fois (via /api/smartping-init)
+    this.serie = process.env.SMARTPING_SERIE || ''
   }
 
   // Générer le timestamp au format YYYYMMDDHHMMSSmmm
@@ -46,12 +39,15 @@ export class SmartPingAPI {
   }
 
   private async request(endpoint: string, params: Record<string, string> = {}): Promise<any> {
-    const serie = this.generateSerie()
+    if (!this.serie) {
+      throw new Error('SMARTPING_SERIE non configuré. Appelez /api/smartping-init.')
+    }
+    
     const tm = this.generateTimestamp()
     const tmc = this.encryptTimestamp(tm)
 
     const searchParams = new URLSearchParams({
-      serie,
+      serie: this.serie,
       tm,
       tmc,
       id: this.appId,
