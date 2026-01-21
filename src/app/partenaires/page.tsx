@@ -10,7 +10,7 @@ export default async function PartenairesPage() {
     .from('partners')
     .select('*')
     .eq('is_active', true)
-    .order('display_order')
+    .order('position')
 
   // Grouper par catégorie
   const partnersByCategory = {

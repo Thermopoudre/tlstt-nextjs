@@ -37,6 +37,13 @@ export default async function HomePage() {
     .order('start_time')
     .limit(3)
 
+  // Récupérer les partenaires pour le carrousel
+  const { data: partners } = await supabase
+    .from('partners')
+    .select('*')
+    .eq('is_active', true)
+    .order('position')
+
   return (
     <div>
       {/* Hero Section */}
@@ -268,6 +275,47 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Partenaires Carrousel */}
+      {partners && partners.length > 0 && (
+        <section className="py-12 bg-gray-100">
+          <div className="container-custom">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-primary mb-2">Nos Partenaires</h2>
+              <p className="text-gray-600">Merci à nos partenaires pour leur soutien</p>
+            </div>
+            <div className="flex flex-wrap justify-center items-center gap-8">
+              {partners.map((partner) => (
+                <a
+                  key={partner.id}
+                  href={partner.website_url || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="grayscale hover:grayscale-0 transition-all duration-300 opacity-70 hover:opacity-100"
+                  title={partner.name}
+                >
+                  {partner.logo_url ? (
+                    <img
+                      src={partner.logo_url}
+                      alt={partner.name}
+                      className="h-16 w-auto object-contain"
+                    />
+                  ) : (
+                    <div className="h-16 px-6 bg-white rounded-lg shadow flex items-center justify-center">
+                      <span className="font-bold text-gray-600">{partner.name}</span>
+                    </div>
+                  )}
+                </a>
+              ))}
+            </div>
+            <div className="text-center mt-8">
+              <Link href="/partenaires" className="text-primary hover:underline font-semibold">
+                Voir tous nos partenaires →
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   )
 }
