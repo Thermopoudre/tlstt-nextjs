@@ -5,11 +5,11 @@ import Image from 'next/image'
 export default async function JoueursPage() {
   const supabase = await createClient()
 
-  // Récupérer tous les joueurs TLSTT
+  // Récupérer tous les joueurs TLSTT (admin_notes contient 'TLSTT')
   const { data: players, error } = await supabase
     .from('players')
     .select('*')
-    .eq('admin_notes', 'TLSTT')
+    .ilike('admin_notes', '%TLSTT%')
     .order('fftt_points_exact', { ascending: false })
 
   if (error) {
