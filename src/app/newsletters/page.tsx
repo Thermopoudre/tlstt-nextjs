@@ -18,10 +18,13 @@ export default async function NewslettersPage() {
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <div className="bg-gradient-to-r from-primary to-blue-800 text-white py-16">
+      <div className="bg-[#0f3057] py-16">
         <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Newsletters</h1>
-          <p className="text-xl text-gray-200">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            <i className="fas fa-envelope-open-text mr-3 text-[#5bc0de]"></i>
+            Newsletters
+          </h1>
+          <p className="text-xl text-white/80">
             Retrouvez toutes les actualités du club dans nos newsletters mensuelles
           </p>
         </div>
@@ -34,7 +37,7 @@ export default async function NewslettersPage() {
             {newsletters.map((newsletter) => (
               <article
                 key={newsletter.id}
-                className="card flex flex-col md:flex-row gap-6"
+                className="card flex flex-col md:flex-row gap-6 hover:border-[#5bc0de] transition-colors"
               >
                 {newsletter.cover_image_url && (
                   <div className="md:w-1/3">
@@ -48,7 +51,7 @@ export default async function NewslettersPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-4 text-sm text-gray-500 mb-2">
                     <span>
-                      <i className="fas fa-calendar mr-1"></i>
+                      <i className="fas fa-calendar mr-1 text-[#5bc0de]"></i>
                       {new Date(newsletter.published_at).toLocaleDateString('fr-FR', {
                         day: 'numeric',
                         month: 'long',
@@ -56,7 +59,7 @@ export default async function NewslettersPage() {
                       })}
                     </span>
                   </div>
-                  <h2 className="text-2xl font-bold text-primary mb-3">
+                  <h2 className="text-2xl font-bold text-[#0f3057] mb-3">
                     {newsletter.title}
                   </h2>
                   {newsletter.excerpt && (
@@ -64,8 +67,9 @@ export default async function NewslettersPage() {
                   )}
                   <Link
                     href={`/newsletters/${newsletter.id}`}
-                    className="btn-primary inline-block"
+                    className="inline-block bg-[#5bc0de] text-white px-6 py-2 rounded-full font-semibold hover:bg-[#4ab0ce] transition-colors"
                   >
+                    <i className="fas fa-book-open mr-2"></i>
                     Lire la newsletter
                   </Link>
                 </div>
@@ -81,17 +85,18 @@ export default async function NewslettersPage() {
         )}
 
         {/* Inscription newsletter */}
-        <div className="mt-12 bg-gradient-to-r from-gray-800 to-gray-900 text-white p-8 rounded-xl">
+        <div className="mt-12 bg-[#0f3057] text-white p-8 rounded-xl">
           <div className="max-w-2xl mx-auto text-center">
             <h3 className="text-2xl font-bold mb-4">
-              <i className="fas fa-bell mr-2"></i>
+              <i className="fas fa-bell mr-2 text-[#5bc0de]"></i>
               Restez informé !
             </h3>
-            <p className="text-gray-300 mb-6">
+            <p className="text-white/80 mb-6">
               Inscrivez-vous à notre newsletter pour recevoir les actualités du club
               directement dans votre boîte mail.
             </p>
-            <Link href="/newsletter" className="btn-primary bg-white text-gray-900 hover:bg-gray-100">
+            <Link href="/newsletter" className="inline-block bg-[#5bc0de] text-white px-8 py-3 rounded-full font-bold hover:bg-[#4ab0ce] transition-colors">
+              <i className="fas fa-envelope mr-2"></i>
               S'inscrire à la newsletter
             </Link>
           </div>
