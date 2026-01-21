@@ -1,51 +1,31 @@
 @import 'tailwindcss';
 
 @theme {
-  /* Thème sombre moderne inspiré ThermoGestion */
   --color-dark: #0a1628;
   --color-dark-light: #1e293b;
   --color-dark-card: rgba(30, 41, 59, 0.9);
-  
-  /* Couleurs accent */
   --color-accent-orange: #f97316;
   --color-accent-red: #ef4444;
   --color-accent-yellow: #ffd700;
   --color-accent-cyan: #00bfff;
-  
-  /* Legacy colors */
   --color-primary: #10325F;
   --color-primary-light: #1a4a7a;
   --color-secondary: #1f2937;
   --color-secondary-dark: #111827;
-  
-  /* Fonts */
   --font-family-sans: var(--font-open-sans), ui-sans-serif, system-ui;
   --font-family-heading: var(--font-montserrat), ui-sans-serif, system-ui;
 }
 
 body {
   font-family: var(--font-family-sans);
-  background-color: #0a1628;
-  color: #f8fafc;
+  background-color: #f4f6f9;
+  color: #2c3e50;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-family-heading);
   font-weight: 700;
-  color: #f8fafc;
-}
-
-h1 {
-  font-size: 2.5rem;
-  text-transform: uppercase;
-  letter-spacing: -0.02em;
-}
-
-h2 {
-  font-size: 2rem;
-  position: relative;
-  padding-bottom: 1rem;
-  margin-bottom: 2rem;
+  color: var(--color-primary);
 }
 
 .container-custom {
@@ -57,24 +37,24 @@ h2 {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-accent-orange), var(--color-accent-red));
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
   color: white;
   padding: 0.75rem 1.5rem;
   border-radius: 2rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+  box-shadow: 0 4px 15px rgba(16, 50, 95, 0.3);
 }
 
 .btn-primary:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4);
+  box-shadow: 0 8px 25px rgba(16, 50, 95, 0.4);
 }
 
 .btn-secondary {
   background-color: rgba(30, 41, 59, 0.8);
-  border: 1px solid rgba(249, 115, 22, 0.3);
-  color: #f8fafc;
+  border: 1px solid rgba(16, 50, 95, 0.3);
+  color: var(--color-primary);
   padding: 0.75rem 1.5rem;
   border-radius: 2rem;
   font-weight: 600;
@@ -82,39 +62,57 @@ h2 {
 }
 
 .btn-secondary:hover {
-  background: linear-gradient(135deg, var(--color-accent-orange), var(--color-accent-red));
-  border-color: transparent;
+  background: var(--color-primary);
   color: white;
 }
 
 .card {
-  background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
-  border: 1px solid rgba(249, 115, 22, 0.15);
+  background: white;
+  border: 1px solid rgba(16, 50, 95, 0.1);
   border-radius: 1rem;
   padding: 1.5rem;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .card:hover {
-  border-color: rgba(249, 115, 22, 0.5);
-  box-shadow: 0 15px 40px rgba(249, 115, 22, 0.15);
+  border-color: rgba(16, 50, 95, 0.3);
+  box-shadow: 0 15px 40px rgba(16, 50, 95, 0.1);
   transform: translateY(-2px);
 }
 
-/* Animation balle de ping-pong rebondissante */
+/* Animation fadeInUp */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.8s ease forwards;
+}
+
+/* Animation balle de ping-pong - PLUS PROCHE DU TEXTE */
 @keyframes pingPongBounce {
   0%, 100% {
-    transform: translateX(-50%) translateY(0) scale(1);
+    transform: translateX(-50%) translateY(0);
   }
-  25% {
-    transform: translateX(-50%) translateY(-12px) scale(0.95);
+  20% {
+    transform: translateX(-50%) translateY(-15px);
   }
-  50% {
-    transform: translateX(-50%) translateY(-5px) scale(1);
+  40% {
+    transform: translateX(-50%) translateY(-5px);
   }
-  75% {
-    transform: translateX(-50%) translateY(-8px) scale(0.98);
+  60% {
+    transform: translateX(-50%) translateY(-10px);
+  }
+  80% {
+    transform: translateX(-50%) translateY(-3px);
   }
 }
 
@@ -123,45 +121,47 @@ h2 {
   overflow: visible;
 }
 
+/* Balle directement sur le mot - position ajustée */
 .nav-item-animated .nav-link::before {
   content: '';
   position: absolute;
-  width: 10px;
-  height: 10px;
-  background: radial-gradient(circle at 30% 30%, #fff 0%, #f5f5f5 50%, #ddd 100%);
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle at 30% 30%, #fff 0%, #f5f5f5 50%, #e0e0e0 100%);
   border-radius: 50%;
   box-shadow: 
-    0 2px 4px rgba(0,0,0,0.3),
-    inset -1px -1px 3px rgba(0,0,0,0.1),
-    inset 1px 1px 3px rgba(255,255,255,0.8);
-  top: -12px;
+    0 1px 3px rgba(0,0,0,0.4),
+    inset -1px -1px 2px rgba(0,0,0,0.15),
+    inset 1px 1px 2px rgba(255,255,255,0.9);
+  bottom: 100%;
   left: 50%;
+  margin-bottom: 2px;
   transform: translateX(-50%) scale(0);
   opacity: 0;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   pointer-events: none;
 }
 
 .nav-item-animated:hover .nav-link::before {
   transform: translateX(-50%) scale(1);
   opacity: 1;
-  animation: pingPongBounce 0.5s ease-in-out infinite;
+  animation: pingPongBounce 0.6s ease-in-out infinite;
 }
 
-/* Scrollbar personnalisée */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a1628;
+  background: #f1f1f1;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #f97316, #ef4444);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #f97316;
+  background: var(--color-primary);
 }
