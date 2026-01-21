@@ -16,6 +16,8 @@ interface PlayerData {
   clGlob: string | null
   pointsOfficiel: number
   pointsMensuels: number
+  anciensPointsMensuels: number
+  pointsInitiaux: number
   ancienPoints: number
   clast: string | null
   categorie: string | null
@@ -27,6 +29,30 @@ interface PlayerData {
   place: string
   progressionAnnuelle: number
   progressionMensuelle: number
+  propositionClassement: string | null
+  valeurInitiale: number
+}
+
+interface Partie {
+  date: string
+  dateFormatted: string
+  adversaire: string
+  adversaireLicence: string | null
+  adversaireSexe: string | null
+  adversaireClassement: string | null
+  victoire: boolean
+  pointsResultat: number
+  coefficient: number
+  journee: string | null
+  codeChamp: string | null
+}
+
+interface Historique {
+  saison: string
+  phase: string
+  points: number
+  echelon: string | null
+  place: string | null
 }
 
 // GET - Récupère les données fraîches depuis SmartPing
@@ -41,7 +67,6 @@ export async function GET(request: Request, { params }: RouteParams) {
 
     // Vérifier si on a les credentials
     if (!appId || !password || !serie) {
-      // Retourner les données Supabase existantes sans refresh
       const { data: player } = await supabase
         .from('players')
         .select('*')
@@ -51,7 +76,7 @@ export async function GET(request: Request, { params }: RouteParams) {
       return NextResponse.json({
         player,
         source: 'cache',
-        message: 'Credentials SmartPing manquants - données cache uniquement'
+        message: 'Credentials SmartPing manquants'
       })
     }
 
@@ -59,35 +84,43 @@ export async function GET(request: Request, { params }: RouteParams) {
     const tm = generateTimestamp()
     const tmc = encryptTimestamp(tm, password)
 
-    // Appels API en parallèle pour optimiser le temps
-    const [joueurResponse, partiesResponse, histoResponse] = await Promise.all([
-      // 1. Détails joueur (xml_joueur.php)
+    // Appels API en parallèle
+    const [joueurResponse, licenceBResponse, partiesResponse, histoResponse] = await Promise.all([
+      // 1. Détails joueur base classement (xml_joueur.php)
       fetch(`https://www.fftt.com/mobile/pxml/xml_joueur.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=${licence}`, { cache: 'no-store' }),
-      // 2. Parties jouées (xml_partie_mysql.php)
+      // 2. Détails licence + classement (xml_licence_b.php) - contient pointm, apointm, initm
+      fetch(`https://www.fftt.com/mobile/pxml/xml_licence_b.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=${licence}`, { cache: 'no-store' }),
+      // 3. Parties jouées (xml_partie_mysql.php)
       fetch(`https://www.fftt.com/mobile/pxml/xml_partie_mysql.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=${licence}`, { cache: 'no-store' }),
-      // 3. Historique classement (xml_histo_classement.php)
+      // 4. Historique classement (xml_histo_classement.php)
       fetch(`https://www.fftt.com/mobile/pxml/xml_histo_classement.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&numlic=${licence}`, { cache: 'no-store' })
     ])
 
-    const [joueurXml, partiesXml, histoXml] = await Promise.all([
+    const [joueurXml, licenceBXml, partiesXml, histoXml] = await Promise.all([
       joueurResponse.text(),
+      licenceBResponse.text(),
       partiesResponse.text(),
       histoResponse.text()
     ])
 
-    // Parser les données joueur
-    const playerData = parseJoueurXml(joueurXml)
-    
-    // Parser les parties
+    // Parser les données
+    const playerData = parseJoueurXml(joueurXml, licenceBXml)
     const parties = parsePartiesXml(partiesXml)
-    
-    // Parser l'historique
     const historique = parseHistoXml(histoXml)
 
     // Calculer les statistiques
     const stats = calculateStats(parties)
 
-    // Mettre à jour Supabase avec les nouvelles données
+    // Calculer les progressions
+    if (playerData && historique.length > 0) {
+      // Progression annuelle = points actuels - points début saison
+      playerData.progressionAnnuelle = playerData.pointsMensuels - playerData.pointsInitiaux
+      
+      // Progression mensuelle = points actuels - anciens points mensuels
+      playerData.progressionMensuelle = playerData.pointsMensuels - playerData.anciensPointsMensuels
+    }
+
+    // Mettre à jour Supabase
     if (playerData) {
       const { data: existingPlayer } = await supabase
         .from('players')
@@ -119,20 +152,25 @@ export async function GET(request: Request, { params }: RouteParams) {
     return NextResponse.json({
       player: {
         ...player,
-        // Enrichir avec données SmartPing
+        // Enrichir avec toutes les données SmartPing
         pointsMensuels: playerData?.pointsMensuels,
+        anciensPointsMensuels: playerData?.anciensPointsMensuels,
+        pointsInitiaux: playerData?.pointsInitiaux,
         progressionAnnuelle: playerData?.progressionAnnuelle,
         progressionMensuelle: playerData?.progressionMensuelle,
         rangDepartemental: playerData?.rangDep,
         rangRegional: playerData?.rangReg,
-        rangNational: playerData?.rangNat,
+        rangNational: playerData?.rangNat || playerData?.clGlob,
         classementGlobal: playerData?.clGlob,
         nationalite: playerData?.natio,
         categorie: playerData?.categorie,
         echelon: playerData?.echelon,
-        place: playerData?.place
+        place: playerData?.place,
+        propositionClassement: playerData?.propositionClassement,
+        valeurInitiale: playerData?.valeurInitiale,
+        classementOfficiel: playerData?.clast
       },
-      parties: parties.slice(0, 20), // 20 dernières parties
+      parties, // TOUTES les parties (pas de limite)
       historique,
       stats,
       source: 'api',
@@ -142,7 +180,6 @@ export async function GET(request: Request, { params }: RouteParams) {
   } catch (error: any) {
     console.error('Erreur API player:', error)
     
-    // En cas d'erreur, retourner les données cache
     const { data: player } = await supabase
       .from('players')
       .select('*')
@@ -160,56 +197,113 @@ export async function GET(request: Request, { params }: RouteParams) {
   }
 }
 
-// Parser XML joueur
-function parseJoueurXml(xml: string): PlayerData | null {
-  if (!xml || xml.includes('<erreur>')) return null
+// Parser XML joueur (combine xml_joueur et xml_licence_b)
+function parseJoueurXml(joueurXml: string, licenceBXml: string): PlayerData | null {
+  if (!joueurXml && !licenceBXml) return null
+  if (joueurXml.includes('<erreur>') && licenceBXml.includes('<erreur>')) return null
 
-  const getValue = (tag: string): string | null => {
-    const match = xml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`))
+  const getValueFromJoueur = (tag: string): string | null => {
+    const match = joueurXml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`))
     return match ? match[1] : null
   }
 
+  const getValueFromLicence = (tag: string): string | null => {
+    const match = licenceBXml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`))
+    return match ? match[1] : null
+  }
+
+  // Priorité aux données de xml_licence_b (plus complètes)
+  const pointm = getValueFromLicence('pointm') || getValueFromJoueur('point')
+  const apointm = getValueFromLicence('apointm') || getValueFromJoueur('apoint')
+  const initm = getValueFromLicence('initm') || getValueFromJoueur('valinit')
+
   return {
-    licence: getValue('licence'),
-    nom: getValue('nom'),
-    prenom: getValue('prenom'),
-    club: getValue('club'),
-    nclub: getValue('nclub'),
-    natio: getValue('natio'),
-    clGlob: getValue('clglob'),
-    pointsOfficiel: parseInt(getValue('point') || '0'),
-    pointsMensuels: parseInt(getValue('point') || '0'),
-    ancienPoints: parseInt(getValue('apoint') || '0'),
-    clast: getValue('clast'),
-    categorie: getValue('categ'),
-    rangReg: getValue('rangreg'),
-    rangDep: getValue('rangdep'),
-    rangNat: getValue('rangnat') || getValue('clglob'), // Rang national ou classement global
-    valCla: parseInt(getValue('valcla') || '0'),
-    echelon: getValue('echelon') || '',
-    place: getValue('place') || '',
+    licence: getValueFromLicence('licence') || getValueFromJoueur('licence'),
+    nom: getValueFromLicence('nom') || getValueFromJoueur('nom'),
+    prenom: getValueFromLicence('prenom') || getValueFromJoueur('prenom'),
+    club: getValueFromLicence('nomclub') || getValueFromJoueur('club'),
+    nclub: getValueFromLicence('numclub') || getValueFromJoueur('nclub'),
+    natio: getValueFromLicence('natio') || getValueFromJoueur('natio'),
+    clGlob: getValueFromJoueur('clglob'),
+    pointsOfficiel: parseInt(getValueFromJoueur('valcla') || getValueFromLicence('point') || '0'),
+    pointsMensuels: parseInt(pointm || '0'),
+    anciensPointsMensuels: parseInt(apointm || '0'),
+    pointsInitiaux: parseInt(initm || '0'),
+    ancienPoints: parseInt(getValueFromJoueur('apoint') || '0'),
+    clast: getValueFromJoueur('clast'),
+    categorie: getValueFromLicence('cat') || getValueFromJoueur('categ'),
+    rangReg: getValueFromJoueur('rangreg'),
+    rangDep: getValueFromJoueur('rangdep'),
+    rangNat: getValueFromJoueur('clglob'),
+    valCla: parseInt(getValueFromJoueur('valcla') || '0'),
+    echelon: getValueFromLicence('echelon') || '',
+    place: getValueFromLicence('place') || '',
     progressionAnnuelle: 0,
-    progressionMensuelle: 0
+    progressionMensuelle: 0,
+    propositionClassement: getValueFromJoueur('clpro'),
+    valeurInitiale: parseInt(getValueFromJoueur('valinit') || initm || '0')
+  }
+}
+
+// Parser date française DD/MM/YYYY -> ISO string
+function parseFrenchDate(dateStr: string | null): string {
+  if (!dateStr) return ''
+  
+  // Format DD/MM/YYYY ou D/M/YYYY
+  const parts = dateStr.split('/')
+  if (parts.length === 3) {
+    const day = parts[0].padStart(2, '0')
+    const month = parts[1].padStart(2, '0')
+    const year = parts[2]
+    return `${year}-${month}-${day}`
+  }
+  
+  // Déjà au format ISO ou autre
+  return dateStr
+}
+
+// Formater date pour affichage
+function formatDateForDisplay(dateStr: string | null): string {
+  if (!dateStr) return '-'
+  
+  const isoDate = parseFrenchDate(dateStr)
+  if (!isoDate) return '-'
+  
+  try {
+    const date = new Date(isoDate)
+    if (isNaN(date.getTime())) return '-'
+    
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    })
+  } catch {
+    return '-'
   }
 }
 
 // Parser XML parties
-function parsePartiesXml(xml: string) {
+function parsePartiesXml(xml: string): Partie[] {
   if (!xml || xml.includes('<erreur>')) return []
 
-  const parties: any[] = []
+  const parties: Partie[] = []
   const partieMatches = xml.matchAll(/<partie>([\s\S]*?)<\/partie>/g)
 
   for (const match of partieMatches) {
     const partieXml = match[1]
-    const getValue = (tag: string) => {
+    const getValue = (tag: string): string | null => {
       const m = partieXml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`))
       return m ? m[1] : null
     }
 
+    const rawDate = getValue('date')
+    const isoDate = parseFrenchDate(rawDate)
+
     parties.push({
-      date: getValue('date'),
-      adversaire: getValue('advnompre'),
+      date: isoDate, // ISO format pour tri
+      dateFormatted: formatDateForDisplay(rawDate), // Format affichage
+      adversaire: getValue('advnompre') || 'Inconnu',
       adversaireLicence: getValue('advlic'),
       adversaireSexe: getValue('advsexe'),
       adversaireClassement: getValue('advclaof'),
@@ -221,56 +315,73 @@ function parsePartiesXml(xml: string) {
     })
   }
 
+  // Trier par date décroissante
   return parties.sort((a, b) => {
-    const dateA = new Date(a.date || 0).getTime()
-    const dateB = new Date(b.date || 0).getTime()
-    return dateB - dateA
+    if (!a.date && !b.date) return 0
+    if (!a.date) return 1
+    if (!b.date) return -1
+    return b.date.localeCompare(a.date)
   })
 }
 
 // Parser XML historique
-function parseHistoXml(xml: string) {
+function parseHistoXml(xml: string): Historique[] {
   if (!xml || xml.includes('<erreur>')) return []
 
-  const historique: any[] = []
+  const historique: Historique[] = []
   const histoMatches = xml.matchAll(/<histo>([\s\S]*?)<\/histo>/g)
 
   for (const match of histoMatches) {
     const histoXml = match[1]
-    const getValue = (tag: string) => {
+    const getValue = (tag: string): string | null => {
       const m = histoXml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`))
       return m ? m[1] : null
     }
 
     historique.push({
-      saison: getValue('saison'),
-      phase: getValue('phase'),
+      saison: getValue('saison') || '',
+      phase: getValue('phase') || '',
       points: parseInt(getValue('point') || '0'),
       echelon: getValue('echelon'),
       place: getValue('place')
     })
   }
 
-  return historique
+  // Trier par saison décroissante puis phase
+  return historique.sort((a, b) => {
+    const saisonCompare = b.saison.localeCompare(a.saison)
+    if (saisonCompare !== 0) return saisonCompare
+    return parseInt(b.phase) - parseInt(a.phase)
+  })
 }
 
 // Calculer statistiques
-function calculateStats(parties: any[]) {
+function calculateStats(parties: Partie[]) {
   if (!parties.length) return null
 
   const victoires = parties.filter(p => p.victoire).length
   const defaites = parties.length - victoires
-  const pointsGagnes = parties.reduce((sum, p) => sum + (p.victoire ? p.pointsResultat : 0), 0)
-  const pointsPerdus = parties.reduce((sum, p) => sum + (!p.victoire ? Math.abs(p.pointsResultat) : 0), 0)
+  const pointsGagnes = parties
+    .filter(p => p.victoire)
+    .reduce((sum, p) => sum + p.pointsResultat, 0)
+  const pointsPerdus = parties
+    .filter(p => !p.victoire)
+    .reduce((sum, p) => sum + Math.abs(p.pointsResultat), 0)
+
+  // Stats par adversaire (niveau)
+  const contreSuperieur = parties.filter(p => {
+    const advCla = parseInt(p.adversaireClassement || '0')
+    return advCla > 0 // Simplifié, à améliorer
+  })
 
   return {
     total: parties.length,
     victoires,
     defaites,
     pourcentage: Math.round((victoires / parties.length) * 100),
-    pointsGagnes: Math.round(pointsGagnes),
-    pointsPerdus: Math.round(pointsPerdus),
-    bilan: Math.round(pointsGagnes - pointsPerdus)
+    pointsGagnes: Math.round(pointsGagnes * 10) / 10,
+    pointsPerdus: Math.round(pointsPerdus * 10) / 10,
+    bilan: Math.round((pointsGagnes - pointsPerdus) * 10) / 10
   }
 }
 
