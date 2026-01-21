@@ -67,6 +67,14 @@ export default async function HomePage() {
         }
       ]
 
+  // Images par défaut pour les actualités selon la catégorie
+  const defaultNewsImages: { [key: string]: string } = {
+    'club': 'https://images.unsplash.com/photo-1609710228159-0fa9bd7c0827?auto=format&fit=crop&w=800&q=80',
+    'tt': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80',
+    'handisport': 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=800&q=80',
+    'default': 'https://images.unsplash.com/photo-1534158914592-062992fbe900?auto=format&fit=crop&w=800&q=80'
+  }
+
   return (
     <div>
       {/* Hero Carousel Section */}
@@ -125,45 +133,50 @@ export default async function HomePage() {
 
         {latestNews && latestNews.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {latestNews.map((article: any) => (
-              <Link
-                key={article.id}
-                href={`/actualites/${article.category}/${article.id}`}
-                className="card group hover:shadow-xl transition-all duration-300 overflow-hidden"
-              >
-                {article.photo_url && (
-                  <div className="relative h-48 bg-gray-200 overflow-hidden">
-                    <Image
-                      src={article.photo_url}
+            {latestNews.map((article: any) => {
+              const imageUrl = article.photo_url || defaultNewsImages[article.category] || defaultNewsImages['default']
+              return (
+                <Link
+                  key={article.id}
+                  href={`/actualites/${article.category}/${article.id}`}
+                  className="card group hover:shadow-xl transition-all duration-300 overflow-hidden"
+                >
+                  <div className="relative h-48 bg-[#1a5a8a] overflow-hidden">
+                    <img
+                      src={imageUrl}
                       alt={article.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = defaultNewsImages['default']
+                      }}
                     />
+                    <div className="absolute top-3 left-3">
+                      <span className="bg-[#5bc0de] text-white px-3 py-1 rounded-full text-xs font-semibold uppercase">
+                        {article.category}
+                      </span>
+                    </div>
                   </div>
-                )}
-                <div className="p-5">
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                    <span className="bg-[#0f3057] text-white px-2 py-1 rounded text-xs font-semibold">
-                      {article.category}
+                  <div className="p-5">
+                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                      <i className="fas fa-calendar text-[#5bc0de]"></i>
+                      <span>{new Date(article.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-[#0f3057] mb-2 line-clamp-2 group-hover:text-[#5bc0de] transition-colors">
+                      {article.title}
+                    </h3>
+                    {article.excerpt && (
+                      <p className="text-gray-600 text-sm line-clamp-3 mb-3">
+                        {article.excerpt}
+                      </p>
+                    )}
+                    <span className="text-[#5bc0de] font-semibold text-sm flex items-center gap-1">
+                      Lire la suite
+                      <i className="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                     </span>
-                    <span>•</span>
-                    <span>{new Date(article.created_at).toLocaleDateString('fr-FR')}</span>
                   </div>
-                  <h3 className="text-xl font-bold text-[#0f3057] mb-2 line-clamp-2 group-hover:text-[#5bc0de] transition-colors">
-                    {article.title}
-                  </h3>
-                  {article.excerpt && (
-                    <p className="text-gray-600 text-sm line-clamp-3 mb-3">
-                      {article.excerpt}
-                    </p>
-                  )}
-                  <span className="text-[#5bc0de] font-semibold text-sm flex items-center gap-1">
-                    Lire la suite
-                    <i className="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                  </span>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              )
+            })}
           </div>
         ) : (
           <div className="text-center py-12 bg-[#e8f4f8] rounded-xl border border-[#5bc0de]/30">
@@ -272,8 +285,8 @@ export default async function HomePage() {
                 <i className="fas fa-user-plus text-3xl text-white"></i>
               </div>
               <div>
-                <h3 className="text-2xl font-bold mb-3 text-white">Nous Rejoindre</h3>
-                <p className="text-white/80 mb-6">
+                <h3 className="text-2xl font-bold mb-3 text-[#5bc0de]">Nous Rejoindre</h3>
+                <p className="text-white/90 mb-6">
                   Que vous soyez débutant ou confirmé, le TLSTT vous accueille toute l'année.
                   Première séance d'essai gratuite !
                 </p>
@@ -291,8 +304,8 @@ export default async function HomePage() {
                 <i className="fas fa-envelope-open-text text-3xl text-white"></i>
               </div>
               <div>
-                <h3 className="text-2xl font-bold mb-3 text-white">Newsletter</h3>
-                <p className="text-white/80 mb-6">
+                <h3 className="text-2xl font-bold mb-3 text-[#5bc0de]">Newsletter</h3>
+                <p className="text-white/90 mb-6">
                   Restez informé de toutes les actualités du club : événements, résultats, nouveautés...
                 </p>
                 <Link href="/newsletter" className="inline-block bg-[#5bc0de] text-white px-6 py-3 rounded-full font-bold hover:bg-[#4ab0ce] transition-colors">
@@ -323,20 +336,54 @@ export default async function HomePage() {
                   href={partner.website_url || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="grayscale hover:grayscale-0 transition-all duration-300 opacity-70 hover:opacity-100"
+                  className="bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center min-w-[150px] h-20"
                   title={partner.name}
                 >
                   {partner.logo_url ? (
-                    <img src={partner.logo_url} alt={partner.name} className="h-16 w-auto object-contain" />
-                  ) : (
-                    <div className="h-16 px-6 bg-white rounded-lg shadow flex items-center justify-center">
-                      <span className="font-bold text-gray-600">{partner.name}</span>
-                    </div>
-                  )}
+                    <img 
+                      src={partner.logo_url} 
+                      alt={partner.name} 
+                      className="max-h-12 max-w-[120px] object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none'
+                        ;(e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden')
+                      }}
+                    />
+                  ) : null}
+                  <span className={`font-bold text-[#0f3057] text-center ${partner.logo_url ? 'hidden' : ''}`}>
+                    {partner.name}
+                  </span>
                 </a>
               ))
             ) : (
-              <p className="text-gray-500">Partenaires à venir...</p>
+              /* Partenaires par défaut avec logos fonctionnels */
+              <>
+                <a href="https://www.la-seyne.fr" target="_blank" rel="noopener noreferrer" className="bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all">
+                  <div className="h-12 w-32 flex items-center justify-center">
+                    <span className="font-bold text-[#0f3057] text-sm text-center">Ville de La Seyne</span>
+                  </div>
+                </a>
+                <a href="https://www.toulon.fr" target="_blank" rel="noopener noreferrer" className="bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all">
+                  <div className="h-12 w-32 flex items-center justify-center">
+                    <span className="font-bold text-[#0f3057] text-sm text-center">Ville de Toulon</span>
+                  </div>
+                </a>
+                <a href="https://www.var.fr" target="_blank" rel="noopener noreferrer" className="bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all">
+                  <div className="h-12 w-32 flex items-center justify-center">
+                    <span className="font-bold text-[#0f3057] text-sm text-center">Département du Var</span>
+                  </div>
+                </a>
+                <a href="https://www.maregionsud.fr" target="_blank" rel="noopener noreferrer" className="bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all">
+                  <div className="h-12 w-32 flex items-center justify-center">
+                    <span className="font-bold text-[#0f3057] text-sm text-center">Région Sud</span>
+                  </div>
+                </a>
+                <a href="https://www.fftt.com" target="_blank" rel="noopener noreferrer" className="bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all">
+                  <div className="h-12 w-32 flex items-center justify-center">
+                    <span className="font-bold text-[#0f3057] text-sm text-center">FFTT</span>
+                  </div>
+                </a>
+              </>
             )}
           </div>
           <div className="text-center mt-8">
