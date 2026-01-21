@@ -7,6 +7,8 @@ type CarouselImage = {
   url: string
   title: string
   subtitle: string
+  buttonText?: string
+  buttonLink?: string
 }
 
 export default function HeroCarousel({ images }: { images: CarouselImage[] }) {
@@ -46,22 +48,32 @@ export default function HeroCarousel({ images }: { images: CarouselImage[] }) {
             <div className="text-center px-4 max-w-4xl">
               <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 animate-fadeInUp">
                 {image.title.split(' ').map((word, i) => (
-                  <span key={i} className={word === 'TLSTT' ? 'text-yellow-300' : ''}>
+                  <span key={i} className={word.toUpperCase() === 'TLSTT' || word.toLowerCase().includes('tennis') || word.toLowerCase().includes('table') ? 'text-cyan-300' : ''}>
                     {word}{' '}
                   </span>
                 ))}
               </h1>
-              <p className="text-xl md:text-2xl text-blue-100 mb-8 animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
+              <p className="text-xl md:text-2xl text-cyan-100 mb-8 animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
                 {image.subtitle}
               </p>
               <div className="flex flex-wrap justify-center gap-4 animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
-                <Link
-                  href="/club"
-                  className="bg-white text-primary px-8 py-4 rounded-full font-bold text-lg hover:bg-yellow-300 hover:scale-105 transition-all shadow-lg"
-                >
-                  <i className="fas fa-info-circle mr-2"></i>
-                  Découvrir le club
-                </Link>
+                {image.buttonText && image.buttonLink ? (
+                  <Link
+                    href={image.buttonLink}
+                    className="bg-cyan-400 text-primary px-8 py-4 rounded-full font-bold text-lg hover:bg-cyan-300 hover:scale-105 transition-all shadow-lg"
+                  >
+                    <i className="fas fa-arrow-right mr-2"></i>
+                    {image.buttonText}
+                  </Link>
+                ) : (
+                  <Link
+                    href="/club"
+                    className="bg-cyan-400 text-primary px-8 py-4 rounded-full font-bold text-lg hover:bg-cyan-300 hover:scale-105 transition-all shadow-lg"
+                  >
+                    <i className="fas fa-info-circle mr-2"></i>
+                    Découvrir le club
+                  </Link>
+                )}
                 <Link
                   href="/contact"
                   className="bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/30 transition-all border border-white/30"
@@ -78,13 +90,13 @@ export default function HeroCarousel({ images }: { images: CarouselImage[] }) {
       {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-all"
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-cyan-400/50 transition-all"
       >
         <i className="fas fa-chevron-left text-xl"></i>
       </button>
       <button
         onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-all"
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-cyan-400/50 transition-all"
       >
         <i className="fas fa-chevron-right text-xl"></i>
       </button>
@@ -97,7 +109,7 @@ export default function HeroCarousel({ images }: { images: CarouselImage[] }) {
             onClick={() => goToSlide(index)}
             className={`w-3 h-3 rounded-full transition-all ${
               index === currentIndex
-                ? 'bg-yellow-300 w-8'
+                ? 'bg-cyan-400 w-8'
                 : 'bg-white/50 hover:bg-white/80'
             }`}
           />
