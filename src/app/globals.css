@@ -1,17 +1,31 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-dark: #0a1628;
-  --color-dark-light: #1e293b;
-  --color-dark-card: rgba(30, 41, 59, 0.9);
-  --color-accent-orange: #f97316;
-  --color-accent-red: #ef4444;
-  --color-accent-yellow: #ffd700;
-  --color-accent-cyan: #00bfff;
-  --color-primary: #10325F;
-  --color-primary-light: #1a4a7a;
-  --color-secondary: #1f2937;
-  --color-secondary-dark: #111827;
+  /* Palette Méditerranée TLSTT - Inspirée du logo */
+  --color-dark: #0f3057;
+  --color-dark-light: #1a5a8a;
+  --color-dark-card: rgba(15, 48, 87, 0.9);
+  
+  /* Accent Jaune Soleil */
+  --color-accent-yellow: #f9c846;
+  --color-accent-yellow-light: #fbd872;
+  --color-accent-yellow-dark: #e5b52e;
+  
+  /* Bleu Cyan (secondaire) */
+  --color-accent-cyan: #5bc0de;
+  --color-accent-cyan-light: #8ad4e8;
+  --color-accent-cyan-dark: #3aa8c9;
+  
+  /* Rouge Raquette (alertes) */
+  --color-accent-red: #e63946;
+  
+  /* Couleurs principales */
+  --color-primary: #0f3057;
+  --color-primary-light: #1a5a8a;
+  --color-primary-medium: #2e86ab;
+  --color-secondary: #1a1a1a;
+  --color-secondary-dark: #0d0d0d;
+  
   --font-family-sans: var(--font-open-sans), ui-sans-serif, system-ui;
   --font-family-heading: var(--font-montserrat), ui-sans-serif, system-ui;
 }
@@ -37,24 +51,24 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
-  color: white;
+  background: linear-gradient(135deg, var(--color-accent-yellow), var(--color-accent-yellow-dark));
+  color: var(--color-primary);
   padding: 0.75rem 1.5rem;
   border-radius: 2rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(16, 50, 95, 0.3);
+  box-shadow: 0 4px 15px rgba(249, 200, 70, 0.4);
 }
 
 .btn-primary:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 25px rgba(16, 50, 95, 0.4);
+  box-shadow: 0 8px 25px rgba(249, 200, 70, 0.5);
 }
 
 .btn-secondary {
-  background-color: rgba(30, 41, 59, 0.8);
-  border: 1px solid rgba(16, 50, 95, 0.3);
-  color: var(--color-primary);
+  background-color: rgba(91, 192, 222, 0.2);
+  border: 1px solid var(--color-accent-cyan);
+  color: white;
   padding: 0.75rem 1.5rem;
   border-radius: 2rem;
   font-weight: 600;
@@ -62,13 +76,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-secondary:hover {
-  background: var(--color-primary);
-  color: white;
+  background: var(--color-accent-cyan);
+  color: var(--color-primary);
 }
 
 .card {
   background: white;
-  border: 1px solid rgba(16, 50, 95, 0.1);
+  border: 1px solid rgba(15, 48, 87, 0.1);
   border-radius: 1rem;
   padding: 1.5rem;
   transition: all 0.3s ease;
@@ -76,8 +90,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .card:hover {
-  border-color: rgba(16, 50, 95, 0.3);
-  box-shadow: 0 15px 40px rgba(16, 50, 95, 0.1);
+  border-color: rgba(249, 200, 70, 0.5);
+  box-shadow: 0 15px 40px rgba(15, 48, 87, 0.15);
   transform: translateY(-2px);
 }
 
@@ -97,7 +111,7 @@ h1, h2, h3, h4, h5, h6 {
   animation: fadeInUp 0.8s ease forwards;
 }
 
-/* Animation balle de ping-pong - PLUS PROCHE DU TEXTE */
+/* Animation balle de ping-pong */
 @keyframes pingPongBounce {
   0%, 100% {
     transform: translateX(-50%) translateY(0);
@@ -121,7 +135,6 @@ h1, h2, h3, h4, h5, h6 {
   overflow: visible;
 }
 
-/* Balle directement sur le mot - position ajustée */
 .nav-item-animated .nav-link::before {
   content: '';
   position: absolute;

@@ -72,40 +72,40 @@ export default async function HomePage() {
       {/* Hero Carousel Section */}
       <HeroCarousel images={carouselImages} />
 
-      {/* Stats Section - FOND BLEU */}
-      <section className="py-12 bg-gradient-to-r from-primary to-blue-800">
+      {/* Stats Section - Bleu marine avec accent jaune */}
+      <section className="py-12 bg-gradient-to-r from-[#0f3057] to-[#1a5a8a]">
         <div className="container-custom">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center hover:scale-105 transition-transform">
-              <div className="w-12 h-12 bg-white/20 rounded-full mx-auto mb-3 flex items-center justify-center">
-                <i className="fas fa-users text-2xl text-white"></i>
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center hover:scale-105 transition-transform hover:border-[#f9c846]/50">
+              <div className="w-12 h-12 bg-[#f9c846]/20 rounded-full mx-auto mb-3 flex items-center justify-center">
+                <i className="fas fa-users text-2xl text-[#f9c846]"></i>
               </div>
               <div className="text-4xl font-bold text-white mb-1">{totalPlayers || 200}+</div>
-              <div className="text-sm text-cyan-200">Licenciés</div>
+              <div className="text-sm text-[#5bc0de]">Licenciés</div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center hover:scale-105 transition-transform">
-              <div className="w-12 h-12 bg-white/20 rounded-full mx-auto mb-3 flex items-center justify-center">
-                <i className="fas fa-trophy text-2xl text-white"></i>
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center hover:scale-105 transition-transform hover:border-[#f9c846]/50">
+              <div className="w-12 h-12 bg-[#f9c846]/20 rounded-full mx-auto mb-3 flex items-center justify-center">
+                <i className="fas fa-trophy text-2xl text-[#f9c846]"></i>
               </div>
               <div className="text-4xl font-bold text-white mb-1">12</div>
-              <div className="text-sm text-cyan-200">Équipes</div>
+              <div className="text-sm text-[#5bc0de]">Équipes</div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center hover:scale-105 transition-transform">
-              <div className="w-12 h-12 bg-white/20 rounded-full mx-auto mb-3 flex items-center justify-center">
-                <i className="fas fa-calendar-alt text-2xl text-white"></i>
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center hover:scale-105 transition-transform hover:border-[#f9c846]/50">
+              <div className="w-12 h-12 bg-[#f9c846]/20 rounded-full mx-auto mb-3 flex items-center justify-center">
+                <i className="fas fa-calendar-alt text-2xl text-[#f9c846]"></i>
               </div>
               <div className="text-4xl font-bold text-white mb-1">70+</div>
-              <div className="text-sm text-cyan-200">Ans d'histoire</div>
+              <div className="text-sm text-[#5bc0de]">Ans d'histoire</div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center hover:scale-105 transition-transform">
-              <div className="w-12 h-12 bg-white/20 rounded-full mx-auto mb-3 flex items-center justify-center">
-                <i className="fas fa-images text-2xl text-white"></i>
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center hover:scale-105 transition-transform hover:border-[#f9c846]/50">
+              <div className="w-12 h-12 bg-[#f9c846]/20 rounded-full mx-auto mb-3 flex items-center justify-center">
+                <i className="fas fa-images text-2xl text-[#f9c846]"></i>
               </div>
               <div className="text-4xl font-bold text-white mb-1">{totalAlbums || 3}</div>
-              <div className="text-sm text-cyan-200">Albums Photos</div>
+              <div className="text-sm text-[#5bc0de]">Albums Photos</div>
             </div>
           </div>
         </div>
@@ -114,11 +114,11 @@ export default async function HomePage() {
       {/* Dernières actualités */}
       <section className="py-16 container-custom">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-bold text-primary">
-            <i className="fas fa-newspaper mr-3 text-cyan-500"></i>
+          <h2 className="text-3xl font-bold text-[#0f3057]">
+            <i className="fas fa-newspaper mr-3 text-[#f9c846]"></i>
             Dernières Actualités
           </h2>
-          <Link href="/actualites/club" className="text-cyan-600 hover:underline font-semibold">
+          <Link href="/actualites/club" className="text-[#1a5a8a] hover:text-[#f9c846] font-semibold transition-colors">
             Voir toutes les actualités →
           </Link>
         </div>
@@ -143,13 +143,13 @@ export default async function HomePage() {
                 )}
                 <div className="p-5">
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                    <span className="bg-primary text-white px-2 py-1 rounded text-xs font-semibold">
+                    <span className="bg-[#0f3057] text-white px-2 py-1 rounded text-xs font-semibold">
                       {article.category}
                     </span>
                     <span>•</span>
                     <span>{new Date(article.created_at).toLocaleDateString('fr-FR')}</span>
                   </div>
-                  <h3 className="text-xl font-bold text-primary mb-2 line-clamp-2 group-hover:text-cyan-600 transition-colors">
+                  <h3 className="text-xl font-bold text-[#0f3057] mb-2 line-clamp-2 group-hover:text-[#1a5a8a] transition-colors">
                     {article.title}
                   </h3>
                   {article.excerpt && (
@@ -157,7 +157,7 @@ export default async function HomePage() {
                       {article.excerpt}
                     </p>
                   )}
-                  <span className="text-cyan-600 font-semibold text-sm flex items-center gap-1">
+                  <span className="text-[#f9c846] font-semibold text-sm flex items-center gap-1">
                     Lire la suite
                     <i className="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                   </span>
@@ -166,17 +166,17 @@ export default async function HomePage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 bg-blue-50 rounded-xl border border-blue-100">
-            <i className="fas fa-newspaper text-4xl text-blue-300 mb-3"></i>
-            <p className="text-blue-600">Aucune actualité pour le moment</p>
+          <div className="text-center py-12 bg-[#5bc0de]/10 rounded-xl border border-[#5bc0de]/30">
+            <i className="fas fa-newspaper text-4xl text-[#5bc0de] mb-3"></i>
+            <p className="text-[#1a5a8a]">Aucune actualité pour le moment</p>
           </div>
         )}
       </section>
 
-      {/* Prochains entraînements - FOND BLEU */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-primary">
+      {/* Prochains entraînements - Bleu moyen */}
+      <section className="py-16 bg-gradient-to-r from-[#1a5a8a] to-[#2e86ab]">
         <div className="container-custom">
-          <h2 className="text-3xl font-bold text-cyan-300 mb-8">
+          <h2 className="text-3xl font-bold text-[#f9c846] mb-8">
             <i className="fas fa-calendar-check mr-3"></i>
             Prochains Entraînements
           </h2>
@@ -185,18 +185,18 @@ export default async function HomePage() {
               nextTrainings.map((training: any) => {
                 const days = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
                 return (
-                  <div key={training.id} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
+                  <div key={training.id} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 hover:border-[#f9c846]/50 transition-all">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-cyan-400/30 rounded-full flex items-center justify-center flex-shrink-0">
-                        <i className="fas fa-table-tennis text-2xl text-cyan-300"></i>
+                      <div className="w-12 h-12 bg-[#f9c846]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i className="fas fa-table-tennis text-2xl text-[#f9c846]"></i>
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-bold text-cyan-200 mb-2">{training.activity_name}</h3>
-                        <div className="text-sm text-white/80 space-y-1">
-                          <p><i className="fas fa-calendar mr-2 text-cyan-300"></i>{days[training.day_of_week]}</p>
-                          <p><i className="fas fa-clock mr-2 text-cyan-300"></i>{training.start_time?.slice(0, 5)} - {training.end_time?.slice(0, 5)}</p>
+                        <h3 className="font-bold text-[#f9c846] mb-2">{training.activity_name}</h3>
+                        <div className="text-sm text-white/90 space-y-1">
+                          <p><i className="fas fa-calendar mr-2 text-[#5bc0de]"></i>{days[training.day_of_week]}</p>
+                          <p><i className="fas fa-clock mr-2 text-[#5bc0de]"></i>{training.start_time?.slice(0, 5)} - {training.end_time?.slice(0, 5)}</p>
                           {training.level && (
-                            <p><i className="fas fa-user mr-2 text-cyan-300"></i>{training.level}</p>
+                            <p><i className="fas fa-user mr-2 text-[#5bc0de]"></i>{training.level}</p>
                           )}
                         </div>
                       </div>
@@ -206,47 +206,47 @@ export default async function HomePage() {
               })
             ) : (
               <>
-                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
+                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 hover:border-[#f9c846]/50 transition-all">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-cyan-400/30 rounded-full flex items-center justify-center flex-shrink-0">
-                      <i className="fas fa-table-tennis text-2xl text-cyan-300"></i>
+                    <div className="w-12 h-12 bg-[#f9c846]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                      <i className="fas fa-table-tennis text-2xl text-[#f9c846]"></i>
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-bold text-cyan-200 mb-2">École de Ping</h3>
-                      <div className="text-sm text-white/80 space-y-1">
-                        <p><i className="fas fa-calendar mr-2 text-cyan-300"></i>Mercredi</p>
-                        <p><i className="fas fa-clock mr-2 text-cyan-300"></i>14:00 - 16:00</p>
-                        <p><i className="fas fa-user mr-2 text-cyan-300"></i>Débutants</p>
+                      <h3 className="font-bold text-[#f9c846] mb-2">École de Ping</h3>
+                      <div className="text-sm text-white/90 space-y-1">
+                        <p><i className="fas fa-calendar mr-2 text-[#5bc0de]"></i>Mercredi</p>
+                        <p><i className="fas fa-clock mr-2 text-[#5bc0de]"></i>14:00 - 16:00</p>
+                        <p><i className="fas fa-user mr-2 text-[#5bc0de]"></i>Débutants</p>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
+                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 hover:border-[#f9c846]/50 transition-all">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-cyan-400/30 rounded-full flex items-center justify-center flex-shrink-0">
-                      <i className="fas fa-table-tennis text-2xl text-cyan-300"></i>
+                    <div className="w-12 h-12 bg-[#f9c846]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                      <i className="fas fa-table-tennis text-2xl text-[#f9c846]"></i>
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-bold text-cyan-200 mb-2">Jeunes Perfectionnement</h3>
-                      <div className="text-sm text-white/80 space-y-1">
-                        <p><i className="fas fa-calendar mr-2 text-cyan-300"></i>Mercredi</p>
-                        <p><i className="fas fa-clock mr-2 text-cyan-300"></i>16:00 - 18:00</p>
-                        <p><i className="fas fa-user mr-2 text-cyan-300"></i>Intermédiaire</p>
+                      <h3 className="font-bold text-[#f9c846] mb-2">Jeunes Perfectionnement</h3>
+                      <div className="text-sm text-white/90 space-y-1">
+                        <p><i className="fas fa-calendar mr-2 text-[#5bc0de]"></i>Mercredi</p>
+                        <p><i className="fas fa-clock mr-2 text-[#5bc0de]"></i>16:00 - 18:00</p>
+                        <p><i className="fas fa-user mr-2 text-[#5bc0de]"></i>Intermédiaire</p>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
+                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 hover:border-[#f9c846]/50 transition-all">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-cyan-400/30 rounded-full flex items-center justify-center flex-shrink-0">
-                      <i className="fas fa-table-tennis text-2xl text-cyan-300"></i>
+                    <div className="w-12 h-12 bg-[#f9c846]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                      <i className="fas fa-table-tennis text-2xl text-[#f9c846]"></i>
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-bold text-cyan-200 mb-2">Loisirs</h3>
-                      <div className="text-sm text-white/80 space-y-1">
-                        <p><i className="fas fa-calendar mr-2 text-cyan-300"></i>Mercredi</p>
-                        <p><i className="fas fa-clock mr-2 text-cyan-300"></i>18:00 - 20:00</p>
-                        <p><i className="fas fa-user mr-2 text-cyan-300"></i>Débutants</p>
+                      <h3 className="font-bold text-[#f9c846] mb-2">Loisirs</h3>
+                      <div className="text-sm text-white/90 space-y-1">
+                        <p><i className="fas fa-calendar mr-2 text-[#5bc0de]"></i>Mercredi</p>
+                        <p><i className="fas fa-clock mr-2 text-[#5bc0de]"></i>18:00 - 20:00</p>
+                        <p><i className="fas fa-user mr-2 text-[#5bc0de]"></i>Débutants</p>
                       </div>
                     </div>
                   </div>
@@ -255,7 +255,7 @@ export default async function HomePage() {
             )}
           </div>
           <div className="text-center mt-8">
-            <Link href="/planning" className="inline-block bg-cyan-400 text-primary px-8 py-3 rounded-full font-bold hover:bg-cyan-300 transition-colors">
+            <Link href="/planning" className="inline-block bg-[#f9c846] text-[#0f3057] px-8 py-3 rounded-full font-bold hover:bg-[#fbd872] transition-colors shadow-lg">
               <i className="fas fa-calendar-alt mr-2"></i>
               Voir tout le planning
             </Link>
@@ -263,21 +263,21 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section - FOND BLEU */}
+      {/* CTA Section */}
       <section className="py-16 container-custom">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-gradient-to-br from-primary to-blue-700 rounded-2xl text-white p-8">
+          <div className="bg-gradient-to-br from-[#0f3057] to-[#1a5a8a] rounded-2xl text-white p-8 hover:shadow-2xl transition-shadow">
             <div className="flex items-start gap-6">
-              <div className="w-16 h-16 bg-cyan-400/30 rounded-full flex items-center justify-center flex-shrink-0">
-                <i className="fas fa-user-plus text-3xl text-cyan-300"></i>
+              <div className="w-16 h-16 bg-[#f9c846]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                <i className="fas fa-user-plus text-3xl text-[#f9c846]"></i>
               </div>
               <div>
-                <h3 className="text-2xl font-bold mb-3 text-cyan-200">Nous Rejoindre</h3>
+                <h3 className="text-2xl font-bold mb-3 text-[#f9c846]">Nous Rejoindre</h3>
                 <p className="text-white/80 mb-6">
                   Que vous soyez débutant ou confirmé, le TLSTT vous accueille toute l'année.
                   Première séance d'essai gratuite !
                 </p>
-                <Link href="/contact" className="inline-block bg-cyan-400 text-primary px-6 py-3 rounded-full font-bold hover:bg-cyan-300 transition-colors">
+                <Link href="/contact" className="inline-block bg-[#f9c846] text-[#0f3057] px-6 py-3 rounded-full font-bold hover:bg-[#fbd872] transition-colors">
                   <i className="fas fa-envelope mr-2"></i>
                   S'inscrire
                 </Link>
@@ -285,17 +285,17 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-800 to-blue-900 rounded-2xl text-white p-8">
+          <div className="bg-gradient-to-br from-[#1a5a8a] to-[#2e86ab] rounded-2xl text-white p-8 hover:shadow-2xl transition-shadow">
             <div className="flex items-start gap-6">
-              <div className="w-16 h-16 bg-cyan-400/30 rounded-full flex items-center justify-center flex-shrink-0">
-                <i className="fas fa-envelope-open-text text-3xl text-cyan-300"></i>
+              <div className="w-16 h-16 bg-[#f9c846]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                <i className="fas fa-envelope-open-text text-3xl text-[#f9c846]"></i>
               </div>
               <div>
-                <h3 className="text-2xl font-bold mb-3 text-cyan-200">Newsletter</h3>
+                <h3 className="text-2xl font-bold mb-3 text-[#f9c846]">Newsletter</h3>
                 <p className="text-white/80 mb-6">
                   Restez informé de toutes les actualités du club : événements, résultats, nouveautés...
                 </p>
-                <Link href="/newsletter" className="inline-block bg-cyan-400 text-primary px-6 py-3 rounded-full font-bold hover:bg-cyan-300 transition-colors">
+                <Link href="/newsletter" className="inline-block bg-[#f9c846] text-[#0f3057] px-6 py-3 rounded-full font-bold hover:bg-[#fbd872] transition-colors">
                   <i className="fas fa-paper-plane mr-2"></i>
                   S'abonner
                 </Link>
@@ -306,11 +306,11 @@ export default async function HomePage() {
       </section>
 
       {/* Partenaires */}
-      <section className="py-12 bg-gradient-to-r from-blue-50 to-cyan-50">
+      <section className="py-12 bg-gradient-to-r from-[#5bc0de]/10 to-[#f9c846]/10">
         <div className="container-custom">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-primary mb-2">
-              <i className="fas fa-handshake mr-3 text-cyan-500"></i>
+            <h2 className="text-3xl font-bold text-[#0f3057] mb-2">
+              <i className="fas fa-handshake mr-3 text-[#f9c846]"></i>
               Nos Partenaires
             </h2>
             <p className="text-gray-600">Merci à nos partenaires pour leur soutien</p>
@@ -340,7 +340,7 @@ export default async function HomePage() {
             )}
           </div>
           <div className="text-center mt-8">
-            <Link href="/partenaires" className="text-cyan-600 hover:underline font-semibold">
+            <Link href="/partenaires" className="text-[#1a5a8a] hover:text-[#f9c846] font-semibold transition-colors">
               Voir tous nos partenaires →
             </Link>
           </div>
