@@ -22,7 +22,7 @@ export async function GET() {
 
   try {
     // Appeler xml_initialisation.php pour valider le numéro de série
-    const url = `http://www.fftt.com/mobile/pxml/xml_initialisation.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}`
+    const url = `https://www.fftt.com/mobile/pxml/xml_initialisation.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}`
     
     console.log('🔄 Initialisation SmartPing...')
     console.log('URL:', url.replace(tmc, '***'))

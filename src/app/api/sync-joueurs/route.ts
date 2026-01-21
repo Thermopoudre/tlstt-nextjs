@@ -31,7 +31,7 @@ export async function POST() {
     const tmc = encryptTimestamp(tm, password)
 
     // Utiliser xml_licence_b.php qui retourne les infos complètes avec points mensuels
-    const url = `http://www.fftt.com/mobile/pxml/xml_licence_b.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&club=${clubId}`
+    const url = `https://www.fftt.com/mobile/pxml/xml_liste_joueur.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&club=${clubId}`
     
     console.log('🔄 Appel SmartPing API...')
     console.log('URL:', url.replace(tmc, '***'))
@@ -57,45 +57,27 @@ export async function POST() {
       }, { status: 500 })
     }
 
-    // Parser XML - format xml_licence_b.php
+    // Parser XML - format xml_liste_joueur.php avec <joueur>
     const joueurs: any[] = []
-    const licenceMatches = xmlText.matchAll(/<licence>([\s\S]*?)<\/licence>/g)
+    const joueurMatches = xmlText.matchAll(/<joueur>([\s\S]*?)<\/joueur>/g)
     
-    for (const match of licenceMatches) {
-      const licenceXml = match[1]
+    for (const match of joueurMatches) {
+      const joueurXml = match[1]
       
-      // Ne pas parser le tag <licence> interne (numéro de licence)
-      if (!licenceXml.includes('<nom>')) continue
+      const licence = joueurXml.match(/<licence>([^<]*)<\/licence>/)?.[1] || ''
+      const nom = joueurXml.match(/<nom>([^<]*)<\/nom>/)?.[1] || ''
+      const prenom = joueurXml.match(/<prenom>([^<]*)<\/prenom>/)?.[1] || ''
+      // clast = classement (ex: "5", "7", "NC", etc.)
+      const clast = joueurXml.match(/<clast>([^<]*)<\/clast>/)?.[1] || ''
       
-      const licence = licenceXml.match(/<licence>([^<]*)<\/licence>/)?.[1] || 
-                      licenceXml.match(/<nolicence>([^<]*)<\/nolicence>/)?.[1] || ''
-      const nom = licenceXml.match(/<nom>([^<]*)<\/nom>/)?.[1] || ''
-      const prenom = licenceXml.match(/<prenom>([^<]*)<\/prenom>/)?.[1] || ''
-      const point = licenceXml.match(/<point>([^<]*)<\/point>/)?.[1] || '500'
-      const pointm = licenceXml.match(/<pointm>([^<]*)<\/pointm>/)?.[1] || point
-      const cat = licenceXml.match(/<cat>([^<]*)<\/cat>/)?.[1] || ''
-      const sexe = licenceXml.match(/<sexe>([^<]*)<\/sexe>/)?.[1] || ''
+      // Extraire les points du classement (ex: "5" -> 500, "7" -> 700, "NC" -> 500)
+      let points = 500
+      if (clast && !isNaN(parseInt(clast))) {
+        points = parseInt(clast) * 100 // Classement * 100 = points approximatifs
+      }
       
       if (licence && nom) {
-        joueurs.push({ licence, nom, prenom, point, pointm, cat, sexe })
-      }
-    }
-
-    // Si xml_licence_b ne fonctionne pas, essayer xml_liste_joueur
-    if (joueurs.length === 0) {
-      const joueurMatches = xmlText.matchAll(/<joueur>([\s\S]*?)<\/joueur>/g)
-      
-      for (const match of joueurMatches) {
-        const joueurXml = match[1]
-        
-        const licence = joueurXml.match(/<licence>([^<]*)<\/licence>/)?.[1] || ''
-        const nom = joueurXml.match(/<nom>([^<]*)<\/nom>/)?.[1] || ''
-        const prenom = joueurXml.match(/<prenom>([^<]*)<\/prenom>/)?.[1] || ''
-        const clast = joueurXml.match(/<clast>([^<]*)<\/clast>/)?.[1] || '500'
-        
-        if (licence && nom) {
-          joueurs.push({ licence, nom, prenom, point: clast, pointm: clast, cat: '', sexe: '' })
-        }
+        joueurs.push({ licence, nom, prenom, points, clast })
       }
     }
 
@@ -121,10 +103,10 @@ export async function POST() {
       const playerData = {
         first_name: joueur.prenom,
         last_name: joueur.nom,
-        fftt_points: parseInt(joueur.point) || 500,
-        fftt_points_exact: parseFloat(joueur.pointm) || parseInt(joueur.point) || 500,
-        category: joueur.cat,
-        admin_notes: 'TLSTT',
+        fftt_points: joueur.points,
+        fftt_points_exact: joueur.points,
+        category: joueur.clast, // Utiliser clast comme catégorie temporaire
+        admin_notes: 'TLSTT - Sync API',
         updated_at: new Date().toISOString(),
       }
 

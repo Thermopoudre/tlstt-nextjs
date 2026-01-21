@@ -5,7 +5,7 @@ export class SmartPingAPI {
   private appId: string
   private password: string
   private serie: string
-  private baseUrl = 'http://www.fftt.com/mobile/pxml'
+  private baseUrl = 'https://www.fftt.com/mobile/pxml'
 
   constructor() {
     this.appId = process.env.SMARTPING_APP_ID || ''

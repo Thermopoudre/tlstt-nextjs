@@ -31,13 +31,13 @@ export async function GET() {
 
   try {
     // Tester avec xml_licence_b.php
-    const url = `http://www.fftt.com/mobile/pxml/xml_licence_b.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&club=${clubId}`
+    const url = `https://www.fftt.com/mobile/pxml/xml_liste_joueur.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&club=${clubId}`
     
     const response = await fetch(url, { cache: 'no-store' })
     const xmlText = await response.text()
     
-    // Compter les joueurs/licenciés trouvés
-    const joueurCount = (xmlText.match(/<licence>/g) || []).length / 2 // Divisé par 2 car <licence> apparaît aussi comme tag interne
+    // Compter les joueurs trouvés (balises <joueur>)
+    const joueurCount = (xmlText.match(/<joueur>/g) || []).length
     const hasError = xmlText.toLowerCase().includes('erreur') || xmlText.toLowerCase().includes('error')
     
     return NextResponse.json({
