@@ -24,41 +24,53 @@ export default async function Footer() {
   const hasSocial = Object.values(socialLinks).some((link) => link)
 
   return (
-    <footer className="bg-white shadow-lg mt-auto">
+    <footer className="bg-[#0f3057] text-white mt-auto">
       <div className="max-w-7xl mx-auto px-5 py-8">
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Colonne gauche */}
+        <div className="grid md:grid-cols-3 gap-8">
+          {/* Colonne gauche - Logo et description */}
           <div>
-            <p className="text-gray-600 mb-4">
-              &copy; {new Date().getFullYear()} Toulon La Seyne Tennis de Table. Tous droits réservés.
+            <h3 className="text-xl font-bold mb-3">
+              <span className="text-white">Toulon La Seyne</span>{' '}
+              <span className="text-[#5bc0de]">Tennis de Table</span>
+            </h3>
+            <p className="text-gray-400 text-sm mb-4">
+              Club de tennis de table affilié à la FFTT, accueillant joueurs de tous niveaux.
             </p>
-            <div className="flex gap-4">
-              <Link
-                href="/mentions-legales"
-                className="text-gray-600 hover:text-[#E31C23] transition-colors"
-              >
+          </div>
+
+          {/* Colonne centrale - Liens */}
+          <div>
+            <h4 className="font-bold text-[#5bc0de] mb-3">Liens utiles</h4>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <Link href="/mentions-legales" className="text-gray-400 hover:text-[#5bc0de] transition-colors">
                 Mentions Légales
               </Link>
-              <Link
-                href="/admin"
-                className="text-gray-600 hover:text-[#E31C23] transition-colors"
-              >
+              <Link href="/politique-confidentialite" className="text-gray-400 hover:text-[#5bc0de] transition-colors">
+                Confidentialité
+              </Link>
+              <Link href="/politique-cookies" className="text-gray-400 hover:text-[#5bc0de] transition-colors">
+                Cookies
+              </Link>
+              <Link href="/contact" className="text-gray-400 hover:text-[#5bc0de] transition-colors">
+                Contact
+              </Link>
+              <Link href="/admin" className="text-gray-400 hover:text-[#5bc0de] transition-colors">
                 Administration
               </Link>
             </div>
           </div>
 
           {/* Colonne droite - Réseaux sociaux */}
-          {hasSocial && (
-            <div className="md:text-right">
-              <div className="flex md:justify-end items-center gap-3">
-                <strong className="text-gray-700">Suivez-nous :</strong>
+          <div>
+            <h4 className="font-bold text-[#5bc0de] mb-3">Suivez-nous</h4>
+            {hasSocial ? (
+              <div className="flex items-center gap-3">
                 {socialLinks.social_facebook && (
                   <a
                     href={socialLinks.social_facebook}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#10325F] hover:text-[#E31C23] text-xl transition-colors"
+                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-[#5bc0de] transition-colors"
                     title="Facebook"
                   >
                     <i className="fab fa-facebook-f"></i>
@@ -69,7 +81,7 @@ export default async function Footer() {
                     href={socialLinks.social_instagram}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#10325F] hover:text-[#E31C23] text-xl transition-colors"
+                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-[#5bc0de] transition-colors"
                     title="Instagram"
                   >
                     <i className="fab fa-instagram"></i>
@@ -80,7 +92,7 @@ export default async function Footer() {
                     href={socialLinks.social_tiktok}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#10325F] hover:text-[#E31C23] text-xl transition-colors"
+                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-[#5bc0de] transition-colors"
                     title="TikTok"
                   >
                     <i className="fab fa-tiktok"></i>
@@ -91,7 +103,7 @@ export default async function Footer() {
                     href={socialLinks.social_youtube}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#10325F] hover:text-[#E31C23] text-xl transition-colors"
+                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-[#5bc0de] transition-colors"
                     title="YouTube"
                   >
                     <i className="fab fa-youtube"></i>
@@ -102,15 +114,22 @@ export default async function Footer() {
                     href={socialLinks.social_twitter}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#10325F] hover:text-[#E31C23] text-xl transition-colors"
+                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-[#5bc0de] transition-colors"
                     title="X (Twitter)"
                   >
                     <i className="fab fa-x-twitter"></i>
                   </a>
                 )}
               </div>
-            </div>
-          )}
+            ) : (
+              <p className="text-gray-400 text-sm">Bientôt disponible</p>
+            )}
+          </div>
+        </div>
+
+        {/* Copyright */}
+        <div className="border-t border-[#1a5a8a] mt-8 pt-6 text-center text-gray-400 text-sm">
+          <p>&copy; {new Date().getFullYear()} Toulon La Seyne Tennis de Table. Tous droits réservés.</p>
         </div>
       </div>
     </footer>

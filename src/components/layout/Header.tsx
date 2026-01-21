@@ -54,12 +54,12 @@ export default function Header() {
   ]
 
   return (
-    <header className="bg-gradient-to-r from-dark via-dark-light to-dark border-b border-accent-orange/20 sticky top-0 z-50">
+    <header className="bg-[#0f3057] border-b border-[#5bc0de]/20 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-5">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-4">
-            <div className="relative w-14 h-14 rounded-full border-2 border-accent-orange/50 overflow-hidden">
+            <div className="relative w-14 h-14 rounded-full border-2 border-[#5bc0de]/50 overflow-hidden bg-white">
               <Image
                 src="/logo.jpeg"
                 alt="TLSTT Logo"
@@ -69,13 +69,13 @@ export default function Header() {
             </div>
             <span className="font-heading text-xl font-extrabold leading-tight">
               <span className="text-white">Toulon La Seyne</span><br />
-              <span className="bg-gradient-to-r from-accent-orange to-accent-red bg-clip-text text-transparent">Tennis de Table</span>
+              <span className="text-[#5bc0de]">Tennis de Table</span>
             </span>
           </Link>
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden text-accent-orange text-2xl"
+            className="md:hidden text-[#5bc0de] text-2xl"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Menu"
           >
@@ -89,7 +89,7 @@ export default function Header() {
                 <li key={index} className="relative group nav-item-animated">
                   <Link
                     href={item.href}
-                    className="nav-link block px-4 py-2 font-semibold text-gray-300 hover:text-accent-orange transition-colors relative"
+                    className="nav-link block px-4 py-2 font-semibold text-gray-300 hover:text-[#5bc0de] transition-colors relative"
                   >
                     {item.label}
                     {item.submenu && (
@@ -99,12 +99,12 @@ export default function Header() {
 
                   {/* Submenu */}
                   {item.submenu && (
-                    <ul className="absolute left-0 top-full bg-dark-light border border-accent-orange/20 shadow-xl rounded-lg py-2 min-w-[220px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                    <ul className="absolute left-0 top-full bg-[#1a5a8a] border border-[#5bc0de]/20 shadow-xl rounded-lg py-2 min-w-[220px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0">
                       {item.submenu.map((subItem, subIndex) => (
                         <li key={subIndex}>
                           <Link
                             href={subItem.href}
-                            className="block px-6 py-2 text-gray-300 hover:bg-accent-orange/20 hover:text-accent-orange transition-colors"
+                            className="block px-6 py-2 text-gray-300 hover:bg-[#5bc0de]/20 hover:text-[#5bc0de] transition-colors"
                           >
                             {subItem.label}
                           </Link>
@@ -117,7 +117,7 @@ export default function Header() {
               <li>
                 <Link
                   href="/contact"
-                  className="block px-6 py-2 bg-gradient-to-r from-accent-orange to-accent-red text-white font-bold rounded-full hover:scale-105 hover:shadow-lg hover:shadow-accent-orange/30 transition-all ml-2"
+                  className="block px-6 py-2 bg-[#5bc0de] text-white font-bold rounded-full hover:bg-[#4ab0ce] transition-all ml-2"
                 >
                   Contact
                 </Link>
@@ -128,13 +128,13 @@ export default function Header() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <nav className="md:hidden pb-4 border-t border-accent-orange/20 mt-2 pt-4">
+          <nav className="md:hidden pb-4 border-t border-[#5bc0de]/20 mt-2 pt-4">
             <ul className="flex flex-col gap-2">
               {menuItems.map((item, index) => (
                 <li key={index}>
                   <Link
                     href={item.href}
-                    className="block px-4 py-2 font-semibold text-gray-300 hover:bg-accent-orange/20 hover:text-accent-orange rounded transition-colors"
+                    className="block px-4 py-2 font-semibold text-gray-300 hover:bg-[#5bc0de]/20 hover:text-[#5bc0de] rounded transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {item.label}
@@ -145,7 +145,7 @@ export default function Header() {
                         <li key={subIndex}>
                           <Link
                             href={subItem.href}
-                            className="block px-4 py-1 text-sm text-gray-400 hover:bg-accent-orange/10 hover:text-accent-orange rounded transition-colors"
+                            className="block px-4 py-1 text-sm text-gray-400 hover:bg-[#5bc0de]/10 hover:text-[#5bc0de] rounded transition-colors"
                             onClick={() => setMobileMenuOpen(false)}
                           >
                             {subItem.label}
