@@ -6,6 +6,29 @@ interface RouteParams {
   params: Promise<{ licence: string }>
 }
 
+interface PlayerData {
+  licence: string | null
+  nom: string | null
+  prenom: string | null
+  club: string | null
+  nclub: string | null
+  natio: string | null
+  clGlob: string | null
+  pointsOfficiel: number
+  pointsMensuels: number
+  ancienPoints: number
+  clast: string | null
+  categorie: string | null
+  rangReg: string | null
+  rangDep: string | null
+  rangNat: string | null
+  valCla: number
+  echelon: string
+  place: string
+  progressionAnnuelle: number
+  progressionMensuelle: number
+}
+
 // GET - Récupère les données fraîches depuis SmartPing
 export async function GET(request: Request, { params }: RouteParams) {
   const { licence } = await params
@@ -138,10 +161,10 @@ export async function GET(request: Request, { params }: RouteParams) {
 }
 
 // Parser XML joueur
-function parseJoueurXml(xml: string) {
+function parseJoueurXml(xml: string): PlayerData | null {
   if (!xml || xml.includes('<erreur>')) return null
 
-  const getValue = (tag: string) => {
+  const getValue = (tag: string): string | null => {
     const match = xml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`))
     return match ? match[1] : null
   }
@@ -155,16 +178,17 @@ function parseJoueurXml(xml: string) {
     natio: getValue('natio'),
     clGlob: getValue('clglob'),
     pointsOfficiel: parseInt(getValue('point') || '0'),
-    pointsMensuels: parseInt(getValue('point') || '0'), // point = situation mensuelle
+    pointsMensuels: parseInt(getValue('point') || '0'),
     ancienPoints: parseInt(getValue('apoint') || '0'),
     clast: getValue('clast'),
     categorie: getValue('categ'),
     rangReg: getValue('rangreg'),
     rangDep: getValue('rangdep'),
+    rangNat: getValue('rangnat') || getValue('clglob'), // Rang national ou classement global
     valCla: parseInt(getValue('valcla') || '0'),
-    echelon: getValue('echelon') || '', // N si classé national
-    place: getValue('place') || '', // rang si classé national
-    progressionAnnuelle: 0, // À calculer depuis historique
+    echelon: getValue('echelon') || '',
+    place: getValue('place') || '',
+    progressionAnnuelle: 0,
     progressionMensuelle: 0
   }
 }
