@@ -14,6 +14,8 @@ interface Player {
   last_sync: string | null
   // Données enrichies depuis API
   pointsMensuels?: number
+  anciensPointsMensuels?: number
+  pointsInitiaux?: number
   progressionAnnuelle?: number
   progressionMensuelle?: number
   rangDepartemental?: string
@@ -24,24 +26,28 @@ interface Player {
   categorie?: string
   echelon?: string
   place?: string
+  propositionClassement?: string
+  valeurInitiale?: number
+  classementOfficiel?: string
 }
 
 interface Partie {
   date: string
+  dateFormatted: string
   adversaire: string
-  adversaireClassement: string
+  adversaireClassement: string | null
   victoire: boolean
   pointsResultat: number
   coefficient: number
-  journee: string
+  journee: string | null
 }
 
 interface Historique {
   saison: string
   phase: string
   points: number
-  echelon?: string
-  place?: string
+  echelon?: string | null
+  place?: string | null
 }
 
 interface Stats {
@@ -67,6 +73,7 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastRefresh, setLastRefresh] = useState<string | null>(null)
   const [source, setSource] = useState<'cache' | 'api'>('cache')
+  const [showAllParties, setShowAllParties] = useState(false)
 
   // Fonction pour rafraîchir les données
   const refreshData = useCallback(async () => {
@@ -96,14 +103,12 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
     }
   }, [player.smartping_licence])
 
-  // Rafraîchir au chargement (après affichage initial)
+  // Rafraîchir au chargement
   useEffect(() => {
-    // Vérifier si les données ont plus d'1 heure
     const lastSync = player.last_sync ? new Date(player.last_sync) : null
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
     
     if (!lastSync || lastSync < oneHourAgo) {
-      // Données périmées, rafraîchir
       refreshData()
     }
   }, [player.last_sync, refreshData])
@@ -112,8 +117,16 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
   const isNational = player.category?.match(/^N(\d+)$/i)
   const nationalRank = isNational ? parseInt(isNational[1]) : null
 
-  // Points à afficher (priorité: pointsMensuels > fftt_points_exact > fftt_points)
+  // Points à afficher
   const displayPoints = player.pointsMensuels || player.fftt_points_exact || player.fftt_points || 0
+
+  // Parties à afficher (20 ou toutes)
+  const partiesToShow = showAllParties ? parties : parties.slice(0, 20)
+
+  // Calculer min/max pour le graphique
+  const historiqueReversed = [...historique].reverse()
+  const minPoints = historique.length > 0 ? Math.min(...historique.map(h => h.points)) - 50 : 500
+  const maxPoints = historique.length > 0 ? Math.max(...historique.map(h => h.points)) + 50 : 2000
 
   return (
     <div className="min-h-screen bg-[#0f3057]">
@@ -205,7 +218,7 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
             <div className={`text-4xl font-bold ${(player.progressionAnnuelle || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {(player.progressionAnnuelle || 0) > 0 ? '+' : ''}{player.progressionAnnuelle || 0}
             </div>
-            <div className="text-white/60 text-sm mt-1">Cette année</div>
+            <div className="text-white/60 text-sm mt-1">Cette saison</div>
           </div>
           <div className="bg-white/10 border border-white/20 rounded-2xl p-6 text-center">
             <div className="text-4xl font-bold text-white">{stats?.total || 0}</div>
@@ -213,38 +226,70 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
           </div>
         </div>
 
-        {/* Rangs */}
-        {(player.rangDepartemental || player.rangRegional || player.rangNational) && (
-          <div className="bg-white/10 border border-white/20 rounded-2xl p-6 mb-8">
+        {/* Données détaillées */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {/* Points détaillés */}
+          <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
             <h2 className="text-xl font-bold text-white mb-4">
-              <i className="fas fa-medal mr-2 text-[#5bc0de]"></i>Classements
+              <i className="fas fa-chart-line mr-2 text-[#5bc0de]"></i>Détail des points
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {player.rangDepartemental && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-[#5bc0de]">{player.rangDepartemental}</div>
-                  <div className="text-white/60 text-sm">Départemental</div>
-                </div>
-              )}
-              {player.rangRegional && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-[#5bc0de]">{player.rangRegional}</div>
-                  <div className="text-white/60 text-sm">Régional</div>
-                </div>
-              )}
-              {player.rangNational && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-[#5bc0de]">{player.rangNational}</div>
-                  <div className="text-white/60 text-sm">National</div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-white/70">Points mensuels actuels</span>
+                <span className="text-[#5bc0de] font-bold text-xl">{player.pointsMensuels || displayPoints}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-white/70">Anciens points mensuels</span>
+                <span className="text-white font-semibold">{player.anciensPointsMensuels || '-'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-white/70">Points début saison</span>
+                <span className="text-white font-semibold">{player.pointsInitiaux || player.valeurInitiale || '-'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-white/70">Classement officiel</span>
+                <span className="text-white font-semibold">{player.classementOfficiel || '-'}</span>
+              </div>
+              {player.propositionClassement && (
+                <div className="flex justify-between items-center">
+                  <span className="text-white/70">Proposition classement</span>
+                  <span className="text-yellow-400 font-semibold">{player.propositionClassement}</span>
                 </div>
               )}
             </div>
           </div>
-        )}
+
+          {/* Rangs */}
+          <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
+            <h2 className="text-xl font-bold text-white mb-4">
+              <i className="fas fa-medal mr-2 text-[#5bc0de]"></i>Classements
+            </h2>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-white/70">Rang départemental</span>
+                <span className="text-[#5bc0de] font-bold text-xl">{player.rangDepartemental || '-'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-white/70">Rang régional</span>
+                <span className="text-[#5bc0de] font-bold text-xl">{player.rangRegional || '-'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-white/70">Rang national</span>
+                <span className="text-[#5bc0de] font-bold text-xl">{player.rangNational || player.classementGlobal || '-'}</span>
+              </div>
+              {player.echelon === 'N' && player.place && (
+                <div className="flex justify-between items-center">
+                  <span className="text-white/70">Top France</span>
+                  <span className="text-yellow-400 font-bold">N{player.place}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
         {/* Stats Victoires/Défaites */}
         {stats && stats.total > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-green-500/20 border border-green-500/30 rounded-2xl p-6 text-center">
               <div className="text-4xl font-bold text-green-400">{stats.victoires}</div>
               <div className="text-green-300/70 text-sm mt-1">Victoires</div>
@@ -266,31 +311,94 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
           </div>
         )}
 
+        {/* Graphique d'évolution (simple) */}
+        {historique.length > 1 && (
+          <div className="bg-white/10 border border-white/20 rounded-2xl p-6 mb-8">
+            <h2 className="text-xl font-bold text-white mb-4">
+              <i className="fas fa-chart-area mr-2 text-[#5bc0de]"></i>Évolution du classement
+            </h2>
+            <div className="relative h-64 bg-white/5 rounded-xl p-4">
+              {/* Axe Y labels */}
+              <div className="absolute left-0 top-0 bottom-0 w-12 flex flex-col justify-between text-white/50 text-xs">
+                <span>{maxPoints}</span>
+                <span>{Math.round((maxPoints + minPoints) / 2)}</span>
+                <span>{minPoints}</span>
+              </div>
+              {/* Graphique */}
+              <div className="ml-14 h-full flex items-end gap-1">
+                {historiqueReversed.map((h, i) => {
+                  const height = ((h.points - minPoints) / (maxPoints - minPoints)) * 100
+                  return (
+                    <div
+                      key={i}
+                      className="flex-1 group relative"
+                      style={{ height: '100%' }}
+                    >
+                      <div
+                        className="absolute bottom-0 left-0 right-0 bg-[#5bc0de] rounded-t transition-all hover:bg-[#4ab0ce]"
+                        style={{ height: `${Math.max(height, 5)}%` }}
+                      >
+                        {/* Tooltip */}
+                        <div className="absolute -top-16 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          <div className="font-bold">{h.points} pts</div>
+                          <div>{h.saison} P{h.phase}</div>
+                          {h.echelon === 'N' && <div className="text-yellow-400">N{h.place}</div>}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              {/* Axe X labels */}
+              <div className="ml-14 mt-2 flex justify-between text-white/50 text-xs">
+                {historiqueReversed.length > 0 && (
+                  <>
+                    <span>{historiqueReversed[0]?.saison}</span>
+                    {historiqueReversed.length > 2 && <span>{historiqueReversed[Math.floor(historiqueReversed.length / 2)]?.saison}</span>}
+                    <span>{historiqueReversed[historiqueReversed.length - 1]?.saison}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Tableau des parties */}
         {parties.length > 0 && (
           <div className="bg-white/10 border border-white/20 rounded-2xl p-6 mb-8">
-            <h2 className="text-xl font-bold text-white mb-4">
-              <i className="fas fa-table-tennis mr-2 text-[#5bc0de]"></i>Dernières parties
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-white">
+                <i className="fas fa-table-tennis mr-2 text-[#5bc0de]"></i>Parties ({parties.length})
+              </h2>
+              {parties.length > 20 && (
+                <button
+                  onClick={() => setShowAllParties(!showAllParties)}
+                  className="text-[#5bc0de] hover:text-white text-sm"
+                >
+                  {showAllParties ? 'Voir moins' : `Voir toutes (${parties.length})`}
+                </button>
+              )}
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-white/20">
                     <th className="px-4 py-3 text-left text-sm font-semibold text-white/70">Date</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-white/70">Résultat</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-white/70">Rés.</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-white/70">Adversaire</th>
                     <th className="px-4 py-3 text-right text-sm font-semibold text-white/70">Cls.</th>
                     <th className="px-4 py-3 text-right text-sm font-semibold text-white/70">Points</th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-white/70">Coef.</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
-                  {parties.map((partie, index) => (
+                  {partiesToShow.map((partie, index) => (
                     <tr key={index} className="hover:bg-white/5 transition-colors">
                       <td className="px-4 py-3 text-sm text-white/80">
-                        {partie.date ? new Date(partie.date).toLocaleDateString('fr-FR') : '-'}
+                        {partie.dateFormatted || '-'}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`inline-block w-8 h-8 rounded-full ${partie.victoire ? 'bg-green-500' : 'bg-red-500'} text-white font-bold flex items-center justify-center mx-auto`}>
+                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${partie.victoire ? 'bg-green-500' : 'bg-red-500'} text-white font-bold text-sm`}>
                           {partie.victoire ? 'V' : 'D'}
                         </span>
                       </td>
@@ -298,10 +406,13 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
                         {partie.adversaire}
                       </td>
                       <td className="px-4 py-3 text-sm text-right text-white/70">
-                        {partie.adversaireClassement}
+                        {partie.adversaireClassement || '-'}
                       </td>
                       <td className={`px-4 py-3 text-sm text-right font-bold ${partie.victoire ? 'text-green-400' : 'text-red-400'}`}>
                         {partie.victoire ? '+' : ''}{partie.pointsResultat}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-white/50">
+                        {partie.coefficient}
                       </td>
                     </tr>
                   ))}
@@ -311,7 +422,7 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
           </div>
         )}
 
-        {/* Historique classement */}
+        {/* Historique classements par saison */}
         {historique.length > 0 && (
           <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
             <h2 className="text-xl font-bold text-white mb-4">
@@ -325,7 +436,7 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
                     {h.saison} - P{h.phase}
                   </div>
                   {h.echelon === 'N' && h.place && (
-                    <div className="mt-1 text-xs text-yellow-400">
+                    <div className="mt-1 text-xs text-yellow-400 font-bold">
                       N{h.place}
                     </div>
                   )}
