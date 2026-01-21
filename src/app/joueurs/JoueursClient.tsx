@@ -11,33 +11,34 @@ type Player = {
   fftt_points: string | number | null
   fftt_points_exact: number | null
   fftt_category: string | null
-  category: string | null
+  category: string | null  // Contains national ranking like "N506"
   admin_notes: string | null
 }
 
 type SortType = 'default' | 'name-asc' | 'name-desc' | 'points-asc' | 'points-desc'
 
-function parseClassement(points: string | number | null): { type: 'national' | 'points' | 'none'; nationalRank: number; pointsValue: number } {
-  if (points === null || points === undefined) return { type: 'none', nationalRank: 0, pointsValue: 0 }
+function parseNationalRanking(category: string | null): { isNational: boolean; rank: number } {
+  if (!category) return { isNational: false, rank: 0 }
   
-  const pointsStr = String(points).trim()
-  if (!pointsStr) return { type: 'none', nationalRank: 0, pointsValue: 0 }
-  
-  // Check for national ranking format: "N506" or "N 506" or just a number with N prefix
-  const nationalMatch = pointsStr.match(/N\s*(\d+)/i)
+  const categoryStr = String(category).trim()
+  // Check for national ranking format: "N506" or "N 506"
+  const nationalMatch = categoryStr.match(/^N\s*(\d+)$/i)
   if (nationalMatch) {
-    // Player is in top 1000 French ranking
-    // Lower number = better (N1 is best, N506 is 506th in France)
-    return { 
-      type: 'national', 
-      nationalRank: parseInt(nationalMatch[1]),
-      pointsValue: 0 // Will use fftt_points_exact for actual points
-    }
+    return { isNational: true, rank: parseInt(nationalMatch[1]) }
   }
   
-  // Otherwise, extract numeric points
-  const numericPoints = parseInt(pointsStr.replace(/[^0-9]/g, '')) || 0
-  return { type: 'points', nationalRank: 0, pointsValue: numericPoints }
+  return { isNational: false, rank: 0 }
+}
+
+function getPlayerPoints(player: Player): number {
+  if (player.fftt_points_exact) {
+    return Number(player.fftt_points_exact)
+  }
+  if (player.fftt_points) {
+    const points = Number(player.fftt_points)
+    return isNaN(points) ? 0 : points
+  }
+  return 0
 }
 
 export default function JoueursClient({ initialPlayers }: { initialPlayers: Player[] }) {
@@ -57,12 +58,10 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
     }
 
     filtered.sort((a, b) => {
-      const classA = parseClassement(a.fftt_points)
-      const classB = parseClassement(b.fftt_points)
-      
-      // Get actual points (fftt_points_exact is the real point value)
-      const pointsA = a.fftt_points_exact || classA.pointsValue
-      const pointsB = b.fftt_points_exact || classB.pointsValue
+      const rankA = parseNationalRanking(a.category)
+      const rankB = parseNationalRanking(b.category)
+      const pointsA = getPlayerPoints(a)
+      const pointsB = getPlayerPoints(b)
       
       const nameA = `${a.last_name || ''} ${a.first_name || ''}`.toLowerCase()
       const nameB = `${b.last_name || ''} ${b.first_name || ''}`.toLowerCase()
@@ -74,24 +73,24 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
           return nameB.localeCompare(nameA, 'fr')
         case 'points-asc':
           // Ascending by points (lowest first)
-          // National players first (they have high points), sorted by rank
-          if (classA.type === 'national' && classB.type !== 'national') return 1
-          if (classA.type !== 'national' && classB.type === 'national') return -1
-          if (classA.type === 'national' && classB.type === 'national') {
+          // National players last (they are the best)
+          if (rankA.isNational && !rankB.isNational) return 1
+          if (!rankA.isNational && rankB.isNational) return -1
+          if (rankA.isNational && rankB.isNational) {
             // Both national: higher rank number = worse = comes first in ascending
-            return classB.nationalRank - classA.nationalRank
+            return rankB.rank - rankA.rank
           }
           return pointsA - pointsB
         case 'points-desc':
         default:
           // Descending by points (highest/best first)
           // National players FIRST (they are the best - top 1000 France)
-          if (classA.type === 'national' && classB.type !== 'national') return -1
-          if (classA.type !== 'national' && classB.type === 'national') return 1
-          if (classA.type === 'national' && classB.type === 'national') {
+          if (rankA.isNational && !rankB.isNational) return -1
+          if (!rankA.isNational && rankB.isNational) return 1
+          if (rankA.isNational && rankB.isNational) {
             // Both national: lower rank number = better = comes first
-            // N506 (506) vs N800 (800): 506 - 800 = -294 (N506 comes first) CORRECT
-            return classA.nationalRank - classB.nationalRank
+            // N506 vs N800: 506 - 800 = -294 (N506 comes first)
+            return rankA.rank - rankB.rank
           }
           // Neither national: sort by points descending
           return pointsB - pointsA
@@ -101,12 +100,9 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
     return filtered
   }, [initialPlayers, sortType, searchTerm])
 
-  const nationalCount = initialPlayers.filter(p => parseClassement(p.fftt_points).type === 'national').length
+  const nationalCount = initialPlayers.filter(p => parseNationalRanking(p.category).isNational).length
   const avgPoints = initialPlayers.length > 0 
-    ? Math.round(initialPlayers.reduce((sum, p) => {
-        const classement = parseClassement(p.fftt_points)
-        return sum + (p.fftt_points_exact || classement.pointsValue)
-      }, 0) / initialPlayers.length)
+    ? Math.round(initialPlayers.reduce((sum, p) => sum + getPlayerPoints(p), 0) / initialPlayers.length)
     : 0
 
   const sortButtons: { type: SortType; label: string; icon: string }[] = [
@@ -116,17 +112,6 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
     { type: 'points-desc', label: 'Points -', icon: 'fa-sort-amount-down' },
     { type: 'points-asc', label: 'Points +', icon: 'fa-sort-amount-up' },
   ]
-
-  // Helper to display player points/ranking
-  const getPlayerDisplay = (player: Player) => {
-    const classement = parseClassement(player.fftt_points)
-    const points = player.fftt_points_exact || classement.pointsValue
-    return {
-      isNational: classement.type === 'national',
-      nationalRank: classement.nationalRank,
-      points: points
-    }
-  }
 
   return (
     <div className="min-h-screen bg-[#0f3057]">
@@ -219,7 +204,8 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
               {[1, 0, 2].map((idx, order) => {
                 const player = sortedPlayers[idx]
                 if (!player) return null
-                const display = getPlayerDisplay(player)
+                const ranking = parseNationalRanking(player.category)
+                const points = getPlayerPoints(player)
                 const medals = ['2e', '1er', '3e']
                 const borderColors = ['border-gray-300', 'border-[#5bc0de]', 'border-amber-600']
                 return (
@@ -232,13 +218,13 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
                       {player.first_name?.[0]}{player.last_name?.[0]}
                     </div>
                     <h4 className="text-xl font-bold mb-2 text-white">{player.first_name} {player.last_name}</h4>
-                    {display.isNational && (
+                    {ranking.isNational && (
                       <div className="inline-block bg-[#5bc0de] text-white px-3 py-1 rounded-full text-sm font-bold mb-2">
-                        <i className="fas fa-flag mr-1"></i> N{display.nationalRank} France
+                        <i className="fas fa-flag mr-1"></i> N{ranking.rank} France
                       </div>
                     )}
                     <div className="text-2xl font-bold text-[#5bc0de]">
-                      {display.points} pts
+                      {points} pts
                     </div>
                     <Link
                       href={`/joueurs/${player.smartping_licence}`}
@@ -262,16 +248,17 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
         {sortedPlayers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedPlayers.map((player, index) => {
-              const display = getPlayerDisplay(player)
+              const ranking = parseNationalRanking(player.category)
+              const points = getPlayerPoints(player)
               return (
                 <Link
                   key={player.id}
                   href={`/joueurs/${player.smartping_licence}`}
                   className={`bg-white/10 border rounded-2xl p-5 hover:-translate-y-1 hover:bg-white/15 transition-all group relative ${
-                    display.isNational ? 'border-[#5bc0de]/50' : 'border-white/20'
+                    ranking.isNational ? 'border-[#5bc0de]/50' : 'border-white/20'
                   }`}
                 >
-                  {display.isNational && (
+                  {ranking.isNational && (
                     <div className="absolute -top-3 right-4">
                       <i className="fas fa-trophy text-2xl text-[#5bc0de]"></i>
                     </div>
@@ -294,19 +281,19 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
                   </div>
                   <div className="mt-4 flex justify-between items-center">
                     <div>
-                      {display.isNational && (
+                      {ranking.isNational && (
                         <div className="inline-block bg-[#5bc0de] text-white px-2 py-1 rounded-full text-xs font-bold mb-1">
-                          <i className="fas fa-flag mr-1"></i> N{display.nationalRank}
+                          <i className="fas fa-flag mr-1"></i> N{ranking.rank}
                         </div>
                       )}
                       <div className="text-2xl font-bold text-[#5bc0de]">
-                        {display.points}
+                        {points}
                       </div>
                       <div className="text-white/60 text-xs">points</div>
                     </div>
-                    {player.fftt_category && (
+                    {player.category && !ranking.isNational && (
                       <span className="bg-white/20 text-white px-3 py-1 rounded-full text-xs border border-white/30">
-                        {player.fftt_category}
+                        {player.category}
                       </span>
                     )}
                   </div>
