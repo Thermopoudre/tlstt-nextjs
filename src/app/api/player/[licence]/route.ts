@@ -111,15 +111,6 @@ export async function GET(request: Request, { params }: RouteParams) {
     // Calculer les statistiques
     const stats = calculateStats(parties)
 
-    // Calculer les progressions
-    if (playerData && historique.length > 0) {
-      // Progression annuelle = points actuels - points début saison
-      playerData.progressionAnnuelle = playerData.pointsMensuels - playerData.pointsInitiaux
-      
-      // Progression mensuelle = points actuels - anciens points mensuels
-      playerData.progressionMensuelle = playerData.pointsMensuels - playerData.anciensPointsMensuels
-    }
-
     // Mettre à jour Supabase
     if (playerData) {
       const { data: existingPlayer } = await supabase
@@ -170,7 +161,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         valeurInitiale: playerData?.valeurInitiale,
         classementOfficiel: playerData?.clast
       },
-      parties, // TOUTES les parties (pas de limite)
+      parties,
       historique,
       stats,
       source: 'api',
@@ -217,6 +208,15 @@ function parseJoueurXml(joueurXml: string, licenceBXml: string): PlayerData | nu
   const apointm = getValueFromLicence('apointm') || getValueFromJoueur('apoint')
   const initm = getValueFromLicence('initm') || getValueFromJoueur('valinit')
 
+  // Calculer les valeurs numériques
+  const pointsMensuels = parseInt(pointm || '0')
+  const anciensPointsMensuels = parseInt(apointm || '0')
+  const pointsInitiaux = parseInt(initm || '0')
+
+  // Calculer les progressions
+  const progressionMensuelle = pointsMensuels - anciensPointsMensuels
+  const progressionAnnuelle = pointsMensuels - pointsInitiaux
+
   return {
     licence: getValueFromLicence('licence') || getValueFromJoueur('licence'),
     nom: getValueFromLicence('nom') || getValueFromJoueur('nom'),
@@ -226,9 +226,9 @@ function parseJoueurXml(joueurXml: string, licenceBXml: string): PlayerData | nu
     natio: getValueFromLicence('natio') || getValueFromJoueur('natio'),
     clGlob: getValueFromJoueur('clglob'),
     pointsOfficiel: parseInt(getValueFromJoueur('valcla') || getValueFromLicence('point') || '0'),
-    pointsMensuels: parseInt(pointm || '0'),
-    anciensPointsMensuels: parseInt(apointm || '0'),
-    pointsInitiaux: parseInt(initm || '0'),
+    pointsMensuels,
+    anciensPointsMensuels,
+    pointsInitiaux,
     ancienPoints: parseInt(getValueFromJoueur('apoint') || '0'),
     clast: getValueFromJoueur('clast'),
     categorie: getValueFromLicence('cat') || getValueFromJoueur('categ'),
@@ -238,10 +238,10 @@ function parseJoueurXml(joueurXml: string, licenceBXml: string): PlayerData | nu
     valCla: parseInt(getValueFromJoueur('valcla') || '0'),
     echelon: getValueFromLicence('echelon') || '',
     place: getValueFromLicence('place') || '',
-    progressionAnnuelle: 0,
-    progressionMensuelle: 0,
+    progressionAnnuelle,
+    progressionMensuelle,
     propositionClassement: getValueFromJoueur('clpro'),
-    valeurInitiale: parseInt(getValueFromJoueur('valinit') || initm || '0')
+    valeurInitiale: pointsInitiaux
   }
 }
 
@@ -258,7 +258,6 @@ function parseFrenchDate(dateStr: string | null): string {
     return `${year}-${month}-${day}`
   }
   
-  // Déjà au format ISO ou autre
   return dateStr
 }
 
@@ -266,11 +265,14 @@ function parseFrenchDate(dateStr: string | null): string {
 function formatDateForDisplay(dateStr: string | null): string {
   if (!dateStr) return '-'
   
-  const isoDate = parseFrenchDate(dateStr)
-  if (!isoDate) return '-'
+  // Si déjà au format DD/MM/YYYY, retourner tel quel
+  if (dateStr.includes('/')) {
+    return dateStr
+  }
   
+  // Sinon convertir depuis ISO
   try {
-    const date = new Date(isoDate)
+    const date = new Date(dateStr)
     if (isNaN(date.getTime())) return '-'
     
     return date.toLocaleDateString('fr-FR', {
@@ -302,7 +304,7 @@ function parsePartiesXml(xml: string): Partie[] {
 
     parties.push({
       date: isoDate, // ISO format pour tri
-      dateFormatted: formatDateForDisplay(rawDate), // Format affichage
+      dateFormatted: rawDate || '-', // Garder format original DD/MM/YYYY
       adversaire: getValue('advnompre') || 'Inconnu',
       adversaireLicence: getValue('advlic'),
       adversaireSexe: getValue('advsexe'),
@@ -367,12 +369,6 @@ function calculateStats(parties: Partie[]) {
   const pointsPerdus = parties
     .filter(p => !p.victoire)
     .reduce((sum, p) => sum + Math.abs(p.pointsResultat), 0)
-
-  // Stats par adversaire (niveau)
-  const contreSuperieur = parties.filter(p => {
-    const advCla = parseInt(p.adversaireClassement || '0')
-    return advCla > 0 // Simplifié, à améliorer
-  })
 
   return {
     total: parties.length,
