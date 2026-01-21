@@ -92,6 +92,7 @@ export async function POST() {
 
     let inserted = 0
     let updated = 0
+    const errors: { licence: string; error: string }[] = []
 
     for (const joueur of joueurs) {
       const { data: existing } = await supabase
@@ -111,11 +112,12 @@ export async function POST() {
       }
 
       if (existing) {
-        await supabase
+        const { error: updateError } = await supabase
           .from('players')
           .update(playerData)
           .eq('id', existing.id)
-        updated++
+        if (!updateError) updated++
+        else console.error('Update error:', updateError)
       } else {
         const { error } = await supabase
           .from('players')
@@ -123,7 +125,12 @@ export async function POST() {
             smartping_licence: joueur.licence,
             ...playerData,
           }])
-        if (!error) inserted++
+        if (!error) {
+          inserted++
+        } else {
+          // Log first error for debugging
+          if (errors.length < 5) errors.push({ licence: joueur.licence, error: error.message })
+        }
       }
     }
 
@@ -132,6 +139,7 @@ export async function POST() {
       total: joueurs.length,
       inserted,
       updated,
+      errors: errors.length > 0 ? errors : undefined,
       message: `✅ ${inserted} joueurs ajoutés, ${updated} mis à jour`
     })
   } catch (error: any) {
