@@ -1,13 +1,22 @@
 @import 'tailwindcss';
 
 @theme {
-  /* Couleurs TLSTT - Bleu/Blanc/Noir */
+  /* Thème sombre moderne inspiré ThermoGestion */
+  --color-dark: #0a1628;
+  --color-dark-light: #1e293b;
+  --color-dark-card: rgba(30, 41, 59, 0.9);
+  
+  /* Couleurs accent */
+  --color-accent-orange: #f97316;
+  --color-accent-red: #ef4444;
+  --color-accent-yellow: #ffd700;
+  --color-accent-cyan: #00bfff;
+  
+  /* Legacy colors */
   --color-primary: #10325F;
   --color-primary-light: #1a4a7a;
   --color-secondary: #1f2937;
   --color-secondary-dark: #111827;
-  --color-accent-yellow: #FFD700;
-  --color-accent-cyan: #00BFFF;
   
   /* Fonts */
   --font-family-sans: var(--font-open-sans), ui-sans-serif, system-ui;
@@ -16,12 +25,14 @@
 
 body {
   font-family: var(--font-family-sans);
+  background-color: #0a1628;
+  color: #f8fafc;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-family-heading);
   font-weight: 700;
-  color: var(--color-primary);
+  color: #f8fafc;
 }
 
 h1 {
@@ -46,43 +57,111 @@ h2 {
 }
 
 .btn-primary {
-  background-color: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-accent-orange), var(--color-accent-red));
   color: white;
   padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: 2rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
 }
 
 .btn-primary:hover {
-  background-color: var(--color-primary-light);
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4);
 }
 
 .btn-secondary {
-  background-color: var(--color-secondary);
-  color: white;
+  background-color: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  color: #f8fafc;
   padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: 2rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
 .btn-secondary:hover {
-  background-color: var(--color-secondary-dark);
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  background: linear-gradient(135deg, var(--color-accent-orange), var(--color-accent-red));
+  border-color: transparent;
+  color: white;
 }
 
 .card {
-  background-color: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(249, 115, 22, 0.15);
+  border-radius: 1rem;
   padding: 1.5rem;
   transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 .card:hover {
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  border-color: rgba(249, 115, 22, 0.5);
+  box-shadow: 0 15px 40px rgba(249, 115, 22, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Animation balle de ping-pong rebondissante */
+@keyframes pingPongBounce {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  25% {
+    transform: translateX(-50%) translateY(-12px) scale(0.95);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-5px) scale(1);
+  }
+  75% {
+    transform: translateX(-50%) translateY(-8px) scale(0.98);
+  }
+}
+
+.nav-item-animated .nav-link {
+  position: relative;
+  overflow: visible;
+}
+
+.nav-item-animated .nav-link::before {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: radial-gradient(circle at 30% 30%, #fff 0%, #f5f5f5 50%, #ddd 100%);
+  border-radius: 50%;
+  box-shadow: 
+    0 2px 4px rgba(0,0,0,0.3),
+    inset -1px -1px 3px rgba(0,0,0,0.1),
+    inset 1px 1px 3px rgba(255,255,255,0.8);
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  opacity: 0;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.nav-item-animated:hover .nav-link::before {
+  transform: translateX(-50%) scale(1);
+  opacity: 1;
+  animation: pingPongBounce 0.5s ease-in-out infinite;
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a1628;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #f97316, #ef4444);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #f97316;
 }

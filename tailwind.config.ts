@@ -9,6 +9,20 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Thème sombre moderne
+        dark: {
+          DEFAULT: '#0a1628',
+          light: '#1e293b',
+          card: 'rgba(30, 41, 59, 0.9)',
+        },
+        // Accents orange/rouge (style ThermoGestion)
+        accent: {
+          orange: '#f97316',
+          red: '#ef4444',
+          yellow: '#ffd700',
+          cyan: '#00bfff',
+        },
+        // Legacy
         primary: {
           DEFAULT: '#10325F',
           light: '#1a4a7a',
@@ -17,14 +31,19 @@ export default {
           DEFAULT: '#1f2937',
           dark: '#111827',
         },
-        accent: {
-          yellow: '#FFD700',
-          cyan: '#00BFFF',
-        },
       },
       fontFamily: {
         sans: ['var(--font-open-sans)', 'sans-serif'],
         heading: ['var(--font-montserrat)', 'sans-serif'],
+      },
+      animation: {
+        'ping-pong': 'pingPongBounce 0.5s ease-in-out infinite',
+      },
+      keyframes: {
+        pingPongBounce: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
       },
     },
   },
