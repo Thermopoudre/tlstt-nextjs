@@ -95,71 +95,75 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary to-blue-900 text-white">
+    <div className="min-h-screen bg-[#0f3057]">
       {/* Hero */}
-      <div className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-yellow-300 rounded-full blur-3xl"></div>
-        </div>
-        <div className="container-custom relative z-10 text-center">
+      <div className="py-16 bg-[#0f3057]">
+        <div className="container-custom text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-4 text-white">
-            🏓 NOS <span className="text-yellow-300">JOUEURS</span>
+            🏓 NOS <span className="text-[#5bc0de]">JOUEURS</span>
           </h1>
-          <p className="text-xl text-blue-100">L'effectif complet du club TLSTT classé par niveau</p>
+          <p className="text-xl text-white/80">L'effectif complet du club TLSTT classé par niveau</p>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="container-custom -mt-8 relative z-10 mb-8">
+      <div className="container-custom -mt-4 relative z-10 mb-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center hover:scale-105 transition-all">
-            <div className="text-3xl mb-2">👥</div>
-            <div className="text-4xl font-bold text-yellow-300">{initialPlayers.length}</div>
-            <div className="text-blue-100 text-sm">Joueurs Licenciés</div>
+          <div className="bg-white/10 border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-colors">
+            <div className="w-12 h-12 bg-[#5bc0de] rounded-full mx-auto mb-3 flex items-center justify-center">
+              <i className="fas fa-users text-2xl text-white"></i>
+            </div>
+            <div className="text-4xl font-bold text-white">{initialPlayers.length}</div>
+            <div className="text-[#5bc0de] text-sm">Joueurs Licenciés</div>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center hover:scale-105 transition-all">
-            <div className="text-3xl mb-2">🏆</div>
-            <div className="text-4xl font-bold text-yellow-300">{nationalCount}</div>
-            <div className="text-blue-100 text-sm">Classés Nationaux</div>
+          <div className="bg-white/10 border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-colors">
+            <div className="w-12 h-12 bg-[#5bc0de] rounded-full mx-auto mb-3 flex items-center justify-center">
+              <i className="fas fa-trophy text-2xl text-white"></i>
+            </div>
+            <div className="text-4xl font-bold text-white">{nationalCount}</div>
+            <div className="text-[#5bc0de] text-sm">Classés Nationaux</div>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center hover:scale-105 transition-all">
-            <div className="text-3xl mb-2">⭐</div>
-            <div className="text-4xl font-bold text-yellow-300">{avgPoints}</div>
-            <div className="text-blue-100 text-sm">Points Moyens</div>
+          <div className="bg-white/10 border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-colors">
+            <div className="w-12 h-12 bg-[#5bc0de] rounded-full mx-auto mb-3 flex items-center justify-center">
+              <i className="fas fa-star text-2xl text-white"></i>
+            </div>
+            <div className="text-4xl font-bold text-white">{avgPoints}</div>
+            <div className="text-[#5bc0de] text-sm">Points Moyens</div>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center hover:scale-105 transition-all">
-            <div className="text-3xl mb-2">🔄</div>
+          <div className="bg-white/10 border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-colors">
+            <div className="w-12 h-12 bg-[#5bc0de] rounded-full mx-auto mb-3 flex items-center justify-center">
+              <i className="fas fa-sync text-2xl text-white"></i>
+            </div>
             <div className="text-4xl font-bold text-green-400"><i className="fas fa-check"></i></div>
-            <div className="text-blue-100 text-sm">Sync FFTT</div>
+            <div className="text-[#5bc0de] text-sm">Sync FFTT</div>
           </div>
         </div>
       </div>
 
       <div className="container-custom pb-12">
         {/* Filtres */}
-        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 mb-8">
+        <div className="bg-white/10 border border-white/20 rounded-2xl p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4 mb-4">
             <div className="flex-1">
-              <label className="block text-sm font-semibold mb-2"><i className="fas fa-search mr-2"></i>Rechercher</label>
+              <label className="block text-sm font-semibold mb-2 text-white"><i className="fas fa-search mr-2"></i>Rechercher</label>
               <input
                 type="text"
                 placeholder="Nom, prénom ou licence..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-blue-200 focus:border-yellow-300 focus:outline-none"
+                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:border-[#5bc0de] focus:outline-none"
               />
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <span className="text-blue-100 mr-2 self-center">Trier par :</span>
+            <span className="text-white/80 mr-2 self-center">Trier par :</span>
             {sortButtons.map((btn) => (
               <button
                 key={btn.type}
                 onClick={() => setSortType(btn.type)}
                 className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                   sortType === btn.type
-                    ? 'bg-yellow-300 text-primary'
+                    ? 'bg-[#5bc0de] text-white'
                     : 'bg-white/10 border border-white/30 text-white hover:bg-white/20'
                 }`}
               >
@@ -172,7 +176,7 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
         {/* Top 3 */}
         {sortedPlayers.length >= 3 && sortType === 'default' && !searchTerm && (
           <div className="mb-12">
-            <h3 className="text-2xl font-bold text-center mb-6">🏅 <span className="text-yellow-300">TOP 3</span> DU CLUB</h3>
+            <h3 className="text-2xl font-bold text-center mb-6 text-white">🏅 <span className="text-[#5bc0de]">TOP 3</span> DU CLUB</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[1, 0, 2].map((idx, order) => {
                 const player = sortedPlayers[idx]
@@ -180,28 +184,28 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
                 const classement = parseClassement(player.fftt_points)
                 const isNational = classement.type === 'national'
                 const medals = ['🥈', '🥇', '🥉']
-                const borderColors = ['border-gray-300', 'border-yellow-400', 'border-amber-600']
+                const borderColors = ['border-gray-300', 'border-[#5bc0de]', 'border-amber-600']
                 return (
                   <div
                     key={player.id}
-                    className={`bg-white/10 backdrop-blur-sm border-2 ${borderColors[order]} rounded-2xl p-6 text-center ${order === 1 ? 'md:-mt-4' : ''}`}
+                    className={`bg-white/10 border-2 ${borderColors[order]} rounded-2xl p-6 text-center ${order === 1 ? 'md:-mt-4' : ''}`}
                   >
                     <div className="text-5xl mb-4">{medals[order]}</div>
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center text-2xl font-bold text-primary mx-auto mb-4">
+                    <div className="w-20 h-20 rounded-full bg-[#5bc0de] flex items-center justify-center text-2xl font-bold text-white mx-auto mb-4">
                       {player.first_name?.[0]}{player.last_name?.[0]}
                     </div>
-                    <h4 className="text-xl font-bold mb-2">{player.first_name} {player.last_name}</h4>
+                    <h4 className="text-xl font-bold mb-2 text-white">{player.first_name} {player.last_name}</h4>
                     {isNational && (
-                      <div className="inline-block bg-yellow-400 text-primary px-3 py-1 rounded-full text-sm font-bold mb-2">
+                      <div className="inline-block bg-[#5bc0de] text-white px-3 py-1 rounded-full text-sm font-bold mb-2">
                         🇫🇷 N{classement.value}
                       </div>
                     )}
-                    <div className="text-2xl font-bold text-yellow-300">
+                    <div className="text-2xl font-bold text-[#5bc0de]">
                       {player.fftt_points_exact || player.fftt_points} pts
                     </div>
                     <Link
                       href={`/joueurs/${player.smartping_licence}`}
-                      className="inline-block mt-4 px-6 py-2 bg-yellow-400 text-primary rounded-full font-semibold hover:bg-yellow-300 transition-all"
+                      className="inline-block mt-4 px-6 py-2 bg-[#5bc0de] text-white rounded-full font-semibold hover:bg-[#4ab0ce] transition-all"
                     >
                       Voir profil
                     </Link>
@@ -213,9 +217,9 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
         )}
 
         {/* Liste */}
-        <h4 className="text-xl font-bold mb-4">
+        <h4 className="text-xl font-bold mb-4 text-white">
           <i className="fas fa-list mr-2"></i>Tous les joueurs 
-          <span className="text-blue-200">({sortedPlayers.length})</span>
+          <span className="text-white/60">({sortedPlayers.length})</span>
         </h4>
 
         {sortedPlayers.length > 0 ? (
@@ -227,25 +231,25 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
                 <Link
                   key={player.id}
                   href={`/joueurs/${player.smartping_licence}`}
-                  className={`bg-white/10 backdrop-blur-sm border rounded-2xl p-5 hover:-translate-y-1 hover:bg-white/20 transition-all group relative ${
-                    isNational ? 'border-yellow-400/50' : 'border-white/20'
+                  className={`bg-white/10 border rounded-2xl p-5 hover:-translate-y-1 hover:bg-white/15 transition-all group relative ${
+                    isNational ? 'border-[#5bc0de]/50' : 'border-white/20'
                   }`}
                 >
                   {isNational && (
                     <div className="absolute -top-3 right-4 text-2xl">🏆</div>
                   )}
-                  <div className="absolute top-3 left-3 bg-black/30 px-2 py-1 rounded text-xs text-blue-200">
+                  <div className="absolute top-3 left-3 bg-black/30 px-2 py-1 rounded text-xs text-white/60">
                     #{index + 1}
                   </div>
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center text-xl font-bold text-primary flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full bg-[#5bc0de] flex items-center justify-center text-xl font-bold text-white flex-shrink-0">
                       {player.first_name?.[0]}{player.last_name?.[0]}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-bold text-lg group-hover:text-yellow-300 transition-colors">
+                      <h3 className="font-bold text-lg text-white group-hover:text-[#5bc0de] transition-colors">
                         {player.first_name} {player.last_name}
                       </h3>
-                      <div className="text-blue-200 text-sm">
+                      <div className="text-white/60 text-sm">
                         <i className="fas fa-id-card mr-1"></i>{player.smartping_licence}
                       </div>
                     </div>
@@ -253,14 +257,14 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
                   <div className="mt-4 flex justify-between items-center">
                     <div>
                       {isNational && (
-                        <div className="inline-block bg-yellow-400 text-primary px-2 py-1 rounded-full text-xs font-bold mb-1">
+                        <div className="inline-block bg-[#5bc0de] text-white px-2 py-1 rounded-full text-xs font-bold mb-1">
                           🇫🇷 N{classement.value}
                         </div>
                       )}
-                      <div className="text-2xl font-bold text-yellow-300">
+                      <div className="text-2xl font-bold text-[#5bc0de]">
                         {player.fftt_points_exact || player.fftt_points}
                       </div>
-                      <div className="text-blue-200 text-xs">points</div>
+                      <div className="text-white/60 text-xs">points</div>
                     </div>
                     {player.fftt_category && (
                       <span className="bg-white/20 text-white px-3 py-1 rounded-full text-xs border border-white/30">
@@ -273,10 +277,10 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
             })}
           </div>
         ) : (
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-12 text-center">
-            <i className="fas fa-search text-6xl text-blue-300 mb-4"></i>
-            <h3 className="text-2xl font-bold text-blue-100">Aucun joueur trouvé</h3>
-            <p className="text-blue-200">Modifiez vos critères de recherche</p>
+          <div className="bg-white/10 border border-white/20 rounded-2xl p-12 text-center">
+            <i className="fas fa-search text-6xl text-white/30 mb-4"></i>
+            <h3 className="text-2xl font-bold text-white/80">Aucun joueur trouvé</h3>
+            <p className="text-white/60">Modifiez vos critères de recherche</p>
           </div>
         )}
       </div>

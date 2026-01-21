@@ -9,27 +9,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Thème sombre moderne
-        dark: {
-          DEFAULT: '#0a1628',
-          light: '#1e293b',
-          card: 'rgba(30, 41, 59, 0.9)',
-        },
-        // Accents orange/rouge (style ThermoGestion)
-        accent: {
-          orange: '#f97316',
-          red: '#ef4444',
-          yellow: '#ffd700',
-          cyan: '#00bfff',
-        },
-        // Legacy
+        // Palette TLSTT - Bleus du logo (flat, sans dégradé)
         primary: {
-          DEFAULT: '#10325F',
-          light: '#1a4a7a',
+          DEFAULT: '#0f3057',
+          light: '#1a5a8a',
+          dark: '#0a2040',
         },
         secondary: {
-          DEFAULT: '#1f2937',
-          dark: '#111827',
+          DEFAULT: '#1a5a8a',
+          light: '#2e86ab',
+          dark: '#0f3057',
+        },
+        accent: {
+          DEFAULT: '#5bc0de',
+          light: '#8dd3e8',
+          dark: '#4ab0ce',
+        },
+        // Couleurs fonctionnelles
+        dark: {
+          DEFAULT: '#0f3057',
+          light: '#1a5a8a',
+          card: 'rgba(15, 48, 87, 0.95)',
         },
       },
       fontFamily: {
@@ -38,11 +38,16 @@ export default {
       },
       animation: {
         'ping-pong': 'pingPongBounce 0.5s ease-in-out infinite',
+        'fade-in-up': 'fadeInUp 0.8s ease forwards',
       },
       keyframes: {
         pingPongBounce: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-10px)' },
+        },
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(30px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },
     },
