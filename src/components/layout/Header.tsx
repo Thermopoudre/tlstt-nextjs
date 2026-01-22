@@ -41,7 +41,7 @@ export default function Header() {
       submenu: [
         { label: 'Calendrier', href: '/competitions' },
         { label: 'Classements', href: '/equipes' },
-        { label: 'Planning Entraînements', href: '/planning' },
+        { label: 'Planning', href: '/planning' },
       ],
     },
     {
@@ -51,7 +51,7 @@ export default function Header() {
         { label: 'À Propos', href: '/club/a-propos' },
         { label: 'Clubs PACA', href: '/clubs-paca' },
         { label: 'Galerie Photos', href: '/galerie' },
-        { label: 'Nos Partenaires', href: '/partenaires' },
+        { label: 'Partenaires', href: '/partenaires' },
       ],
     },
     { label: 'Contact', href: '/contact' },
@@ -60,11 +60,11 @@ export default function Header() {
   return (
     <>
       <header className="bg-[#0f3057] border-b border-[#5bc0de]/20 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-5">
-          <div className="flex items-center justify-between h-20">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-4">
-              <div className="relative w-14 h-14 rounded-full border-2 border-[#5bc0de]/50 overflow-hidden bg-white">
+            <Link href="/" className="flex items-center gap-3 flex-shrink-0">
+              <div className="relative w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-[#5bc0de]/50 overflow-hidden bg-white">
                 <Image
                   src="/logo.jpeg"
                   alt="TLSTT Logo"
@@ -72,7 +72,7 @@ export default function Header() {
                   className="object-contain"
                 />
               </div>
-              <span className="font-heading text-xl font-extrabold leading-tight">
+              <span className="font-heading text-sm lg:text-lg font-extrabold leading-tight hidden sm:block">
                 <span className="text-white">Toulon La Seyne</span><br />
                 <span className="text-[#5bc0de]">Tennis de Table</span>
               </span>
@@ -80,7 +80,7 @@ export default function Header() {
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden text-[#5bc0de] text-2xl"
+              className="lg:hidden text-[#5bc0de] text-2xl p-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Menu"
             >
@@ -88,28 +88,28 @@ export default function Header() {
             </button>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-2">
-              <ul className="flex gap-1">
+            <nav className="hidden lg:flex items-center">
+              <ul className="flex">
                 {menuItems.map((item, index) => (
-                  <li key={index} className="relative group nav-item-animated">
+                  <li key={index} className="relative group">
                     <Link
                       href={item.href}
-                      className="nav-link block px-4 py-2 font-semibold text-gray-300 hover:text-[#5bc0de] transition-colors relative"
+                      className="block px-3 py-2 text-sm font-semibold text-gray-300 hover:text-[#5bc0de] transition-colors"
                     >
                       {item.label}
                       {item.submenu && (
-                        <i className="fas fa-chevron-down ml-2 text-xs"></i>
+                        <i className="fas fa-chevron-down ml-1 text-[10px]"></i>
                       )}
                     </Link>
 
                     {/* Submenu */}
                     {item.submenu && (
-                      <ul className="absolute left-0 top-full bg-[#1a5a8a] border border-[#5bc0de]/20 shadow-xl rounded-lg py-2 min-w-[220px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                      <ul className="absolute left-0 top-full bg-[#1a5a8a] border border-[#5bc0de]/20 shadow-xl rounded-lg py-2 min-w-[200px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-50">
                         {item.submenu.map((subItem, subIndex) => (
                           <li key={subIndex}>
                             <Link
                               href={subItem.href}
-                              className="block px-6 py-2 text-gray-300 hover:bg-[#5bc0de]/20 hover:text-[#5bc0de] transition-colors"
+                              className="block px-5 py-2 text-sm text-gray-300 hover:bg-[#5bc0de]/20 hover:text-[#5bc0de] transition-colors"
                             >
                               {subItem.label}
                             </Link>
@@ -121,23 +121,23 @@ export default function Header() {
                 ))}
               </ul>
 
-              {/* Auth Section */}
-              <div className="ml-4 flex items-center gap-2">
+              {/* Auth Section - Desktop */}
+              <div className="ml-4 flex items-center gap-2 border-l border-white/20 pl-4">
                 {loading ? (
-                  <div className="w-10 h-10 rounded-full bg-white/10 animate-pulse"></div>
+                  <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse"></div>
                 ) : user ? (
                   <UserMenu />
                 ) : (
                   <>
                     <button
                       onClick={() => setShowLogin(true)}
-                      className="px-4 py-2 text-white/80 hover:text-[#5bc0de] font-semibold transition-colors"
+                      className="px-3 py-1.5 text-sm text-white/80 hover:text-[#5bc0de] font-medium transition-colors"
                     >
                       Connexion
                     </button>
                     <button
                       onClick={() => setShowRegister(true)}
-                      className="px-6 py-2 bg-[#5bc0de] text-white font-bold rounded-full hover:bg-[#4ab0ce] transition-all"
+                      className="px-4 py-1.5 bg-[#5bc0de] text-white text-sm font-bold rounded-full hover:bg-[#4ab0ce] transition-all whitespace-nowrap"
                     >
                       Devenir Membre
                     </button>
@@ -149,8 +149,8 @@ export default function Header() {
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <nav className="md:hidden pb-4 border-t border-[#5bc0de]/20 mt-2 pt-4">
-              <ul className="flex flex-col gap-2">
+            <nav className="lg:hidden pb-4 border-t border-[#5bc0de]/20 mt-2 pt-4">
+              <ul className="flex flex-col gap-1">
                 {menuItems.map((item, index) => (
                   <li key={index}>
                     <Link
@@ -180,20 +180,31 @@ export default function Header() {
               </ul>
 
               {/* Mobile Auth */}
-              {!user && (
-                <div className="mt-4 pt-4 border-t border-[#5bc0de]/20 flex flex-col gap-2">
+              {!user && !loading && (
+                <div className="mt-4 pt-4 border-t border-[#5bc0de]/20 flex flex-col gap-2 px-4">
                   <button
                     onClick={() => { setShowLogin(true); setMobileMenuOpen(false) }}
-                    className="px-4 py-2 text-white/80 hover:text-[#5bc0de] font-semibold text-left"
+                    className="py-2 text-white/80 hover:text-[#5bc0de] font-semibold text-left"
                   >
                     <i className="fas fa-sign-in-alt mr-2"></i>Connexion
                   </button>
                   <button
                     onClick={() => { setShowRegister(true); setMobileMenuOpen(false) }}
-                    className="mx-4 py-2 bg-[#5bc0de] text-white font-bold rounded-full hover:bg-[#4ab0ce]"
+                    className="py-2 bg-[#5bc0de] text-white font-bold rounded-full hover:bg-[#4ab0ce]"
                   >
                     <i className="fas fa-user-plus mr-2"></i>Devenir Membre
                   </button>
+                </div>
+              )}
+              {user && (
+                <div className="mt-4 pt-4 border-t border-[#5bc0de]/20 px-4">
+                  <Link
+                    href="/espace-membre"
+                    className="block py-2 text-[#5bc0de] font-semibold"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <i className="fas fa-user-circle mr-2"></i>Mon Espace
+                  </Link>
                 </div>
               )}
             </nav>
