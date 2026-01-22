@@ -4,11 +4,13 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { createClient } from '@/lib/supabase/client'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
-interface MemberProfile {
+export interface MemberProfile {
   id: string
   first_name: string | null
   last_name: string | null
   phone: string | null
+  address: string | null
+  birth_date: string | null
   licence_fftt: string | null
   avatar_url: string | null
   newsletter_subscribed: boolean
