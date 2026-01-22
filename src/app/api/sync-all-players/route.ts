@@ -18,7 +18,7 @@ export async function GET() {
     // Récupérer tous les joueurs
     const { data: players, error } = await supabase
       .from('players')
-      .select('id, smartping_licence, first_name, last_name, fftt_points, fftt_points_exact')
+      .select('id, smartping_licence, first_name, last_name, fftt_points, fftt_points_exact, category')
       .order('fftt_points', { ascending: false })
 
     if (error) throw error
