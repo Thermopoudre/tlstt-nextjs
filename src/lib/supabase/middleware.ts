@@ -37,9 +37,21 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protect admin routes
-  if (request.nextUrl.pathname.startsWith('/admin') && !user) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  const pathname = request.nextUrl.pathname
+
+  // Protect admin routes (except login page)
+  if (pathname.startsWith('/admin') && pathname !== '/admin/login' && !user) {
+    return NextResponse.redirect(new URL('/admin/login', request.url))
+  }
+
+  // Redirect logged-in users away from admin login
+  if (pathname === '/admin/login' && user) {
+    return NextResponse.redirect(new URL('/admin', request.url))
+  }
+
+  // Protect member area
+  if (pathname.startsWith('/espace-membre') && !user) {
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   return supabaseResponse
