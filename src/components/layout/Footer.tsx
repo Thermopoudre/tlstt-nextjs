@@ -1,135 +1,226 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 
+// Liens sociaux par défaut du club
+const defaultSocialLinks = {
+  facebook: 'https://www.facebook.com/tlstt83',
+  instagram: 'https://www.instagram.com/tlstt_officiel',
+  youtube: '',
+  twitter: '',
+  tiktok: '',
+}
+
 export default async function Footer() {
   const supabase = await createClient()
 
   // Récupérer les réseaux sociaux depuis les settings
-  const { data: settings } = await supabase
-    .from('settings')
-    .select('setting_key, setting_value')
-    .in('setting_key', [
-      'social_facebook',
-      'social_instagram',
-      'social_tiktok',
-      'social_youtube',
-      'social_twitter',
-    ])
+  let socialLinks = { ...defaultSocialLinks }
+  
+  try {
+    const { data: settings } = await supabase
+      .from('site_settings')
+      .select('settings')
+      .eq('page', 'global')
+      .single()
 
-  const socialLinks: Record<string, string> = {}
-  settings?.forEach((setting) => {
-    socialLinks[setting.setting_key] = setting.setting_value || ''
-  })
+    if (settings?.settings) {
+      const s = settings.settings as any
+      if (s.facebook_url) socialLinks.facebook = s.facebook_url
+      if (s.instagram_url) socialLinks.instagram = s.instagram_url
+      if (s.youtube_url) socialLinks.youtube = s.youtube_url
+      if (s.twitter_url) socialLinks.twitter = s.twitter_url
+      if (s.tiktok_url) socialLinks.tiktok = s.tiktok_url
+    }
+  } catch (e) {
+    // Utiliser les valeurs par défaut
+  }
 
   const hasSocial = Object.values(socialLinks).some((link) => link)
 
+  const currentYear = new Date().getFullYear()
+
   return (
     <footer className="bg-[#0f3057] text-white mt-auto">
-      <div className="max-w-7xl mx-auto px-5 py-8">
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* Colonne gauche - Logo et description */}
-          <div>
-            <h3 className="text-xl font-bold mb-3">
-              <span className="text-white">Toulon La Seyne</span>{' '}
-              <span className="text-[#5bc0de]">Tennis de Table</span>
-            </h3>
-            <p className="text-gray-400 text-sm mb-4">
-              Club de tennis de table affilié à la FFTT, accueillant joueurs de tous niveaux.
+      <div className="max-w-7xl mx-auto px-5 py-10">
+        <div className="grid md:grid-cols-4 gap-8">
+          {/* Colonne 1 - Logo et description */}
+          <div className="md:col-span-1">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                <img src="/logo.jpeg" alt="TLSTT" className="w-10 h-10 rounded-full" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">TLSTT</h3>
+                <p className="text-xs text-gray-400">Depuis 1954</p>
+              </div>
+            </div>
+            <p className="text-gray-400 text-sm leading-relaxed">
+              Club de tennis de table affilié à la FFTT, accueillant joueurs de tous niveaux à Toulon et La Seyne-sur-Mer.
             </p>
           </div>
 
-          {/* Colonne centrale - Liens */}
+          {/* Colonne 2 - Navigation */}
           <div>
-            <h4 className="font-bold text-[#5bc0de] mb-3">Liens utiles</h4>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <Link href="/mentions-legales" className="text-gray-400 hover:text-[#5bc0de] transition-colors">
-                Mentions Légales
-              </Link>
-              <Link href="/politique-confidentialite" className="text-gray-400 hover:text-[#5bc0de] transition-colors">
-                Confidentialité
-              </Link>
-              <Link href="/politique-cookies" className="text-gray-400 hover:text-[#5bc0de] transition-colors">
-                Cookies
-              </Link>
-              <Link href="/contact" className="text-gray-400 hover:text-[#5bc0de] transition-colors">
-                Contact
-              </Link>
-              <Link href="/admin" className="text-gray-400 hover:text-[#5bc0de] transition-colors">
-                Administration
-              </Link>
-            </div>
+            <h4 className="font-bold text-[#5bc0de] mb-4 flex items-center gap-2">
+              <i className="fas fa-compass"></i>
+              Navigation
+            </h4>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link href="/club/a-propos" className="text-gray-400 hover:text-[#5bc0de] transition-colors flex items-center gap-2">
+                  <i className="fas fa-info-circle w-4"></i> À propos
+                </Link>
+              </li>
+              <li>
+                <Link href="/joueurs" className="text-gray-400 hover:text-[#5bc0de] transition-colors flex items-center gap-2">
+                  <i className="fas fa-users w-4"></i> Joueurs
+                </Link>
+              </li>
+              <li>
+                <Link href="/planning" className="text-gray-400 hover:text-[#5bc0de] transition-colors flex items-center gap-2">
+                  <i className="fas fa-calendar w-4"></i> Planning
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="text-gray-400 hover:text-[#5bc0de] transition-colors flex items-center gap-2">
+                  <i className="fas fa-envelope w-4"></i> Contact
+                </Link>
+              </li>
+            </ul>
           </div>
 
-          {/* Colonne droite - Réseaux sociaux */}
+          {/* Colonne 3 - Légal */}
           <div>
-            <h4 className="font-bold text-[#5bc0de] mb-3">Suivez-nous</h4>
+            <h4 className="font-bold text-[#5bc0de] mb-4 flex items-center gap-2">
+              <i className="fas fa-shield-alt"></i>
+              Informations
+            </h4>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link href="/mentions-legales" className="text-gray-400 hover:text-[#5bc0de] transition-colors">
+                  Mentions Légales
+                </Link>
+              </li>
+              <li>
+                <Link href="/politique-confidentialite" className="text-gray-400 hover:text-[#5bc0de] transition-colors">
+                  Confidentialité
+                </Link>
+              </li>
+              <li>
+                <Link href="/politique-cookies" className="text-gray-400 hover:text-[#5bc0de] transition-colors">
+                  Politique cookies
+                </Link>
+              </li>
+              <li>
+                <Link href="/admin" className="text-gray-400 hover:text-[#5bc0de] transition-colors">
+                  Administration
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Colonne 4 - Réseaux sociaux */}
+          <div>
+            <h4 className="font-bold text-[#5bc0de] mb-4 flex items-center gap-2">
+              <i className="fas fa-share-alt"></i>
+              Suivez-nous
+            </h4>
             {hasSocial ? (
-              <div className="flex items-center gap-3">
-                {socialLinks.social_facebook && (
+              <div className="flex flex-wrap gap-3">
+                {socialLinks.facebook && (
                   <a
-                    href={socialLinks.social_facebook}
+                    href={socialLinks.facebook}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-[#5bc0de] transition-colors"
+                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-[#1877f2] transition-all hover:scale-110"
                     title="Facebook"
                   >
                     <i className="fab fa-facebook-f"></i>
                   </a>
                 )}
-                {socialLinks.social_instagram && (
+                {socialLinks.instagram && (
                   <a
-                    href={socialLinks.social_instagram}
+                    href={socialLinks.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-[#5bc0de] transition-colors"
+                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-gradient-to-r hover:from-[#833ab4] hover:via-[#fd1d1d] hover:to-[#fcb045] transition-all hover:scale-110"
                     title="Instagram"
                   >
                     <i className="fab fa-instagram"></i>
                   </a>
                 )}
-                {socialLinks.social_tiktok && (
+                {socialLinks.youtube && (
                   <a
-                    href={socialLinks.social_tiktok}
+                    href={socialLinks.youtube}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-[#5bc0de] transition-colors"
-                    title="TikTok"
-                  >
-                    <i className="fab fa-tiktok"></i>
-                  </a>
-                )}
-                {socialLinks.social_youtube && (
-                  <a
-                    href={socialLinks.social_youtube}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-[#5bc0de] transition-colors"
+                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-[#ff0000] transition-all hover:scale-110"
                     title="YouTube"
                   >
                     <i className="fab fa-youtube"></i>
                   </a>
                 )}
-                {socialLinks.social_twitter && (
+                {socialLinks.twitter && (
                   <a
-                    href={socialLinks.social_twitter}
+                    href={socialLinks.twitter}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-[#5bc0de] transition-colors"
+                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-black transition-all hover:scale-110"
                     title="X (Twitter)"
                   >
                     <i className="fab fa-x-twitter"></i>
+                  </a>
+                )}
+                {socialLinks.tiktok && (
+                  <a
+                    href={socialLinks.tiktok}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-black transition-all hover:scale-110"
+                    title="TikTok"
+                  >
+                    <i className="fab fa-tiktok"></i>
                   </a>
                 )}
               </div>
             ) : (
               <p className="text-gray-400 text-sm">Bientôt disponible</p>
             )}
+
+            {/* Contact rapide */}
+            <div className="mt-4 space-y-2 text-sm">
+              <a href="mailto:contact@tlstt.fr" className="text-gray-400 hover:text-[#5bc0de] transition-colors flex items-center gap-2">
+                <i className="fas fa-envelope w-4"></i>
+                contact@tlstt.fr
+              </a>
+              <p className="text-gray-400 flex items-center gap-2">
+                <i className="fas fa-map-marker-alt w-4"></i>
+                La Seyne-sur-Mer, 83500
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Copyright */}
-        <div className="border-t border-[#1a5a8a] mt-8 pt-6 text-center text-gray-400 text-sm">
-          <p>&copy; {new Date().getFullYear()} Toulon La Seyne Tennis de Table. Tous droits réservés.</p>
+        {/* Barre du bas */}
+        <div className="border-t border-[#1a5a8a] mt-8 pt-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-gray-400 text-sm text-center md:text-left">
+              &copy; {currentYear} Toulon La Seyne Tennis de Table. Tous droits réservés.
+            </p>
+            <div className="flex items-center gap-4">
+              <a 
+                href="https://www.fftt.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-[#5bc0de] transition-colors text-sm flex items-center gap-2"
+              >
+                <i className="fas fa-table-tennis-paddle-ball"></i>
+                FFTT
+              </a>
+              <span className="text-gray-600">|</span>
+              <span className="text-gray-400 text-sm">Club N°08830065</span>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

@@ -4,6 +4,8 @@ import './globals.css'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import { AuthProvider } from '@/components/auth/AuthProvider'
+import CookieBanner from '@/components/ui/CookieBanner'
+import BackToTop from '@/components/ui/BackToTop'
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -22,8 +24,13 @@ export const metadata: Metadata = {
     default: 'Toulon La Seyne Tennis de Table',
     template: '%s - TLSTT',
   },
-  description: 'Club de tennis de table à Toulon La Seyne',
-  keywords: ['tennis de table', 'ping pong', 'Toulon', 'La Seyne', 'TLSTT', 'sport'],
+  description: 'Club de tennis de table à Toulon La Seyne - Cours, compétitions et loisirs pour tous niveaux',
+  keywords: ['tennis de table', 'ping pong', 'Toulon', 'La Seyne', 'TLSTT', 'sport', 'club'],
+  openGraph: {
+    type: 'website',
+    locale: 'fr_FR',
+    siteName: 'TLSTT',
+  },
 }
 
 export default function RootLayout({
@@ -36,16 +43,19 @@ export default function RootLayout({
       <head>
         <link
           rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
         />
+        <meta name="theme-color" content="#0f3057" />
       </head>
-      <body style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f4f6f9', fontFamily: 'var(--font-open-sans)', color: '#2c3e50' }}>
+      <body className="flex flex-col min-h-screen bg-[#f4f6f9]">
         <AuthProvider>
           <Header />
-          <main style={{ flex: 1, padding: '2.5rem 0' }}>
+          <main className="flex-1 py-0">
             {children}
           </main>
           <Footer />
+          <BackToTop />
+          <CookieBanner />
         </AuthProvider>
       </body>
     </html>
