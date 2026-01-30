@@ -1,42 +1,12 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
 
-// Liens sociaux par défaut du club
-const defaultSocialLinks = {
+// Liens sociaux du club (fixes - pas de query Supabase)
+const socialLinks = {
   facebook: 'https://www.facebook.com/tlstt83',
   instagram: 'https://www.instagram.com/tlstt_officiel',
-  youtube: '',
-  twitter: '',
-  tiktok: '',
 }
 
-export default async function Footer() {
-  const supabase = await createClient()
-
-  // Récupérer les réseaux sociaux depuis les settings
-  let socialLinks = { ...defaultSocialLinks }
-  
-  try {
-    const { data: settings } = await supabase
-      .from('site_settings')
-      .select('settings')
-      .eq('page', 'global')
-      .single()
-
-    if (settings?.settings) {
-      const s = settings.settings as any
-      if (s.facebook_url) socialLinks.facebook = s.facebook_url
-      if (s.instagram_url) socialLinks.instagram = s.instagram_url
-      if (s.youtube_url) socialLinks.youtube = s.youtube_url
-      if (s.twitter_url) socialLinks.twitter = s.twitter_url
-      if (s.tiktok_url) socialLinks.tiktok = s.tiktok_url
-    }
-  } catch (e) {
-    // Utiliser les valeurs par défaut
-  }
-
-  const hasSocial = Object.values(socialLinks).some((link) => link)
-
+export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
@@ -46,8 +16,8 @@ export default async function Footer() {
           {/* Colonne 1 - Logo et description */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <img src="/logo.jpeg" alt="TLSTT" className="w-10 h-10 rounded-full" />
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center overflow-hidden">
+                <img src="/logo.jpeg" alt="TLSTT" className="w-10 h-10 rounded-full object-cover" />
               </div>
               <div>
                 <h3 className="font-bold text-lg">TLSTT</h3>
@@ -125,67 +95,26 @@ export default async function Footer() {
               <i className="fas fa-share-alt"></i>
               Suivez-nous
             </h4>
-            {hasSocial ? (
-              <div className="flex flex-wrap gap-3">
-                {socialLinks.facebook && (
-                  <a
-                    href={socialLinks.facebook}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-[#1877f2] transition-all hover:scale-110"
-                    title="Facebook"
-                  >
-                    <i className="fab fa-facebook-f"></i>
-                  </a>
-                )}
-                {socialLinks.instagram && (
-                  <a
-                    href={socialLinks.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-gradient-to-r hover:from-[#833ab4] hover:via-[#fd1d1d] hover:to-[#fcb045] transition-all hover:scale-110"
-                    title="Instagram"
-                  >
-                    <i className="fab fa-instagram"></i>
-                  </a>
-                )}
-                {socialLinks.youtube && (
-                  <a
-                    href={socialLinks.youtube}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-[#ff0000] transition-all hover:scale-110"
-                    title="YouTube"
-                  >
-                    <i className="fab fa-youtube"></i>
-                  </a>
-                )}
-                {socialLinks.twitter && (
-                  <a
-                    href={socialLinks.twitter}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-black transition-all hover:scale-110"
-                    title="X (Twitter)"
-                  >
-                    <i className="fab fa-x-twitter"></i>
-                  </a>
-                )}
-                {socialLinks.tiktok && (
-                  <a
-                    href={socialLinks.tiktok}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-black transition-all hover:scale-110"
-                    title="TikTok"
-                  >
-                    <i className="fab fa-tiktok"></i>
-                  </a>
-                )}
-              </div>
-            ) : (
-              <p className="text-gray-400 text-sm">Bientôt disponible</p>
-            )}
+            <div className="flex flex-wrap gap-3">
+              <a
+                href={socialLinks.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-[#1877f2] transition-all hover:scale-110"
+                title="Facebook"
+              >
+                <i className="fab fa-facebook-f"></i>
+              </a>
+              <a
+                href={socialLinks.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-[#1a5a8a] rounded-full flex items-center justify-center text-white hover:bg-gradient-to-r hover:from-[#833ab4] hover:via-[#fd1d1d] hover:to-[#fcb045] transition-all hover:scale-110"
+                title="Instagram"
+              >
+                <i className="fab fa-instagram"></i>
+              </a>
+            </div>
 
             {/* Contact rapide */}
             <div className="mt-4 space-y-2 text-sm">
