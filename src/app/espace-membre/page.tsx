@@ -42,8 +42,8 @@ export default function EspaceMembrePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f3057] flex items-center justify-center">
-        <i className="fas fa-spinner fa-spin text-4xl text-[#5bc0de]"></i>
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <i className="fas fa-spinner fa-spin text-4xl text-[#3b9fd8]"></i>
       </div>
     )
   }
@@ -53,21 +53,21 @@ export default function EspaceMembrePage() {
   const isActive = profile?.membership_status === 'active'
 
   return (
-    <div className="min-h-screen bg-[#0f3057]">
+    <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
-      <div className="py-12 bg-[#0f3057]">
+      <div className="py-12 bg-[#0a0a0a]">
         <div className="container-custom">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div>
               <h1 className="text-4xl font-bold text-white mb-2">
-                Bienvenue, <span className="text-[#5bc0de]">{profile?.first_name || 'Membre'}</span> !
+                Bienvenue, <span className="text-[#3b9fd8]">{profile?.first_name || 'Membre'}</span> !
               </h1>
-              <p className="text-white/60">
+              <p className="text-gray-500">
                 Votre espace personnel TLSTT
               </p>
             </div>
-            <div className={`px-4 py-2 rounded-full font-semibold ${
-              isActive ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+            <div className={`px-4 py-2 rounded-full font-semibold border ${
+              isActive ? 'bg-green-500/10 text-green-400 border-green-500/30' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
             }`}>
               <i className={`fas ${isActive ? 'fa-check-circle' : 'fa-clock'} mr-2`}></i>
               {isActive ? 'Membre actif' : 'En attente de validation'}
@@ -79,28 +79,28 @@ export default function EspaceMembrePage() {
       <div className="container-custom pb-12 -mt-4">
         {/* Quick Actions */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Link href="/espace-membre/profil" className="bg-white/10 border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-colors">
-            <div className="w-12 h-12 bg-[#5bc0de] rounded-full mx-auto mb-3 flex items-center justify-center">
+          <Link href="/espace-membre/profil" className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 text-center hover:border-[#3b9fd8]/50 transition-colors">
+            <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
               <i className="fas fa-user text-white text-xl"></i>
             </div>
             <div className="text-white font-semibold">Mon Profil</div>
           </Link>
 
-          <Link href="/boutique" className="bg-white/10 border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-colors">
+          <Link href="/boutique" className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 text-center hover:border-green-500/50 transition-colors">
             <div className="w-12 h-12 bg-green-500 rounded-full mx-auto mb-3 flex items-center justify-center">
               <i className="fas fa-shopping-bag text-white text-xl"></i>
             </div>
             <div className="text-white font-semibold">Boutique Club</div>
           </Link>
 
-          <Link href="/marketplace" className="bg-white/10 border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-colors">
+          <Link href="/marketplace" className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 text-center hover:border-purple-500/50 transition-colors">
             <div className="w-12 h-12 bg-purple-500 rounded-full mx-auto mb-3 flex items-center justify-center">
               <i className="fas fa-exchange-alt text-white text-xl"></i>
             </div>
             <div className="text-white font-semibold">Marketplace</div>
           </Link>
 
-          <Link href="/espace-membre/commandes" className="bg-white/10 border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-colors">
+          <Link href="/espace-membre/commandes" className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 text-center hover:border-orange-500/50 transition-colors">
             <div className="w-12 h-12 bg-orange-500 rounded-full mx-auto mb-3 flex items-center justify-center">
               <i className="fas fa-box text-white text-xl"></i>
             </div>
@@ -110,23 +110,23 @@ export default function EspaceMembrePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Communications Secrétariat */}
-          <div className="lg:col-span-2 bg-white/10 border border-white/20 rounded-2xl p-6">
+          <div className="lg:col-span-2 bg-[#1a1a1a] border border-[#333] rounded-2xl p-6">
             <h2 className="text-xl font-bold text-white mb-4">
-              <i className="fas fa-bullhorn mr-2 text-[#5bc0de]"></i>
+              <i className="fas fa-bullhorn mr-2 text-[#3b9fd8]"></i>
               Communications du Secrétariat
             </h2>
             {communications.length === 0 ? (
-              <div className="text-center py-8 text-white/50">
+              <div className="text-center py-8 text-gray-500">
                 <i className="fas fa-inbox text-4xl mb-2"></i>
                 <p>Aucune communication pour le moment</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {communications.map(comm => (
-                  <div key={comm.id} className={`p-4 rounded-xl ${
-                    comm.type === 'urgent' ? 'bg-red-500/20 border border-red-500/30' :
-                    comm.type === 'important' ? 'bg-yellow-500/20 border border-yellow-500/30' :
-                    'bg-white/5'
+                  <div key={comm.id} className={`p-4 rounded-xl border ${
+                    comm.type === 'urgent' ? 'bg-red-500/10 border-red-500/30' :
+                    comm.type === 'important' ? 'bg-yellow-500/10 border-yellow-500/30' :
+                    'bg-[#111] border-[#333]'
                   }`}>
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -135,9 +135,9 @@ export default function EspaceMembrePage() {
                           {comm.type === 'important' && <span className="text-yellow-400 text-xs font-bold uppercase">Important</span>}
                           <h3 className="text-white font-semibold">{comm.title}</h3>
                         </div>
-                        <p className="text-white/70 text-sm mt-1 line-clamp-2">{comm.content}</p>
+                        <p className="text-gray-400 text-sm mt-1 line-clamp-2">{comm.content}</p>
                       </div>
-                      <div className="text-white/40 text-xs whitespace-nowrap">
+                      <div className="text-gray-600 text-xs whitespace-nowrap">
                         {new Date(comm.sent_at).toLocaleDateString('fr-FR')}
                       </div>
                     </div>
@@ -149,18 +149,18 @@ export default function EspaceMembrePage() {
 
           {/* Infos rapides */}
           <div className="space-y-4">
-            <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6">
               <h3 className="text-lg font-bold text-white mb-4">
-                <i className="fas fa-id-card mr-2 text-[#5bc0de]"></i>
+                <i className="fas fa-id-card mr-2 text-[#3b9fd8]"></i>
                 Ma Licence
               </h3>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-white/60">N° Licence</span>
+                  <span className="text-gray-500">N° Licence</span>
                   <span className="text-white font-mono">{profile?.licence_fftt || '-'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/60">Expiration</span>
+                  <span className="text-gray-500">Expiration</span>
                   <span className="text-white">
                     {profile?.membership_expires_at 
                       ? new Date(profile.membership_expires_at).toLocaleDateString('fr-FR')
@@ -170,26 +170,26 @@ export default function EspaceMembrePage() {
               </div>
             </div>
 
-            <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6">
               <h3 className="text-lg font-bold text-white mb-4">
-                <i className="fas fa-bell mr-2 text-[#5bc0de]"></i>
+                <i className="fas fa-bell mr-2 text-[#3b9fd8]"></i>
                 Notifications
               </h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-white/70">Newsletter</span>
+                  <span className="text-gray-400">Newsletter</span>
                   <span className={`text-sm ${profile?.newsletter_subscribed ? 'text-green-400' : 'text-red-400'}`}>
                     {profile?.newsletter_subscribed ? 'Activée' : 'Désactivée'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-white/70">Secrétariat</span>
+                  <span className="text-gray-400">Secrétariat</span>
                   <span className={`text-sm ${profile?.secretariat_notifications ? 'text-green-400' : 'text-red-400'}`}>
                     {profile?.secretariat_notifications ? 'Activées' : 'Désactivées'}
                   </span>
                 </div>
               </div>
-              <Link href="/espace-membre/profil" className="block mt-4 text-[#5bc0de] text-sm hover:underline">
+              <Link href="/espace-membre/profil" className="block mt-4 text-[#3b9fd8] text-sm hover:underline">
                 Gérer mes préférences →
               </Link>
             </div>
