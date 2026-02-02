@@ -1,6 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Joueurs - Classement des Licenciés',
+  description: 'Découvrez les 221 joueurs licenciés du club TLSTT, leurs classements FFTT et leurs points.',
+  openGraph: {
+    title: 'Joueurs TLSTT - Classement',
+    description: 'Classement des joueurs du club de tennis de table TLSTT',
+  },
+}
 
 interface Player {
   id: string
@@ -54,7 +64,7 @@ export default async function JoueursPage() {
           <div className="bg-[#1a5a8a]/50 rounded-xl p-4 text-center border border-[#5bc0de]/20">
             <i className="fas fa-trophy text-2xl text-yellow-500 mb-2"></i>
             <p className="text-3xl font-bold text-white">{top1000}</p>
-            <p className="text-sm text-gray-400">Top 1000 France</p>
+            <p className="text-sm text-gray-400">+1000 points</p>
           </div>
           <div className="bg-[#1a5a8a]/50 rounded-xl p-4 text-center border border-[#5bc0de]/20">
             <i className="fas fa-star text-2xl text-[#5bc0de] mb-2"></i>
@@ -119,7 +129,7 @@ export default async function JoueursPage() {
                 <input
                   type="text"
                   placeholder="Rechercher un joueur..."
-                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5bc0de] focus:border-transparent"
                 />
               </div>
               <div className="flex gap-2 flex-wrap">

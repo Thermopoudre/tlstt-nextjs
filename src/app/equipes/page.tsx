@@ -18,6 +18,9 @@ export default function EquipesPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    // Set document title for client component
+    document.title = 'Équipes - TLSTT'
+    
     const fetchTeams = async () => {
       try {
         const response = await fetch('/api/equipes')
@@ -42,7 +45,10 @@ export default function EquipesPage() {
           <Breadcrumbs className="text-gray-400 mb-6" />
           
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-[#5bc0de] mb-2">Équipes</h1>
+            <h1 className="text-4xl font-bold text-[#5bc0de] mb-2">
+              <i className="fas fa-users mr-3"></i>
+              Équipes
+            </h1>
             <p className="text-gray-300">Résultats et classements du championnat par équipes</p>
           </div>
         </div>
@@ -62,10 +68,16 @@ export default function EquipesPage() {
             <p className="text-red-700">{error}</p>
           </div>
         ) : teams.length === 0 ? (
-          <div className="bg-[#1a5a8a]/50 rounded-xl p-12 text-center">
-            <i className="fas fa-users text-6xl text-gray-400 mb-4"></i>
-            <h3 className="text-xl font-bold text-[#5bc0de] mb-2">Aucune équipe trouvée</h3>
-            <p className="text-gray-400">Les données des équipes ne sont pas encore disponibles.</p>
+          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+            <i className="fas fa-users text-6xl text-gray-300 mb-4"></i>
+            <h3 className="text-xl font-bold text-[#0f3057] mb-2">Aucune équipe trouvée</h3>
+            <p className="text-gray-500 mb-6">Les données des équipes ne sont pas encore disponibles.</p>
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 max-w-md mx-auto">
+              <p className="text-sm text-blue-700">
+                <i className="fas fa-info-circle mr-2"></i>
+                Les équipes seront affichées une fois la saison démarrée et les données synchronisées avec la FFTT.
+              </p>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

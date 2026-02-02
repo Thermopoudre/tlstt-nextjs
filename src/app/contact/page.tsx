@@ -1,6 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 import ContactForm from './ContactForm'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Contact - Nous contacter',
+  description: 'Contactez le club de tennis de table TLSTT. Questions, inscriptions, partenariats - nous sommes là pour vous répondre.',
+  openGraph: {
+    title: 'Contact TLSTT',
+    description: 'Contactez le club de tennis de table de Toulon La Seyne',
+  },
+}
 
 export default async function ContactPage() {
   const supabase = await createClient()
@@ -57,9 +67,9 @@ export default async function ContactPage() {
               </h3>
               <p className="text-gray-600 mb-2">Gymnase Léo Lagrange</p>
               <p className="text-gray-600 mb-2">Avenue Maréchal Juin</p>
-              <p className="text-gray-600 mb-4">83000 Toulon</p>
+              <p className="text-gray-600 mb-4">83500 La Seyne-sur-Mer</p>
               <a
-                href="https://maps.google.com/?q=Gymnase+Léo+Lagrange+Toulon"
+                href="https://maps.google.com/?q=Gymnase+Léo+Lagrange+La+Seyne"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[#5bc0de] hover:underline flex items-center gap-2"
@@ -78,15 +88,19 @@ export default async function ContactPage() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Lundi - Vendredi :</span>
-                  <span className="font-medium">18h - 22h</span>
+                  <span className="font-medium">17h30 - 23h</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Mercredi :</span>
+                  <span className="font-medium">14h - 23h</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Samedi :</span>
-                  <span className="font-medium">14h - 18h</span>
+                  <span className="font-medium">9h - 19h</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Dimanche :</span>
-                  <span className="text-red-500">Fermé</span>
+                  <span className="text-gray-400">Compétitions</span>
                 </div>
               </div>
             </div>
@@ -98,10 +112,6 @@ export default async function ContactPage() {
                 Contact direct
               </h3>
               <div className="space-y-3">
-                <a href="tel:+33612345678" className="flex items-center gap-3 text-gray-600 hover:text-[#5bc0de]">
-                  <i className="fas fa-phone w-5"></i>
-                  <span>06 12 34 56 78</span>
-                </a>
                 <a href="mailto:contact@tlstt.fr" className="flex items-center gap-3 text-gray-600 hover:text-[#5bc0de]">
                   <i className="fas fa-envelope w-5"></i>
                   <span>contact@tlstt.fr</span>
@@ -121,6 +131,7 @@ export default async function ContactPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 bg-[#1877f2] rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform"
+                  title="Facebook"
                 >
                   <i className="fab fa-facebook-f"></i>
                 </a>
@@ -129,6 +140,7 @@ export default async function ContactPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform"
+                  title="Instagram"
                 >
                   <i className="fab fa-instagram"></i>
                 </a>
