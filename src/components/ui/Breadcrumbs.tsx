@@ -81,7 +81,7 @@ export default function Breadcrumbs({ items, className = '' }: BreadcrumbsProps)
         <li>
           <Link 
             href="/" 
-            className="text-gray-500 hover:text-primary transition-colors flex items-center gap-1"
+            className="text-gray-500 hover:text-[#3b9fd8] transition-colors flex items-center gap-1"
           >
             <i className="fas fa-home text-xs"></i>
             <span className="hidden sm:inline">Accueil</span>
@@ -89,16 +89,16 @@ export default function Breadcrumbs({ items, className = '' }: BreadcrumbsProps)
         </li>
         {breadcrumbs.map((item, index) => (
           <li key={index} className="flex items-center gap-2">
-            <i className="fas fa-chevron-right text-gray-400 text-xs"></i>
+            <i className="fas fa-chevron-right text-gray-600 text-xs"></i>
             {item.href ? (
               <Link 
                 href={item.href}
-                className="text-gray-500 hover:text-primary transition-colors"
+                className="text-gray-500 hover:text-[#3b9fd8] transition-colors"
               >
                 {item.label}
               </Link>
             ) : (
-              <span className="text-primary font-medium">{item.label}</span>
+              <span className="text-[#3b9fd8] font-medium">{item.label}</span>
             )}
           </li>
         ))}

@@ -45,9 +45,9 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
         />
-        <meta name="theme-color" content="#0f3057" />
+        <meta name="theme-color" content="#0a0a0a" />
       </head>
-      <body className="flex flex-col min-h-screen bg-[#f4f6f9]">
+      <body className="flex flex-col min-h-screen bg-[#0a0a0a]">
         <AuthProvider>
           <Header />
           <main className="flex-1 py-0">
