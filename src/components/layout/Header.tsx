@@ -49,12 +49,12 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-[#0f3057] border-b border-[#5bc0de]/20 sticky top-0 z-50">
+      <header className="bg-[#0a0a0a] border-b border-[#3b9fd8]/30 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-3">
           <div className="flex items-center justify-between h-14">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-              <div className="relative w-9 h-9 rounded-full border-2 border-[#5bc0de]/50 overflow-hidden bg-white">
+              <div className="relative w-9 h-9 rounded-full border-2 border-[#3b9fd8]/50 overflow-hidden bg-white">
                 <Image
                   src="/logo.jpeg"
                   alt="TLSTT"
@@ -69,7 +69,7 @@ export default function Header() {
 
             {/* Mobile Menu Button */}
             <button
-              className="lg:hidden text-[#5bc0de] text-xl p-2"
+              className="lg:hidden text-[#3b9fd8] text-xl p-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Menu"
             >
@@ -83,7 +83,7 @@ export default function Header() {
                   <li key={index} className="relative group">
                     <Link
                       href={item.href}
-                      className="block px-2.5 py-1.5 text-xs font-semibold text-gray-300 hover:text-[#5bc0de] transition-colors"
+                      className="block px-2.5 py-1.5 text-xs font-semibold text-gray-300 hover:text-[#3b9fd8] transition-colors"
                     >
                       {item.label}
                       {item.hasSubmenu && (
@@ -93,12 +93,12 @@ export default function Header() {
 
                     {/* Submenu */}
                     {item.hasSubmenu && submenus[item.label] && (
-                      <ul className="absolute left-0 top-full bg-[#1a5a8a] border border-[#5bc0de]/20 shadow-xl rounded-lg py-2 min-w-[160px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-50">
+                      <ul className="absolute left-0 top-full bg-[#1a1a1a] border border-[#3b9fd8]/30 shadow-xl rounded-lg py-2 min-w-[160px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-50">
                         {submenus[item.label].map((subItem, subIndex) => (
                           <li key={subIndex}>
                             <Link
                               href={subItem.href}
-                              className="block px-4 py-1.5 text-xs text-gray-300 hover:bg-[#5bc0de]/20 hover:text-[#5bc0de] transition-colors"
+                              className="block px-4 py-1.5 text-xs text-gray-300 hover:bg-[#3b9fd8]/20 hover:text-[#3b9fd8] transition-colors"
                             >
                               {subItem.label}
                             </Link>
@@ -120,7 +120,7 @@ export default function Header() {
                   <>
                     <button
                       onClick={() => setShowLogin(true)}
-                      className="px-2.5 py-1.5 text-xs text-white/80 hover:text-[#5bc0de] font-medium transition-colors"
+                      className="px-2.5 py-1.5 text-xs text-white/80 hover:text-[#3b9fd8] font-medium transition-colors"
                       title="Connexion"
                     >
                       <i className="fas fa-sign-in-alt"></i>
@@ -128,7 +128,7 @@ export default function Header() {
                     </button>
                     <button
                       onClick={() => setShowRegister(true)}
-                      className="w-8 h-8 bg-[#5bc0de] text-white rounded-full hover:bg-[#4ab0ce] transition-all flex items-center justify-center"
+                      className="w-8 h-8 bg-[#3b9fd8] text-white rounded-full hover:bg-[#2d8bc9] transition-all flex items-center justify-center"
                       title="Devenir Membre"
                     >
                       <i className="fas fa-table-tennis-paddle-ball text-sm"></i>
@@ -141,13 +141,13 @@ export default function Header() {
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <nav className="lg:hidden pb-4 border-t border-[#5bc0de]/20 mt-2 pt-4">
+            <nav className="lg:hidden pb-4 border-t border-[#3b9fd8]/30 mt-2 pt-4">
               <ul className="flex flex-col gap-1">
                 {menuItems.map((item, index) => (
                   <li key={index}>
                     <Link
                       href={item.href}
-                      className="block px-4 py-2 font-semibold text-gray-300 hover:bg-[#5bc0de]/20 hover:text-[#5bc0de] rounded transition-colors"
+                      className="block px-4 py-2 font-semibold text-gray-300 hover:bg-[#3b9fd8]/20 hover:text-[#3b9fd8] rounded transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       {item.label}
@@ -158,7 +158,7 @@ export default function Header() {
                           <li key={subIndex}>
                             <Link
                               href={subItem.href}
-                              className="block px-4 py-1 text-sm text-gray-400 hover:bg-[#5bc0de]/10 hover:text-[#5bc0de] rounded transition-colors"
+                              className="block px-4 py-1 text-sm text-gray-400 hover:bg-[#3b9fd8]/10 hover:text-[#3b9fd8] rounded transition-colors"
                               onClick={() => setMobileMenuOpen(false)}
                             >
                               {subItem.label}
@@ -173,26 +173,26 @@ export default function Header() {
 
               {/* Mobile Auth */}
               {!user && !loading && (
-                <div className="mt-4 pt-4 border-t border-[#5bc0de]/20 flex gap-2 px-4">
+                <div className="mt-4 pt-4 border-t border-[#3b9fd8]/30 flex gap-2 px-4">
                   <button
                     onClick={() => { setShowLogin(true); setMobileMenuOpen(false) }}
-                    className="flex-1 py-2 text-white/80 hover:text-[#5bc0de] font-semibold border border-white/20 rounded-lg"
+                    className="flex-1 py-2 text-white/80 hover:text-[#3b9fd8] font-semibold border border-white/20 rounded-lg"
                   >
                     <i className="fas fa-sign-in-alt mr-2"></i>Connexion
                   </button>
                   <button
                     onClick={() => { setShowRegister(true); setMobileMenuOpen(false) }}
-                    className="flex-1 py-2 bg-[#5bc0de] text-white font-bold rounded-lg hover:bg-[#4ab0ce]"
+                    className="flex-1 py-2 bg-[#3b9fd8] text-white font-bold rounded-lg hover:bg-[#2d8bc9]"
                   >
                     <i className="fas fa-table-tennis-paddle-ball mr-2"></i>Membre
                   </button>
                 </div>
               )}
               {user && (
-                <div className="mt-4 pt-4 border-t border-[#5bc0de]/20 px-4">
+                <div className="mt-4 pt-4 border-t border-[#3b9fd8]/30 px-4">
                   <Link
                     href="/espace-membre"
-                    className="block py-2 text-[#5bc0de] font-semibold"
+                    className="block py-2 text-[#3b9fd8] font-semibold"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <i className="fas fa-user-circle mr-2"></i>Mon Espace

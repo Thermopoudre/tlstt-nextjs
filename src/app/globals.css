@@ -1,19 +1,20 @@
 @import 'tailwindcss';
 
 @theme {
-  /* Palette TLSTT - Bleus du logo */
-  --color-dark: #0f3057;
-  --color-dark-light: #1a5a8a;
-  --color-dark-card: rgba(15, 48, 87, 0.9);
+  /* Palette TLSTT - Noir + Bleu Ultra Contrasté */
+  --color-dark: #0a0a0a;
+  --color-dark-light: #111111;
+  --color-dark-card: #1a1a1a;
   
-  /* Accent Bleu Cyan */
-  --color-accent-cyan: #5bc0de;
-  --color-accent-cyan-hover: #4ab0ce;
+  /* Accent Bleu Vif */
+  --color-accent: #3b9fd8;
+  --color-accent-hover: #2d8bc9;
+  --color-accent-light: #5bb5e8;
   
   /* Couleurs principales */
-  --color-primary: #0f3057;
-  --color-primary-light: #1a5a8a;
-  --color-secondary: #5bc0de;
+  --color-primary: #0a0a0a;
+  --color-primary-light: #111111;
+  --color-secondary: #3b9fd8;
   
   --font-family-sans: var(--font-open-sans), ui-sans-serif, system-ui;
   --font-family-heading: var(--font-montserrat), ui-sans-serif, system-ui;
@@ -21,14 +22,14 @@
 
 body {
   font-family: var(--font-family-sans);
-  background-color: #f4f6f9;
-  color: #2c3e50;
+  background-color: #0a0a0a;
+  color: #ffffff;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-family-heading);
   font-weight: 700;
-  color: var(--color-primary);
+  color: #ffffff;
 }
 
 .container-custom {
@@ -44,7 +45,7 @@ h1, h2, h3, h4, h5, h6 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-accent-cyan);
+  background-color: #3b9fd8;
   color: white;
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
@@ -55,7 +56,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-primary:hover {
-  background-color: var(--color-accent-cyan-hover);
+  background-color: #2d8bc9;
   transform: translateY(-1px);
 }
 
@@ -70,8 +71,8 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   justify-content: center;
   background-color: transparent;
-  border: 2px solid var(--color-accent-cyan);
-  color: var(--color-accent-cyan);
+  border: 2px solid #3b9fd8;
+  color: #3b9fd8;
   padding: 0.625rem 1.25rem;
   border-radius: 0.5rem;
   font-weight: 600;
@@ -80,7 +81,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-secondary:hover {
-  background-color: var(--color-accent-cyan);
+  background-color: #3b9fd8;
   color: white;
 }
 
@@ -88,21 +89,22 @@ h1, h2, h3, h4, h5, h6 {
 .input-field {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #333;
   border-radius: 0.5rem;
   font-size: 0.875rem;
   transition: all 0.2s ease;
-  background-color: white;
+  background-color: #1a1a1a;
+  color: #ffffff;
 }
 
 .input-field:focus {
   outline: none;
-  border-color: var(--color-accent-cyan);
-  box-shadow: 0 0 0 3px rgba(91, 192, 222, 0.15);
+  border-color: #3b9fd8;
+  box-shadow: 0 0 0 3px rgba(59, 159, 216, 0.2);
 }
 
 .input-field::placeholder {
-  color: #9ca3af;
+  color: #666;
 }
 
 textarea.input-field {
@@ -112,17 +114,17 @@ textarea.input-field {
 
 /* Cards */
 .card {
-  background: white;
-  border: 1px solid rgba(15, 48, 87, 0.1);
+  background: #1a1a1a;
+  border: 1px solid #333;
   border-radius: 1rem;
   padding: 1.5rem;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .card:hover {
-  border-color: var(--color-accent-cyan);
-  box-shadow: 0 8px 25px rgba(15, 48, 87, 0.1);
+  border-color: #3b9fd8;
+  box-shadow: 0 8px 25px rgba(59, 159, 216, 0.15);
 }
 
 /* Animation fadeInUp */
@@ -212,16 +214,16 @@ textarea.input-field {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #111;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-primary);
+  background: #3b9fd8;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary-light);
+  background: #2d8bc9;
 }
 
 /* Scrollbar fine pour sidebar */
@@ -234,7 +236,7 @@ textarea.input-field {
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(59, 159, 216, 0.3);
   border-radius: 2px;
 }
 
@@ -255,19 +257,19 @@ textarea.input-field {
 
 /* Text utilities */
 .text-primary {
-  color: var(--color-primary);
+  color: #ffffff;
 }
 
 .text-secondary {
-  color: var(--color-secondary);
+  color: #3b9fd8;
 }
 
 .bg-primary {
-  background-color: var(--color-primary);
+  background-color: #0a0a0a;
 }
 
 .bg-secondary {
-  background-color: var(--color-secondary);
+  background-color: #3b9fd8;
 }
 
 /* Responsive utilities */

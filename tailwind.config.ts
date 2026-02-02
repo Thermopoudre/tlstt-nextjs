@@ -9,27 +9,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Palette TLSTT - Bleus du logo (flat, sans dégradé)
+        // Palette TLSTT - Noir + Bleu Ultra Contrasté
         primary: {
-          DEFAULT: '#0f3057',
-          light: '#1a5a8a',
-          dark: '#0a2040',
+          DEFAULT: '#0a0a0a',
+          light: '#111111',
+          dark: '#000000',
         },
         secondary: {
-          DEFAULT: '#1a5a8a',
-          light: '#2e86ab',
-          dark: '#0f3057',
+          DEFAULT: '#1a1a1a',
+          light: '#222222',
+          dark: '#111111',
         },
         accent: {
-          DEFAULT: '#5bc0de',
-          light: '#8dd3e8',
-          dark: '#4ab0ce',
+          DEFAULT: '#3b9fd8',
+          light: '#5bb5e8',
+          dark: '#2d8bc9',
         },
         // Couleurs fonctionnelles
         dark: {
-          DEFAULT: '#0f3057',
-          light: '#1a5a8a',
-          card: 'rgba(15, 48, 87, 0.95)',
+          DEFAULT: '#0a0a0a',
+          light: '#111111',
+          card: '#1a1a1a',
         },
       },
       fontFamily: {
