@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
 
-// Route pour synchroniser les joueurs avec les points EXACTS de l'API FFTT
-// Étape 1: Récupérer la liste des licences via xml_liste_joueur
-// Étape 2: Pour chaque licence, appeler xml_licence_b pour obtenir les points mensuels exacts
+// Route pour synchroniser les joueurs depuis l'API FFTT
+// Utilise xml_liste_joueur.php qui retourne la liste avec le classement (clast)
+// Les points exacts ne sont pas disponibles via l'API actuelle (xml_licence_b retourne "Compte incorrect")
+// On utilise clast * 100 comme approximation des points
 export async function GET() {
   const supabase = await createClient()
 
@@ -22,14 +23,13 @@ export async function GET() {
   }
 
   try {
-    // ÉTAPE 1: Récupérer la liste de tous les joueurs du club
+    // Récupérer la liste de tous les joueurs du club
     const tm1 = generateTimestamp()
     const tmc1 = encryptTimestamp(tm1, password)
     
-    // xml_liste_joueur fonctionne pour lister les joueurs
     const listeUrl = `https://www.fftt.com/mobile/pxml/xml_liste_joueur.php?serie=${serie}&tm=${tm1}&tmc=${tmc1}&id=${appId}&club=${clubId}`
     
-    console.log('📋 Récupération liste joueurs...')
+    console.log('📋 Récupération liste joueurs FFTT...')
     const listeResponse = await fetch(listeUrl, { cache: 'no-store' })
     const listeXml = await listeResponse.text()
 
@@ -41,136 +41,101 @@ export async function GET() {
     // Parser les joueurs
     const joueurMatches = listeXml.match(/<joueur>[\s\S]*?<\/joueur>/g) || []
     
-    const joueursBase = joueurMatches.map(xml => ({
-      licence: extractValue(xml, 'licence'),
-      nom: extractValue(xml, 'nom'),
-      prenom: extractValue(xml, 'prenom'),
-      club: extractValue(xml, 'club'),
-      nclub: extractValue(xml, 'nclub'),
-      clast: extractValue(xml, 'clast') // Classement palier (pas exact)
-    })).filter(j => j.licence && j.nom)
+    const joueursFFTT = joueurMatches.map(xml => {
+      const clast = parseInt(extractValue(xml, 'clast') || '5')
+      // clast est le niveau de classement (5=500-599, 6=600-699, etc.)
+      // On approxime les points à clast * 100
+      const pointsApprox = clast * 100
+      
+      return {
+        licence: extractValue(xml, 'licence'),
+        nom: extractValue(xml, 'nom'),
+        prenom: extractValue(xml, 'prenom'),
+        club: extractValue(xml, 'club'),
+        nclub: extractValue(xml, 'nclub'),
+        clast: clast,
+        pointsApprox: pointsApprox
+      }
+    }).filter(j => j.licence && j.nom)
 
-    console.log(`📥 ${joueursBase.length} joueurs trouvés`)
+    console.log(`📥 ${joueursFFTT.length} joueurs trouvés dans la base FFTT`)
 
-    // ÉTAPE 2: Pour chaque joueur, récupérer les points EXACTS via xml_licence_b
     let updated = 0
     let created = 0
     let errors = 0
-    const results: any[] = []
 
-    // Traiter par lots de 10 pour éviter les timeouts
-    const batchSize = 10
-    for (let i = 0; i < joueursBase.length; i += batchSize) {
-      const batch = joueursBase.slice(i, i + batchSize)
-      
-      const batchPromises = batch.map(async (joueur) => {
-        try {
-          // Nouveau timestamp pour chaque requête
-          const tm = generateTimestamp()
-          const tmc = encryptTimestamp(tm, password)
-          
-          // Appeler xml_licence_b avec le numéro de licence
-          const licenceUrl = `https://www.fftt.com/mobile/pxml/xml_licence_b.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=${joueur.licence}`
-          
-          const response = await fetch(licenceUrl, { cache: 'no-store' })
-          const xml = await response.text()
-          
-          // Extraire les données
-          let pointsExacts = 500
-          let pointsAnciens = 500
-          let pointsInitiaux = 500
-          let categorie = joueur.clast
-          
-          if (!xml.includes('<erreur>') && xml.includes('<licence>')) {
-            // Points mensuels EXACTS
-            const pointm = extractValue(xml, 'pointm')
-            const apointm = extractValue(xml, 'apointm')
-            const initm = extractValue(xml, 'initm')
-            const cat = extractValue(xml, 'cat')
-            const echelon = extractValue(xml, 'echelon')
-            const place = extractValue(xml, 'place')
-            
-            pointsExacts = parseInt(pointm || '0') || 500
-            pointsAnciens = parseInt(apointm || '0') || pointsExacts
-            pointsInitiaux = parseInt(initm || '0') || pointsExacts
-            
-            // Catégorie : N+place si national, sinon cat
-            if (echelon === 'N' && place) {
-              categorie = `N${place}`
-            } else if (cat) {
-              categorie = cat
-            }
-          }
+    for (const joueur of joueursFFTT) {
+      try {
+        // Préparer les données joueur
+        // On utilise les points approximatifs basés sur clast
+        const playerData = {
+          first_name: joueur.prenom,
+          last_name: joueur.nom,
+          smartping_licence: joueur.licence,
+          fftt_points_exact: joueur.pointsApprox,
+          fftt_points: joueur.pointsApprox,
+          fftt_category: `Classe ${joueur.clast}`,
+          category: `C${joueur.clast}`,
+          last_sync: new Date().toISOString()
+        }
 
-          // Préparer les données joueur
-          const playerData = {
+        // Vérifier si le joueur existe
+        const { data: existing } = await supabase
+          .from('players')
+          .select('id, fftt_points_exact')
+          .eq('smartping_licence', joueur.licence)
+          .single()
+
+        if (existing) {
+          // Ne mettre à jour que si on n'a pas déjà des points différents
+          // (pour préserver les valeurs manuellement corrigées)
+          const updateData: any = {
             first_name: joueur.prenom,
             last_name: joueur.nom,
-            smartping_licence: joueur.licence,
-            fftt_points_exact: pointsExacts,
-            fftt_points: pointsExacts,
-            fftt_points_ancien: pointsAnciens,
-            fftt_points_initial: pointsInitiaux,
-            fftt_category: categorie,
-            category: categorie,
+            fftt_category: `Classe ${joueur.clast}`,
             last_sync: new Date().toISOString()
           }
-
-          // Vérifier si le joueur existe
-          const { data: existing } = await supabase
-            .from('players')
-            .select('id')
-            .eq('smartping_licence', joueur.licence)
-            .single()
-
-          if (existing) {
-            await supabase.from('players').update(playerData).eq('id', existing.id)
-            return { action: 'updated', ...playerData }
-          } else {
-            await supabase.from('players').insert(playerData)
-            return { action: 'created', ...playerData }
+          
+          // Mettre à jour les points seulement si ce sont des valeurs par défaut ou approximatives
+          if (!existing.fftt_points_exact || existing.fftt_points_exact === 500 || 
+              existing.fftt_points_exact % 100 === 0) {
+            updateData.fftt_points_exact = joueur.pointsApprox
+            updateData.fftt_points = joueur.pointsApprox
           }
-        } catch (err: any) {
-          console.error(`Erreur ${joueur.licence}:`, err.message)
-          return { action: 'error', licence: joueur.licence, error: err.message }
+          
+          await supabase.from('players').update(updateData).eq('id', existing.id)
+          updated++
+        } else {
+          await supabase.from('players').insert(playerData)
+          created++
         }
-      })
-
-      const batchResults = await Promise.all(batchPromises)
-      
-      for (const r of batchResults) {
-        if (r.action === 'updated') updated++
-        else if (r.action === 'created') created++
-        else errors++
-      }
-      
-      results.push(...batchResults)
-      
-      // Petit délai entre les lots
-      if (i + batchSize < joueursBase.length) {
-        await new Promise(resolve => setTimeout(resolve, 500))
+      } catch (err: any) {
+        console.error(`Erreur joueur ${joueur.licence}:`, err.message)
+        errors++
       }
     }
 
     // Récupérer le Top 10 pour vérification
     const { data: top10 } = await supabase
       .from('players')
-      .select('first_name, last_name, fftt_points_exact')
+      .select('first_name, last_name, fftt_points_exact, fftt_category')
       .order('fftt_points_exact', { ascending: false })
       .limit(10)
 
     return NextResponse.json({
       success: true,
       message: `✅ Synchronisation terminée`,
+      note: 'Points basés sur le classement FFTT (clast). Les points exacts ne sont pas disponibles via l\'API actuelle.',
       stats: {
-        joueursTotal: joueursBase.length,
+        joueursTotal: joueursFFTT.length,
         updated,
         created,
         errors
       },
       top10: top10?.map(p => ({
         nom: `${p.first_name} ${p.last_name}`,
-        points: p.fftt_points_exact
+        points: p.fftt_points_exact,
+        categorie: p.fftt_category
       })),
       timestamp: new Date().toISOString()
     })
