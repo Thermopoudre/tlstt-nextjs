@@ -18,9 +18,9 @@ export default function NewsCard({ article }: { article: any }) {
   return (
     <Link
       href={`/actualites/${article.category}/${article.id}`}
-      className="card group hover:shadow-xl transition-all duration-300 overflow-hidden"
+      className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden group hover:border-[#3b9fd8] transition-all duration-300"
     >
-      <div className="relative h-48 bg-[#1a5a8a] overflow-hidden">
+      <div className="relative h-48 bg-[#111] overflow-hidden">
         <img
           src={imgSrc}
           alt={article.title}
@@ -28,25 +28,25 @@ export default function NewsCard({ article }: { article: any }) {
           onError={() => setImgSrc(defaultImages['default'])}
         />
         <div className="absolute top-3 left-3">
-          <span className="bg-[#5bc0de] text-white px-3 py-1 rounded-full text-xs font-semibold uppercase">
+          <span className="bg-[#3b9fd8] text-white px-3 py-1 rounded-full text-xs font-semibold uppercase">
             {article.category}
           </span>
         </div>
       </div>
       <div className="p-5">
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-          <i className="fas fa-calendar text-[#5bc0de]"></i>
+          <i className="fas fa-calendar text-[#3b9fd8]"></i>
           <span>{new Date(article.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
         </div>
-        <h3 className="text-xl font-bold text-[#0f3057] mb-2 line-clamp-2 group-hover:text-[#5bc0de] transition-colors">
+        <h3 className="text-xl font-bold text-white mb-2 line-clamp-2 group-hover:text-[#3b9fd8] transition-colors">
           {article.title}
         </h3>
         {article.excerpt && (
-          <p className="text-gray-600 text-sm line-clamp-3 mb-3">
+          <p className="text-gray-400 text-sm line-clamp-3 mb-3">
             {article.excerpt}
           </p>
         )}
-        <span className="text-[#5bc0de] font-semibold text-sm flex items-center gap-1">
+        <span className="text-[#3b9fd8] font-semibold text-sm flex items-center gap-1">
           Lire la suite
           <i className="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
         </span>
