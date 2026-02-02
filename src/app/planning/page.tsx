@@ -47,7 +47,7 @@ export default async function PlanningPage() {
     .order('start_time')
 
   // Grouper par jour
-  const trainingsByDay = (trainings || []).reduce((acc, training) => {
+  const trainingsByDay = (trainings || []).reduce((acc: Record<number, Training[]>, training: Training) => {
     const day = training.day_of_week
     if (!acc[day]) acc[day] = []
     acc[day].push(training)
@@ -105,7 +105,7 @@ export default async function PlanningPage() {
                 const dayTrainings = trainingsByDay[dayIndex] || []
                 if (dayTrainings.length === 0) return null
 
-                return dayTrainings.map((training, idx) => {
+                return dayTrainings.map((training: Training, idx: number) => {
                   const config = activityConfig[training.activity_type] || activityConfig.libre
                   return (
                     <tr key={training.id} className="hover:bg-gray-50">
