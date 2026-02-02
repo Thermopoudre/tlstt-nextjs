@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { createClient } from '@/lib/supabase/client'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 
 interface Product {
   id: string
@@ -34,12 +35,6 @@ export default function BoutiquePage() {
   const [showCart, setShowCart] = useState(false)
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/?login=true')
-    }
-  }, [loading, user, router])
-
-  useEffect(() => {
     const fetchProducts = async () => {
       const supabase = createClient()
       const { data } = await supabase
@@ -51,12 +46,88 @@ export default function BoutiquePage() {
       setIsLoading(false)
     }
     if (user) fetchProducts()
+    else setIsLoading(false)
   }, [user])
 
-  if (loading || !user) {
+  // Page pour visiteurs non connectés
+  if (!loading && !user) {
+    return (
+      <div className="min-h-screen bg-gray-100">
+        <div className="bg-[#0f3057] py-12">
+          <div className="max-w-7xl mx-auto px-5">
+            <Breadcrumbs className="text-gray-400 mb-6" />
+            <div className="flex items-center gap-4">
+              <i className="fas fa-store text-4xl text-[#5bc0de]"></i>
+              <div>
+                <h1 className="text-3xl font-bold text-white">Boutique du Club</h1>
+                <p className="text-gray-300">Articles officiels TLSTT</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-2xl mx-auto px-5 py-16">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="w-20 h-20 bg-[#5bc0de]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-lock text-4xl text-[#5bc0de]"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Accès Réservé aux Membres</h2>
+            <p className="text-gray-600 mb-8">
+              La boutique du club est réservée aux membres licenciés du TLSTT.
+              Connectez-vous pour accéder aux articles officiels du club.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/espace-membre"
+                className="px-8 py-3 bg-[#5bc0de] text-white rounded-xl font-semibold hover:bg-[#4ab0ce] transition-colors"
+              >
+                <i className="fas fa-sign-in-alt mr-2"></i>
+                Se connecter
+              </Link>
+              <Link
+                href="/contact"
+                className="px-8 py-3 border-2 border-[#0f3057] text-[#0f3057] rounded-xl font-semibold hover:bg-[#0f3057] hover:text-white transition-colors"
+              >
+                <i className="fas fa-user-plus mr-2"></i>
+                Devenir membre
+              </Link>
+            </div>
+          </div>
+
+          {/* Aperçu produits */}
+          <div className="mt-12">
+            <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">
+              <i className="fas fa-eye mr-2 text-[#5bc0de]"></i>
+              Aperçu de la boutique
+            </h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-white rounded-xl p-4 text-center shadow">
+                <i className="fas fa-tshirt text-3xl text-[#5bc0de] mb-2"></i>
+                <p className="text-sm text-gray-600">Maillots</p>
+              </div>
+              <div className="bg-white rounded-xl p-4 text-center shadow">
+                <i className="fas fa-bag-shopping text-3xl text-[#5bc0de] mb-2"></i>
+                <p className="text-sm text-gray-600">Accessoires</p>
+              </div>
+              <div className="bg-white rounded-xl p-4 text-center shadow">
+                <i className="fas fa-table-tennis-paddle-ball text-3xl text-[#5bc0de] mb-2"></i>
+                <p className="text-sm text-gray-600">Équipement</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Loading state
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#0f3057] flex items-center justify-center">
-        <i className="fas fa-spinner fa-spin text-4xl text-[#5bc0de]"></i>
+        <div className="text-center">
+          <i className="fas fa-spinner fa-spin text-4xl text-[#5bc0de] mb-4"></i>
+          <p className="text-white/60">Chargement...</p>
+        </div>
       </div>
     )
   }
@@ -108,16 +179,8 @@ export default function BoutiquePage() {
     <div className="min-h-screen bg-[#0f3057]">
       {/* Hero */}
       <div className="py-12 bg-[#0f3057]">
-        <div className="container-custom">
-          <nav className="mb-6 text-sm">
-            <ol className="flex items-center space-x-2 text-white/60">
-              <li><Link href="/" className="hover:text-[#5bc0de]">Accueil</Link></li>
-              <li>/</li>
-              <li><Link href="/espace-membre" className="hover:text-[#5bc0de]">Espace Membre</Link></li>
-              <li>/</li>
-              <li className="text-white font-semibold">Boutique</li>
-            </ol>
-          </nav>
+        <div className="max-w-7xl mx-auto px-5">
+          <Breadcrumbs className="text-gray-400 mb-6" />
 
           <div className="flex justify-between items-start">
             <div>
@@ -125,7 +188,7 @@ export default function BoutiquePage() {
                 <span className="text-[#5bc0de]">Boutique</span> du Club
               </h1>
               <p className="text-white/70 text-lg">
-                Articles officiels TLSTT - Réservé aux membres
+                Bienvenue {profile?.first_name || 'Membre'} ! Articles officiels TLSTT
               </p>
             </div>
 
@@ -164,7 +227,7 @@ export default function BoutiquePage() {
         </div>
       </div>
 
-      <div className="container-custom pb-12 -mt-4">
+      <div className="max-w-7xl mx-auto px-5 pb-12 -mt-4">
         {isLoading ? (
           <div className="text-center py-12">
             <i className="fas fa-spinner fa-spin text-4xl text-[#5bc0de] mb-4"></i>
