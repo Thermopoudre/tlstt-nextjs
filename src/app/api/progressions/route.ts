@@ -30,7 +30,7 @@ export async function GET() {
   const supabase = await createClient()
 
   try {
-    // Récupérer tous les joueurs du club
+    // Récupérer tous les joueurs du club avec leurs points
     const { data: players, error } = await supabase
       .from('players')
       .select('*')
@@ -47,141 +47,147 @@ export async function GET() {
     let source = 'Données locales'
     let ffttAvailable = false
 
-    // Test rapide si FFTT est disponible (1 joueur test)
+    // Utiliser d'abord les données locales (stockées par sync-joueurs)
+    progressions = (players || []).map(player => {
+      const pointsActuels = player.fftt_points_exact || player.fftt_points || 500
+      const pointsAnciens = player.fftt_points_ancien || pointsActuels
+      const pointsInitiaux = player.fftt_points_initial || pointsActuels
+      
+      const progressionMois = pointsActuels - pointsAnciens
+      const progressionSaison = pointsActuels - pointsInitiaux
+      const progressionPourcentage = pointsInitiaux > 0 
+        ? Math.round((progressionSaison / pointsInitiaux) * 1000) / 10 
+        : 0
+
+      return {
+        id: player.id,
+        licence: player.smartping_licence,
+        nom: player.last_name,
+        prenom: player.first_name,
+        pointsActuels,
+        pointsAnciens,
+        pointsInitiaux,
+        progressionMois,
+        progressionSaison,
+        progressionPourcentage,
+        categorie: player.fftt_category || player.category
+      }
+    })
+
+    // Si FFTT disponible, enrichir avec données live pour les top 30
     if (appId && password && serie) {
       try {
+        // Test rapide si FFTT est disponible
         const tm = generateTimestamp()
         const tmc = encryptTimestamp(tm, password)
-        const controller = new AbortController()
-        const timeout = setTimeout(() => controller.abort(), 5000)
         
         const testResponse = await fetch(
-          `https://www.fftt.com/mobile/pxml/xml_licence_b.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=8311494`,
-          { signal: controller.signal, cache: 'no-store' }
+          `https://www.fftt.com/mobile/pxml/xml_liste_joueur.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&club=13830083`,
+          { cache: 'no-store' }
         )
-        clearTimeout(timeout)
-        
         const testXml = await testResponse.text()
-        ffttAvailable = testResponse.status === 200 && 
-                        testXml.includes('<licence>') && 
-                        !testXml.includes('<erreur>')
+        ffttAvailable = testResponse.status === 200 && !testXml.includes('<erreur>')
         
         if (ffttAvailable) {
-          source = 'FFTT Live'
+          source = 'FFTT + Données locales'
+          
+          // Enrichir les top 30 joueurs avec données live
+          const top30 = progressions.slice(0, 30)
+          
+          for (let i = 0; i < top30.length; i++) {
+            const player = top30[i]
+            try {
+              const tm2 = generateTimestamp()
+              const tmc2 = encryptTimestamp(tm2, password)
+              
+              const response = await fetch(
+                `https://www.fftt.com/mobile/pxml/xml_licence_b.php?serie=${serie}&tm=${tm2}&tmc=${tmc2}&id=${appId}&licence=${player.licence}`,
+                { cache: 'no-store' }
+              )
+              const xml = await response.text()
+              
+              if (!xml.includes('<erreur>') && xml.includes('<licence>')) {
+                const pointm = parseInt(extractValue(xml, 'pointm') || '0')
+                const apointm = parseInt(extractValue(xml, 'apointm') || '0')
+                const initm = parseInt(extractValue(xml, 'initm') || '0')
+                
+                if (pointm > 0) {
+                  const pointsActuels = pointm
+                  const pointsAnciens = apointm || pointm
+                  const pointsInitiaux = initm || pointm
+                  
+                  progressions[i] = {
+                    ...player,
+                    pointsActuels,
+                    pointsAnciens,
+                    pointsInitiaux,
+                    progressionMois: pointsActuels - pointsAnciens,
+                    progressionSaison: pointsActuels - pointsInitiaux,
+                    progressionPourcentage: pointsInitiaux > 0 
+                      ? Math.round(((pointsActuels - pointsInitiaux) / pointsInitiaux) * 1000) / 10 
+                      : 0
+                  }
+
+                  // Mettre à jour en base
+                  await supabase
+                    .from('players')
+                    .update({
+                      fftt_points_exact: pointsActuels,
+                      fftt_points: pointsActuels,
+                      fftt_points_ancien: pointsAnciens,
+                      fftt_points_initial: pointsInitiaux,
+                      last_sync: new Date().toISOString()
+                    })
+                    .eq('smartping_licence', player.licence)
+                }
+              }
+            } catch {
+              // Garder les données locales en cas d'erreur
+            }
+          }
         }
       } catch {
         ffttAvailable = false
       }
     }
 
-    // Si FFTT disponible, enrichir avec données live
-    if (ffttAvailable && appId && password && serie) {
-      const tm = generateTimestamp()
-      const tmc = encryptTimestamp(tm, password)
-      
-      // Limiter à 50 joueurs pour éviter timeout
-      const topPlayers = players?.slice(0, 50) || []
+    // Re-trier après enrichissement
+    progressions.sort((a, b) => b.pointsActuels - a.pointsActuels)
 
-      const enrichedPromises = topPlayers.map(async (player) => {
-        try {
-          const controller = new AbortController()
-          const timeout = setTimeout(() => controller.abort(), 3000)
-          
-          const response = await fetch(
-            `https://www.fftt.com/mobile/pxml/xml_licence_b.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=${player.smartping_licence}`,
-            { signal: controller.signal, cache: 'no-store' }
-          )
-          clearTimeout(timeout)
-          const xml = await response.text()
-          
-          if (xml.includes('<erreur>')) {
-            return createLocalProgression(player)
-          }
-          
-          const pointm = extractValue(xml, 'pointm')
-          const apointm = extractValue(xml, 'apointm')
-          const initm = extractValue(xml, 'initm')
-          const cat = extractValue(xml, 'cat')
-
-          const pointsActuels = parseInt(pointm || '0') || player.fftt_points_exact || player.fftt_points || 500
-          const pointsAnciens = parseInt(apointm || '0') || pointsActuels
-          const pointsInitiaux = parseInt(initm || '0') || pointsActuels
-
-          const progressionMois = pointsActuels - pointsAnciens
-          const progressionSaison = pointsActuels - pointsInitiaux
-          const progressionPourcentage = pointsInitiaux > 0 
-            ? Math.round((progressionSaison / pointsInitiaux) * 1000) / 10 
-            : 0
-
-          // Mettre à jour Supabase avec les nouvelles données
-          await supabase
-            .from('players')
-            .update({
-              fftt_points_exact: pointsActuels,
-              fftt_points: pointsActuels,
-              category: cat || player.category,
-              last_sync: new Date().toISOString()
-            })
-            .eq('id', player.id)
-
-          return {
-            id: player.id,
-            licence: player.smartping_licence,
-            nom: player.last_name,
-            prenom: player.first_name,
-            pointsActuels,
-            pointsAnciens,
-            pointsInitiaux,
-            progressionMois,
-            progressionSaison,
-            progressionPourcentage,
-            categorie: cat || player.category
-          }
-        } catch {
-          return createLocalProgression(player)
-        }
-      })
-
-      const results = await Promise.all(enrichedPromises)
-      progressions = results
-    } else {
-      // FFTT indisponible - utiliser données Supabase
-      progressions = (players || []).map(player => createLocalProgression(player))
-    }
-
-    // Trier par progression mensuelle décroissante pour topMois
+    // Top progressions du mois
     const topMois = [...progressions]
+      .filter(p => p.progressionMois !== 0)
       .sort((a, b) => b.progressionMois - a.progressionMois)
       .slice(0, 20)
 
-    // Trier par progression saison décroissante pour topSaison
+    // Top progressions de la saison
     const topSaison = [...progressions]
+      .filter(p => p.progressionSaison !== 0)
       .sort((a, b) => b.progressionSaison - a.progressionSaison)
       .slice(0, 20)
-    
-    // Record du club (plus grosse progression du mois)
-    const recordMois = topMois[0] || null
     
     // Stats
     const enProgression = progressions.filter(p => p.progressionMois > 0).length
     const enRegression = progressions.filter(p => p.progressionMois < 0).length
     const stables = progressions.filter(p => p.progressionMois === 0).length
+    const recordMois = topMois[0] || null
 
-    // Nouveaux paliers (500, 1000, 1500, 2000)
-    const paliers = [500, 1000, 1500, 2000, 2500]
+    // Nouveaux paliers atteints cette saison
+    const paliers = [500, 1000, 1500, 2000, 2500, 3000]
     const nouveauxPaliers = progressions
-      .filter(p => paliers.some(palier => 
-        p.pointsActuels >= palier && p.pointsInitiaux < palier && p.pointsInitiaux > 0
+      .filter(p => p.pointsInitiaux > 0 && paliers.some(palier => 
+        p.pointsActuels >= palier && p.pointsInitiaux < palier
       ))
       .map(p => ({
         ...p,
         palierAtteint: paliers.find(palier => p.pointsActuels >= palier && p.pointsInitiaux < palier)
       }))
+      .sort((a, b) => (b.palierAtteint || 0) - (a.palierAtteint || 0))
 
     return NextResponse.json({
       topMois,
       topSaison,
-      tous: progressions.sort((a, b) => b.pointsActuels - a.pointsActuels),
+      tous: progressions,
       stats: {
         recordMois,
         enProgression,
@@ -192,7 +198,7 @@ export async function GET() {
       } as Stats,
       lastUpdate: new Date().toISOString(),
       source,
-      ffttStatus: ffttAvailable ? 'Disponible' : 'Indisponible - Credentials à renouveler auprès de la FFTT'
+      ffttStatus: ffttAvailable ? 'Disponible' : 'Données locales uniquement'
     })
 
   } catch (error: any) {
@@ -206,23 +212,6 @@ export async function GET() {
       source: 'Erreur',
       error: error.message 
     })
-  }
-}
-
-function createLocalProgression(player: any): PlayerProgression {
-  const points = player.fftt_points_exact || player.fftt_points || 500
-  return {
-    id: player.id,
-    licence: player.smartping_licence,
-    nom: player.last_name,
-    prenom: player.first_name,
-    pointsActuels: points,
-    pointsAnciens: points,
-    pointsInitiaux: points,
-    progressionMois: 0,
-    progressionSaison: 0,
-    progressionPourcentage: 0,
-    categorie: player.category
   }
 }
 
