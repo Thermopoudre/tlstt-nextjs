@@ -1,5 +1,70 @@
 # SUIVI DES MODIFICATIONS - TLSTT Site
 
+## 2026-02-02 - Synchronisation FFTT et Corrections API
+
+### Problème Identifié
+Les credentials FFTT API actuels ont des permissions limitées:
+- `xml_liste_joueur.php` - **FONCTIONNE** (retourne liste avec `clast`)
+- `xml_licence_b.php` - **ERREUR "Compte incorrect"** (points exacts non accessibles)
+- `xml_liste_joueur_o.php` - **ERREUR "Compte incorrect"**
+- `xml_equipe.php` - **ERREUR "Compte incorrect"**
+
+### Solution Temporaire
+- Utilisation du champ `clast` (classe de classement) pour approximer les points
+- `clast * 100` = points approximatifs (ex: clast 18 = 1800 pts)
+- Les progressions sont calculées mais limitées par les données approximatives
+
+### Fichiers Créés/Modifiés
+
+#### Routes API
+- `src/app/api/sync-joueurs/route.ts` - Synchronisation joueurs depuis FFTT
+  - Utilise `xml_liste_joueur.php` (seul endpoint accessible)
+  - Convertit `clast` en points approximatifs
+  - Met à jour 221 joueurs dans Supabase
+- `src/app/api/equipes/route.ts` - API équipes (nécessite credentials élevés)
+- `src/app/api/progressions/route.ts` - API progressions mise à jour
+- `src/app/api/smartping-debug/route.ts` - Diagnostic API
+- `src/app/api/smartping-test/route.ts` - Test de connexion
+- `src/app/api/test-licence/route.ts` - Test licence individuelle
+- `src/app/api/test-joueur/route.ts` - Test multi-endpoints
+
+#### Base de données Supabase
+Nouvelles colonnes ajoutées à la table `players`:
+- `fftt_points_ancien` (INTEGER) - Points du mois précédent
+- `fftt_points_initial` (INTEGER) - Points de début de saison
+- `fftt_category` (VARCHAR) - Catégorie FFTT
+
+### État des Pages
+
+#### Page Joueurs `/joueurs` ✅
+- Fonctionne correctement
+- Affiche 221 joueurs avec points approximatifs
+- Top 3, statistiques, filtres opérationnels
+- Points basés sur `clast` (1800, 1600, 1500, etc.)
+
+#### Page Progressions `/progressions` ✅
+- Fonctionne correctement
+- Affiche classement et progressions
+- Progressions limitées (données approximatives)
+
+#### Page Équipes `/equipes` ⚠️
+- Affiche "Aucune équipe trouvée"
+- Nécessite credentials FFTT avec permissions étendues
+- L'endpoint `xml_equipe.php` retourne "Compte incorrect"
+
+### Action Requise
+Pour obtenir les points exacts et les données équipes, il faut:
+1. Contacter la FFTT pour obtenir des credentials avec permissions étendues
+2. Ou re-générer une nouvelle `SMARTPING_SERIE` via l'interface FFTT
+
+### Commits
+- `fix(api): update sync-joueurs, equipes and progressions routes for exact points`
+- `feat(api): add test-licence endpoint for FFTT debugging`
+- `feat(api): add test-joueur endpoint to explore FFTT endpoints`
+- `fix(api): use clast-based points approximation since xml_licence_b is not accessible`
+
+---
+
 ## 2026-01-07 - Mise à jour Pages Joueurs & Progressions
 
 ### Fichiers Modifiés
