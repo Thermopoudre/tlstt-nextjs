@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@/lib/supabase/client'
 
 export default function AdminParametresPage() {
-  const supabase = createClientComponentClient()
+  const supabase = createClient()
   const [settings, setSettings] = useState({
     site_name: 'TLSTT',
     site_description: 'Toulon La Seyne Tennis de Table',
@@ -28,7 +28,7 @@ export default function AdminParametresPage() {
   const handleSave = async () => {
     setSaving(true)
     const { error } = await supabase.from('site_settings').upsert({ page: 'global', settings, updated_at: new Date().toISOString() }, { onConflict: 'page' })
-    setMessage(error ? { type: 'error', text: 'Erreur' } : { type: 'success', text: 'Enregistr\u00e9 !' })
+    setMessage(error ? { type: 'error', text: 'Erreur' } : { type: 'success', text: 'Enregistré !' })
     setSaving(false)
   }
 
@@ -36,8 +36,8 @@ export default function AdminParametresPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-primary">Param\u00e8tres</h1>
-          <p className="text-gray-600 mt-1">Configuration g\u00e9n\u00e9rale</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-primary">Paramètres</h1>
+          <p className="text-gray-600 mt-1">Configuration générale</p>
         </div>
         <button onClick={handleSave} disabled={saving} className="btn-primary flex items-center gap-2">
           <i className={`fas ${saving ? 'fa-spinner fa-spin' : 'fa-save'}`}></i>

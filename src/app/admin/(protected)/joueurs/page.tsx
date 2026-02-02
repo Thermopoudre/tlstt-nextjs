@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 interface Player {
@@ -15,7 +15,7 @@ interface Player {
 }
 
 export default function AdminJoueursPage() {
-  const supabase = createClientComponentClient()
+  const supabase = createClient()
   const [players, setPlayers] = useState<Player[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')

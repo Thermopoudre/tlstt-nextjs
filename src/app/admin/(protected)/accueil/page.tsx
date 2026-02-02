@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@/lib/supabase/client'
 
 interface HomepageSettings {
   id?: number
@@ -19,11 +19,11 @@ interface HomepageSettings {
 }
 
 export default function AdminAccueilPage() {
-  const supabase = createClientComponentClient()
+  const supabase = createClient()
   const [settings, setSettings] = useState<HomepageSettings>({
     hero_title: 'TLSTT',
-    hero_subtitle: 'Tennis de Table \u00e0 Toulon La Seyne',
-    hero_cta_text: 'D\u00e9couvrir le club',
+    hero_subtitle: 'Tennis de Table à Toulon La Seyne',
+    hero_cta_text: 'Découvrir le club',
     hero_cta_link: '/club/a-propos',
     stats_members: 221,
     stats_teams: 8,
@@ -67,7 +67,7 @@ export default function AdminAccueilPage() {
     if (error) {
       setMessage({ type: 'error', text: 'Erreur lors de la sauvegarde' })
     } else {
-      setMessage({ type: 'success', text: 'Modifications enregistr\u00e9es !' })
+      setMessage({ type: 'success', text: 'Modifications enregistrées !' })
     }
     setSaving(false)
   }
@@ -114,7 +114,7 @@ export default function AdminAccueilPage() {
               <input type="number" value={settings.stats_members} onChange={(e) => setSettings({...settings, stats_members: parseInt(e.target.value)})} className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre d'\u00e9quipes</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre d'équipes</label>
               <input type="number" value={settings.stats_teams} onChange={(e) => setSettings({...settings, stats_teams: parseInt(e.target.value)})} className="input-field" />
             </div>
           </div>
