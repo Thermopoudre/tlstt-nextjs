@@ -58,8 +58,23 @@ Après analyse du code PHP fonctionnel, utilisation de `xml_joueur.php` pour ré
 - Affiche les vraies progressions mensuelles et saisonnières
 - Stats: 39 en progression, 36 en régression, 146 stables
 
-#### Page Équipes `/equipes` ⚠️
-- À vérifier - endpoint `xml_equipe.php` peut nécessiter permissions spéciales
+#### Page Équipes `/equipes` ❌
+- **Non fonctionnelle** - endpoint `xml_equipe.php` retourne "Compte incorrect"
+- Les credentials FFTT actuels n'ont pas accès à cet endpoint
+- **Solution**: Contacter la FFTT pour obtenir des permissions étendues ou un nouveau compte API
+
+### Endpoints FFTT - Bilan des Accès
+
+| Endpoint | Statut | Usage |
+|----------|--------|-------|
+| `xml_initialisation.php` | ✅ | Initialisation série |
+| `xml_liste_joueur.php` | ✅ | Liste des joueurs du club |
+| `xml_joueur.php` | ✅ | **Points exacts** par joueur |
+| `xml_partie_mysql.php` | ✅ | Parties jouées |
+| `xml_histo_classement.php` | ✅ | Historique classement |
+| `xml_equipe.php` | ❌ | Équipes du club |
+| `xml_licence_b.php` | ❌ | Licence détaillée |
+| `xml_liste_joueur_o.php` | ❌ | Liste SPID |
 
 ---
 
