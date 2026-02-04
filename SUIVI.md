@@ -2,7 +2,7 @@
 
 ## 2026-02-04 - Correction Points Exacts via xml_joueur.php
 
-### Solution Implémentée
+### Solution Implémentée ✅
 Après analyse du code PHP fonctionnel, utilisation de `xml_joueur.php` pour récupérer les points exacts mensuels de chaque joueur.
 
 ### Endpoints Fonctionnels Identifiés
@@ -10,6 +10,18 @@ Après analyse du code PHP fonctionnel, utilisation de `xml_joueur.php` pour ré
 - `xml_joueur.php` - **FONCTIONNE** (détails joueur avec points exacts: `point`, `apoint`, `valinit`)
 - `xml_partie_mysql.php` - **FONCTIONNE** (parties d'un joueur)
 - `xml_histo_classement.php` - **FONCTIONNE** (historique classements)
+- `xml_equipe.php` - **À TESTER** (peut nécessiter permissions spéciales)
+
+### Résultats de la Synchronisation (04/02/2026)
+- **221 joueurs** synchronisés avec succès
+- **221 points exacts** récupérés via `xml_joueur.php`
+- **Top 10 avec points réels** :
+  - Davide SIMON: 2243 pts (N506)
+  - Brice BOURGEOIS: 2003 pts
+  - Cedric CEUNINCK: 1847 pts
+  - Nicolas DELARUE: 1835 pts
+  - Stephane MESSI: 1597 pts
+  - Yohan OUELLET: 1507 pts
 
 ### Fichiers Modifiés
 
@@ -19,6 +31,7 @@ Après analyse du code PHP fonctionnel, utilisation de `xml_joueur.php` pour ré
 - Champs extraits: `point` (mensuel), `apoint` (ancien), `valinit` (initial)
 - Fallback vers `clast * 100` si détail non disponible
 - Met à jour `fftt_points_exact`, `fftt_points_ancien`, `fftt_points_initial` dans Supabase
+- Correction du bug "Classe NaN" pour les catégories
 
 #### `/src/app/api/progressions/route.ts`
 - Utilise maintenant `xml_joueur.php` au lieu de `xml_licence_b.php`
@@ -29,6 +42,24 @@ Après analyse du code PHP fonctionnel, utilisation de `xml_joueur.php` pour ré
 - Appels API restructurés: `xml_joueur.php` en priorité
 - `xml_licence_b.php` en fallback optionnel (peut échouer)
 - Parsing amélioré avec fallbacks pour tous les champs
+
+#### `/src/app/api/test-equipes/route.ts` (nouveau)
+- Endpoint de test pour diagnostiquer `xml_equipe.php`
+
+### État des Pages
+
+#### Page Joueurs `/joueurs` ✅
+- **Fonctionnelle** avec points exacts
+- Affiche 221 joueurs avec vrais points mensuels (1847, 2003, 1597, etc.)
+- Top 3, statistiques, filtres opérationnels
+
+#### Page Progressions `/progressions` ✅
+- **Fonctionnelle** avec données réelles
+- Affiche les vraies progressions mensuelles et saisonnières
+- Stats: 39 en progression, 36 en régression, 146 stables
+
+#### Page Équipes `/equipes` ⚠️
+- À vérifier - endpoint `xml_equipe.php` peut nécessiter permissions spéciales
 
 ---
 
