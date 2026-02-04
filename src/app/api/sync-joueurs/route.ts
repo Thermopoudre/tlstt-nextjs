@@ -40,7 +40,8 @@ export async function GET() {
     const joueurMatches = listeXml.match(/<joueur>[\s\S]*?<\/joueur>/g) || []
     
     const joueursFFTT = joueurMatches.map(xml => {
-      const clast = parseInt(extractValue(xml, 'clast') || '5')
+      const clastRaw = extractValue(xml, 'clast')
+      const clast = clastRaw ? parseInt(clastRaw) : 5
       
       return {
         licence: extractValue(xml, 'licence'),
@@ -48,7 +49,7 @@ export async function GET() {
         prenom: extractValue(xml, 'prenom'),
         club: extractValue(xml, 'club'),
         nclub: extractValue(xml, 'nclub'),
-        clast: clast
+        clast: isNaN(clast) ? 5 : clast // Fallback à 5 (500 pts) si non numérique
       }
     }).filter(j => j.licence && j.nom)
 
@@ -130,6 +131,19 @@ export async function GET() {
           pointsExact = joueur.clast * 100
         }
 
+        // Déterminer la catégorie affichable
+        // Priorité: catégorie FFTT (S, B, etc.) > classement officiel > fallback
+        let displayCategory = categorie
+        if (!displayCategory && classementOfficiel) {
+          displayCategory = classementOfficiel
+        }
+        if (!displayCategory && joueur.clast && !isNaN(joueur.clast)) {
+          displayCategory = `${joueur.clast}`
+        }
+        if (!displayCategory) {
+          displayCategory = 'NC' // Non classé
+        }
+
         // Préparer les données joueur
         const playerData: any = {
           first_name: joueur.prenom,
@@ -137,8 +151,8 @@ export async function GET() {
           smartping_licence: joueur.licence,
           fftt_points_exact: pointsExact,
           fftt_points: pointsExact, // Même valeur pour compatibilité
-          fftt_category: categorie || `Classe ${joueur.clast}`,
-          category: categorie || `C${joueur.clast}`,
+          fftt_category: displayCategory,
+          category: displayCategory,
           last_sync: new Date().toISOString()
         }
         
@@ -161,7 +175,7 @@ export async function GET() {
             last_name: joueur.nom,
             fftt_points_exact: pointsExact,
             fftt_points: pointsExact,
-            fftt_category: categorie || `Classe ${joueur.clast}`,
+            fftt_category: displayCategory,
             last_sync: new Date().toISOString()
           }
           
