@@ -1,18 +1,47 @@
 # SUIVI DES MODIFICATIONS - TLSTT Site
 
+## 2026-02-04 - Correction Points Exacts via xml_joueur.php
+
+### Solution Implémentée
+Après analyse du code PHP fonctionnel, utilisation de `xml_joueur.php` pour récupérer les points exacts mensuels de chaque joueur.
+
+### Endpoints Fonctionnels Identifiés
+- `xml_liste_joueur.php` - **FONCTIONNE** (liste joueurs avec `clast`)
+- `xml_joueur.php` - **FONCTIONNE** (détails joueur avec points exacts: `point`, `apoint`, `valinit`)
+- `xml_partie_mysql.php` - **FONCTIONNE** (parties d'un joueur)
+- `xml_histo_classement.php` - **FONCTIONNE** (historique classements)
+
+### Fichiers Modifiés
+
+#### `/src/app/api/sync-joueurs/route.ts`
+- Récupère d'abord la liste via `xml_liste_joueur.php`
+- Pour chaque joueur, appelle `xml_joueur.php` pour obtenir les points exacts
+- Champs extraits: `point` (mensuel), `apoint` (ancien), `valinit` (initial)
+- Fallback vers `clast * 100` si détail non disponible
+- Met à jour `fftt_points_exact`, `fftt_points_ancien`, `fftt_points_initial` dans Supabase
+
+#### `/src/app/api/progressions/route.ts`
+- Utilise maintenant `xml_joueur.php` au lieu de `xml_licence_b.php`
+- Enrichit les top 30 joueurs avec données live FFTT
+- Calcul progressions mensuelle et saisonnière
+
+#### `/src/app/api/player/[licence]/route.ts`
+- Appels API restructurés: `xml_joueur.php` en priorité
+- `xml_licence_b.php` en fallback optionnel (peut échouer)
+- Parsing amélioré avec fallbacks pour tous les champs
+
+---
+
 ## 2026-02-02 - Synchronisation FFTT et Corrections API
 
-### Problème Identifié
-Les credentials FFTT API actuels ont des permissions limitées:
-- `xml_liste_joueur.php` - **FONCTIONNE** (retourne liste avec `clast`)
-- `xml_licence_b.php` - **ERREUR "Compte incorrect"** (points exacts non accessibles)
-- `xml_liste_joueur_o.php` - **ERREUR "Compte incorrect"**
-- `xml_equipe.php` - **ERREUR "Compte incorrect"**
+### Problème Initial Identifié
+Certains endpoints FFTT retournaient "Compte incorrect":
+- `xml_licence_b.php` - ⚠️ Peut ne pas fonctionner
+- `xml_liste_joueur_o.php` - ⚠️ Peut ne pas fonctionner
+- `xml_equipe.php` - ⚠️ À tester
 
-### Solution Temporaire
-- Utilisation du champ `clast` (classe de classement) pour approximer les points
-- `clast * 100` = points approximatifs (ex: clast 18 = 1800 pts)
-- Les progressions sont calculées mais limitées par les données approximatives
+### Solution Alternative Trouvée (02/04)
+Utilisation de `xml_joueur.php` qui fonctionne parfaitement avec les credentials actuels.
 
 ### Fichiers Créés/Modifiés
 

@@ -84,24 +84,47 @@ export async function GET(request: Request, { params }: RouteParams) {
     const tm = generateTimestamp()
     const tmc = encryptTimestamp(tm, password)
 
-    // Appels API en parallèle
-    const [joueurResponse, licenceBResponse, partiesResponse, histoResponse] = await Promise.all([
-      // 1. Détails joueur base classement (xml_joueur.php)
+    // Appels API en parallèle - tous les endpoints utilisent le même timestamp
+    const [joueurResponse, partiesResponse, histoResponse] = await Promise.all([
+      // 1. Détails joueur base classement (xml_joueur.php) - endpoint fonctionnel
       fetch(`https://www.fftt.com/mobile/pxml/xml_joueur.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=${licence}`, { cache: 'no-store' }),
-      // 2. Détails licence + classement (xml_licence_b.php) - contient pointm, apointm, initm
-      fetch(`https://www.fftt.com/mobile/pxml/xml_licence_b.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=${licence}`, { cache: 'no-store' }),
-      // 3. Parties jouées (xml_partie_mysql.php)
+      // 2. Parties jouées (xml_partie_mysql.php) - endpoint fonctionnel
       fetch(`https://www.fftt.com/mobile/pxml/xml_partie_mysql.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=${licence}`, { cache: 'no-store' }),
-      // 4. Historique classement (xml_histo_classement.php)
+      // 3. Historique classement (xml_histo_classement.php)
       fetch(`https://www.fftt.com/mobile/pxml/xml_histo_classement.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&numlic=${licence}`, { cache: 'no-store' })
     ])
+    
+    // Tenter xml_licence_b.php séparément (peut retourner "Compte incorrect")
+    let licenceBResponse: Response | null = null
+    try {
+      const tm2 = generateTimestamp()
+      const tmc2 = encryptTimestamp(tm2, password)
+      licenceBResponse = await fetch(
+        `https://www.fftt.com/mobile/pxml/xml_licence_b.php?serie=${serie}&tm=${tm2}&tmc=${tmc2}&id=${appId}&licence=${licence}`,
+        { cache: 'no-store' }
+      )
+    } catch {
+      // Ignorer les erreurs, xml_joueur.php servira de fallback
+    }
 
-    const [joueurXml, licenceBXml, partiesXml, histoXml] = await Promise.all([
+    const [joueurXml, partiesXml, histoXml] = await Promise.all([
       joueurResponse.text(),
-      licenceBResponse.text(),
       partiesResponse.text(),
       histoResponse.text()
     ])
+    
+    // xml_licence_b si disponible
+    let licenceBXml = ''
+    if (licenceBResponse) {
+      try {
+        licenceBXml = await licenceBResponse.text()
+        if (licenceBXml.includes('<erreur>')) {
+          licenceBXml = '' // Ignorer si erreur
+        }
+      } catch {
+        licenceBXml = ''
+      }
+    }
 
     // Parser les données
     const playerData = parseJoueurXml(joueurXml, licenceBXml)
@@ -189,9 +212,13 @@ export async function GET(request: Request, { params }: RouteParams) {
 }
 
 // Parser XML joueur (combine xml_joueur et xml_licence_b)
+// xml_joueur.php contient: licence, nom, prenom, club, nclub, natio, clglob, point (mensuel), 
+// apoint (anciens points), clast, categ, rangreg, rangdep, valcla, valinit, clpro
 function parseJoueurXml(joueurXml: string, licenceBXml: string): PlayerData | null {
-  if (!joueurXml && !licenceBXml) return null
-  if (joueurXml.includes('<erreur>') && licenceBXml.includes('<erreur>')) return null
+  if (!joueurXml || joueurXml.includes('<erreur>')) {
+    // Si xml_joueur.php échoue aussi, on ne peut rien faire
+    return null
+  }
 
   const getValueFromJoueur = (tag: string): string | null => {
     const match = joueurXml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`))
@@ -199,45 +226,52 @@ function parseJoueurXml(joueurXml: string, licenceBXml: string): PlayerData | nu
   }
 
   const getValueFromLicence = (tag: string): string | null => {
+    if (!licenceBXml) return null
     const match = licenceBXml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`))
     return match ? match[1] : null
   }
 
-  // Priorité aux données de xml_licence_b (plus complètes)
-  const pointm = getValueFromLicence('pointm') || getValueFromJoueur('point')
-  const apointm = getValueFromLicence('apointm') || getValueFromJoueur('apoint')
-  const initm = getValueFromLicence('initm') || getValueFromJoueur('valinit')
+  // Points depuis xml_joueur.php (endpoint fonctionnel)
+  // point = points mensuels actuels
+  // apoint = anciens points mensuels (mois précédent)
+  // valinit = valeur initiale (début de saison)
+  const point = getValueFromJoueur('point')
+  const pointm = getValueFromLicence('pointm') // Fallback vers licence_b si disponible
+  const apoint = getValueFromJoueur('apoint')
+  const apointm = getValueFromLicence('apointm')
+  const valinit = getValueFromJoueur('valinit')
+  const initm = getValueFromLicence('initm')
 
-  // Calculer les valeurs numériques
-  const pointsMensuels = parseInt(pointm || '0')
-  const anciensPointsMensuels = parseInt(apointm || '0')
-  const pointsInitiaux = parseInt(initm || '0')
+  // Calculer les valeurs numériques - priorité à xml_joueur.php
+  const pointsMensuels = parseInt(point || pointm || '0')
+  const anciensPointsMensuels = parseInt(apoint || apointm || '0')
+  const pointsInitiaux = parseInt(valinit || initm || '0')
 
   // Calculer les progressions
-  const progressionMensuelle = pointsMensuels - anciensPointsMensuels
-  const progressionAnnuelle = pointsMensuels - pointsInitiaux
+  const progressionMensuelle = pointsMensuels - (anciensPointsMensuels || pointsMensuels)
+  const progressionAnnuelle = pointsMensuels - (pointsInitiaux || pointsMensuels)
 
   return {
-    licence: getValueFromLicence('licence') || getValueFromJoueur('licence'),
-    nom: getValueFromLicence('nom') || getValueFromJoueur('nom'),
-    prenom: getValueFromLicence('prenom') || getValueFromJoueur('prenom'),
-    club: getValueFromLicence('nomclub') || getValueFromJoueur('club'),
-    nclub: getValueFromLicence('numclub') || getValueFromJoueur('nclub'),
-    natio: getValueFromLicence('natio') || getValueFromJoueur('natio'),
+    licence: getValueFromJoueur('licence'),
+    nom: getValueFromJoueur('nom'),
+    prenom: getValueFromJoueur('prenom'),
+    club: getValueFromJoueur('club') || getValueFromLicence('nomclub'),
+    nclub: getValueFromJoueur('nclub') || getValueFromLicence('numclub'),
+    natio: getValueFromJoueur('natio') || getValueFromLicence('natio'),
     clGlob: getValueFromJoueur('clglob'),
-    pointsOfficiel: parseInt(getValueFromJoueur('valcla') || getValueFromLicence('point') || '0'),
+    pointsOfficiel: parseInt(getValueFromJoueur('valcla') || point || '0'),
     pointsMensuels,
     anciensPointsMensuels,
     pointsInitiaux,
-    ancienPoints: parseInt(getValueFromJoueur('apoint') || '0'),
-    clast: getValueFromJoueur('clast'),
-    categorie: getValueFromLicence('cat') || getValueFromJoueur('categ'),
+    ancienPoints: anciensPointsMensuels,
+    clast: getValueFromJoueur('clast') || getValueFromJoueur('claof'),
+    categorie: getValueFromJoueur('cat') || getValueFromJoueur('categ') || getValueFromLicence('cat'),
     rangReg: getValueFromJoueur('rangreg'),
     rangDep: getValueFromJoueur('rangdep'),
     rangNat: getValueFromJoueur('clglob'),
     valCla: parseInt(getValueFromJoueur('valcla') || '0'),
-    echelon: getValueFromLicence('echelon') || '',
-    place: getValueFromLicence('place') || '',
+    echelon: getValueFromJoueur('echelon') || getValueFromLicence('echelon') || '',
+    place: getValueFromJoueur('place') || getValueFromLicence('place') || '',
     progressionAnnuelle,
     progressionMensuelle,
     propositionClassement: getValueFromJoueur('clpro'),

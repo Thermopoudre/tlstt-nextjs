@@ -91,7 +91,7 @@ export async function GET() {
         if (ffttAvailable) {
           source = 'FFTT + Données locales'
           
-          // Enrichir les top 30 joueurs avec données live
+          // Enrichir les top 30 joueurs avec données live via xml_joueur.php
           const top30 = progressions.slice(0, 30)
           
           for (let i = 0; i < top30.length; i++) {
@@ -100,29 +100,36 @@ export async function GET() {
               const tm2 = generateTimestamp()
               const tmc2 = encryptTimestamp(tm2, password)
               
+              // Utiliser xml_joueur.php qui fonctionne (comme la version PHP)
               const response = await fetch(
-                `https://www.fftt.com/mobile/pxml/xml_licence_b.php?serie=${serie}&tm=${tm2}&tmc=${tmc2}&id=${appId}&licence=${player.licence}`,
+                `https://www.fftt.com/mobile/pxml/xml_joueur.php?serie=${serie}&tm=${tm2}&tmc=${tmc2}&id=${appId}&licence=${player.licence}`,
                 { cache: 'no-store' }
               )
               const xml = await response.text()
               
-              if (!xml.includes('<erreur>') && xml.includes('<licence>')) {
-                const pointm = parseInt(extractValue(xml, 'pointm') || '0')
-                const apointm = parseInt(extractValue(xml, 'apointm') || '0')
-                const initm = parseInt(extractValue(xml, 'initm') || '0')
+              if (!xml.includes('<erreur>') && xml.includes('<joueur>')) {
+                // point = points mensuels actuels
+                // apoint = anciens points mensuels
+                // valinit = valeur initiale
+                const point = extractValue(xml, 'point')
+                const pointm = extractValue(xml, 'pointm') || point
+                const apoint = extractValue(xml, 'apoint')
+                const apointm = extractValue(xml, 'apointm') || apoint
+                const valinit = extractValue(xml, 'valinit')
                 
-                if (pointm > 0) {
-                  const pointsActuels = pointm
-                  const pointsAnciens = apointm || pointm
-                  const pointsInitiaux = initm || pointm
-                  
+                const pointsActuels = parseFloat(point || pointm || '0')
+                const pointsAnciens = parseFloat(apointm || apoint || point || '0')
+                // valinit est la valeur du début de saison
+                const pointsInitiaux = parseFloat(valinit || '') || player.pointsInitiaux
+                
+                if (pointsActuels > 0) {
                   progressions[i] = {
                     ...player,
                     pointsActuels,
                     pointsAnciens,
                     pointsInitiaux,
-                    progressionMois: pointsActuels - pointsAnciens,
-                    progressionSaison: pointsActuels - pointsInitiaux,
+                    progressionMois: Math.round(pointsActuels - pointsAnciens),
+                    progressionSaison: Math.round(pointsActuels - pointsInitiaux),
                     progressionPourcentage: pointsInitiaux > 0 
                       ? Math.round(((pointsActuels - pointsInitiaux) / pointsInitiaux) * 1000) / 10 
                       : 0
@@ -135,7 +142,7 @@ export async function GET() {
                       fftt_points_exact: pointsActuels,
                       fftt_points: pointsActuels,
                       fftt_points_ancien: pointsAnciens,
-                      fftt_points_initial: pointsInitiaux,
+                      fftt_points_initial: pointsInitiaux || player.pointsInitiaux,
                       last_sync: new Date().toISOString()
                     })
                     .eq('smartping_licence', player.licence)
