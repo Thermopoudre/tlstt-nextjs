@@ -62,12 +62,13 @@ export async function GET() {
 
     for (const joueur of joueursFFTT) {
       try {
-        // Récupérer les points exacts via xml_joueur.php (comme le fait la version PHP)
+        // Récupérer les points exacts via xml_joueur.php
         let pointsExact: number | null = null
-        let pointsMensuel: number | null = null
         let anciensPoints: number | null = null
+        let valeurInitiale: number | null = null
         let categorie: string | null = null
         let classementOfficiel: string | null = null
+        let apiSuccess = false
         
         try {
           const tm = generateTimestamp()
@@ -77,43 +78,35 @@ export async function GET() {
           const joueurResponse = await fetch(joueurUrl, { cache: 'no-store' })
           const joueurXml = await joueurResponse.text()
           
-          if (!joueurXml.includes('<erreur>')) {
-            // Extraire les différentes valeurs de points
-            // point = points mensuels actuels (ex: 1847)
-            // pointm = points mensuels (alternative, parfois identique)
-            // apoint = anciens points mensuels
-            // clast = classement officiel (ex: 18)
-            // valcla = valeur classement (500-3500)
-            const point = extractValue(joueurXml, 'point')
-            const pointm = extractValue(joueurXml, 'pointm') || point
-            const apoint = extractValue(joueurXml, 'apoint')
-            const cat = extractValue(joueurXml, 'cat')
-            const clastXml = extractValue(joueurXml, 'clast')
-            const claof = extractValue(joueurXml, 'claof')
+          if (!joueurXml.includes('<erreur>') && joueurXml.includes('<joueur>')) {
+            apiSuccess = true
             
-            // Prendre les points mensuels (priorité à point, puis pointm)
-            if (point && !isNaN(parseFloat(point))) {
+            // point = points mensuels actuels (ex: 1847)
+            const point = extractValue(joueurXml, 'point')
+            const apoint = extractValue(joueurXml, 'apoint')
+            const valinit = extractValue(joueurXml, 'valinit')
+            const cat = extractValue(joueurXml, 'cat')
+            const claof = extractValue(joueurXml, 'claof')
+            const clastXml = extractValue(joueurXml, 'clast')
+            
+            // Points mensuels actuels
+            if (point && !isNaN(parseFloat(point)) && parseFloat(point) > 0) {
               pointsExact = parseFloat(point)
               pointsExactsRecuperes++
-            } else if (pointm && !isNaN(parseFloat(pointm))) {
-              pointsExact = parseFloat(pointm)
-              pointsExactsRecuperes++
             }
             
-            // Points mensuels pour calcul progressions
-            if (pointm && !isNaN(parseFloat(pointm))) {
-              pointsMensuel = parseFloat(pointm)
-            }
-            
-            // Anciens points pour calcul progression mensuelle
-            if (apoint && !isNaN(parseFloat(apoint))) {
+            // Anciens points mensuels (mois precedent)
+            if (apoint && !isNaN(parseFloat(apoint)) && parseFloat(apoint) > 0) {
               anciensPoints = parseFloat(apoint)
             }
             
-            // Catégorie (S = Sénior, etc.)
-            if (cat) {
-              categorie = cat
+            // Valeur initiale de saison (debut de saison)
+            if (valinit && !isNaN(parseFloat(valinit)) && parseFloat(valinit) > 0) {
+              valeurInitiale = parseFloat(valinit)
             }
+            
+            // Categorie
+            if (cat) categorie = cat
             
             // Classement officiel
             if (claof) {
@@ -123,7 +116,7 @@ export async function GET() {
             }
           }
         } catch (detailErr: any) {
-          console.warn(`⚠️ Impossible de récupérer détails joueur ${joueur.licence}:`, detailErr.message)
+          console.warn(`⚠️ Impossible de recuperer details joueur ${joueur.licence}:`, detailErr.message)
         }
         
         // Fallback: utiliser clast * 100 si on n'a pas de points exacts
@@ -131,8 +124,7 @@ export async function GET() {
           pointsExact = joueur.clast * 100
         }
 
-        // Déterminer la catégorie affichable
-        // Priorité: catégorie FFTT (S, B, etc.) > classement officiel > fallback
+        // Determiner la categorie affichable
         let displayCategory = categorie
         if (!displayCategory && classementOfficiel) {
           displayCategory = classementOfficiel
@@ -141,59 +133,60 @@ export async function GET() {
           displayCategory = `${joueur.clast}`
         }
         if (!displayCategory) {
-          displayCategory = 'NC' // Non classé
+          displayCategory = 'NC'
         }
 
-        // Préparer les données joueur
-        const playerData: any = {
-          first_name: joueur.prenom,
-          last_name: joueur.nom,
-          smartping_licence: joueur.licence,
-          fftt_points_exact: pointsExact,
-          fftt_points: pointsExact, // Même valeur pour compatibilité
-          fftt_category: displayCategory,
-          category: displayCategory,
-          last_sync: new Date().toISOString()
-        }
-        
-        // Ajouter les anciens points si disponibles (pour calcul progressions)
-        if (anciensPoints !== null) {
-          playerData.fftt_points_ancien = anciensPoints
-        }
-
-        // Vérifier si le joueur existe
+        // Verifier si le joueur existe
         const { data: existing } = await supabase
           .from('players')
-          .select('id, fftt_points_exact, fftt_points_initial')
+          .select('id, fftt_points_exact, fftt_points_initial, fftt_points_ancien')
           .eq('smartping_licence', joueur.licence)
           .single()
 
         if (existing) {
-          // Toujours mettre à jour avec les dernières données FFTT
           const updateData: any = {
             first_name: joueur.prenom,
             last_name: joueur.nom,
             fftt_points_exact: pointsExact,
             fftt_points: pointsExact,
             fftt_category: displayCategory,
+            category: displayCategory,
             last_sync: new Date().toISOString()
           }
           
-          // Mettre à jour les anciens points si disponibles
+          // Toujours mettre a jour les anciens points si disponibles depuis l'API
           if (anciensPoints !== null) {
             updateData.fftt_points_ancien = anciensPoints
+          } else if (apiSuccess && existing.fftt_points_ancien === 500) {
+            // Si l'API n'a pas retourne d'anciens points mais la valeur en BDD est le defaut 500,
+            // utiliser les points actuels comme anciens points (pas de progression)
+            updateData.fftt_points_ancien = pointsExact
           }
           
-          // Sauvegarder les points initiaux si pas encore définis (pour calcul progression saison)
-          if (!existing.fftt_points_initial && pointsExact) {
+          // Mettre a jour les points initiaux de saison
+          if (valeurInitiale !== null) {
+            // Si on a valinit depuis l'API, toujours l'utiliser
+            updateData.fftt_points_initial = valeurInitiale
+          } else if (apiSuccess && (existing.fftt_points_initial === 500 || !existing.fftt_points_initial)) {
+            // Si la valeur initiale en BDD est le defaut 500, corriger avec les points actuels
             updateData.fftt_points_initial = pointsExact
           }
           
           await supabase.from('players').update(updateData).eq('id', existing.id)
           updated++
         } else {
-          // Définir les points initiaux pour les nouveaux joueurs
-          playerData.fftt_points_initial = pointsExact
+          const playerData: any = {
+            first_name: joueur.prenom,
+            last_name: joueur.nom,
+            smartping_licence: joueur.licence,
+            fftt_points_exact: pointsExact,
+            fftt_points: pointsExact,
+            fftt_category: displayCategory,
+            category: displayCategory,
+            last_sync: new Date().toISOString(),
+            fftt_points_initial: valeurInitiale || pointsExact,
+            fftt_points_ancien: anciensPoints || pointsExact
+          }
           
           await supabase.from('players').insert(playerData)
           created++

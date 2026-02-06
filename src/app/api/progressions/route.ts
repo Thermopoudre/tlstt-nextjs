@@ -47,11 +47,21 @@ export async function GET() {
     let source = 'Données locales'
     let ffttAvailable = false
 
-    // Utiliser d'abord les données locales (stockées par sync-joueurs)
+    // Utiliser d'abord les donnees locales (stockees par sync-joueurs)
     progressions = (players || []).map(player => {
       const pointsActuels = player.fftt_points_exact || player.fftt_points || 500
-      const pointsAnciens = player.fftt_points_ancien || pointsActuels
-      const pointsInitiaux = player.fftt_points_initial || pointsActuels
+      
+      // Si fftt_points_ancien est 500 et les points actuels sont bien plus hauts,
+      // c'est probablement une valeur par defaut erronee -> traiter comme "pas de donnees"
+      const anciensRaw = player.fftt_points_ancien
+      const initRaw = player.fftt_points_initial
+      
+      // Detecter les valeurs par defaut erronees (500 avec points actuels beaucoup plus hauts)
+      const anciensEstDefaut = anciensRaw === 500 && pointsActuels > 600
+      const initEstDefaut = initRaw === 500 && pointsActuels > 600
+      
+      const pointsAnciens = (anciensEstDefaut || !anciensRaw) ? pointsActuels : anciensRaw
+      const pointsInitiaux = (initEstDefaut || !initRaw) ? pointsActuels : initRaw
       
       const progressionMois = pointsActuels - pointsAnciens
       const progressionSaison = pointsActuels - pointsInitiaux
