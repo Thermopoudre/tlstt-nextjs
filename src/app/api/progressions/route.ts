@@ -127,10 +127,10 @@ export async function GET() {
                 const apointm = extractValue(xml, 'apointm') || apoint
                 const valinit = extractValue(xml, 'valinit')
                 
-                const pointsActuels = parseFloat(point || pointm || '0')
-                const pointsAnciens = parseFloat(apointm || apoint || point || '0')
+                const pointsActuels = Math.round(parseFloat(point || pointm || '0'))
+                const pointsAnciens = Math.round(parseFloat(apointm || apoint || point || '0'))
                 // valinit est la valeur du début de saison
-                const pointsInitiaux = parseFloat(valinit || '') || player.pointsInitiaux
+                const pointsInitiaux = Math.round(parseFloat(valinit || '') || 0) || player.pointsInitiaux
                 
                 if (pointsActuels > 0) {
                   progressions[i] = {

@@ -89,20 +89,20 @@ export async function GET() {
             const claof = extractValue(joueurXml, 'claof')
             const clastXml = extractValue(joueurXml, 'clast')
             
-            // Points mensuels actuels
+            // Points mensuels actuels (arrondi pour eviter les erreurs de precision float)
             if (point && !isNaN(parseFloat(point)) && parseFloat(point) > 0) {
-              pointsExact = parseFloat(point)
+              pointsExact = Math.round(parseFloat(point))
               pointsExactsRecuperes++
             }
             
             // Anciens points mensuels (mois precedent)
             if (apoint && !isNaN(parseFloat(apoint)) && parseFloat(apoint) > 0) {
-              anciensPoints = parseFloat(apoint)
+              anciensPoints = Math.round(parseFloat(apoint))
             }
             
             // Valeur initiale de saison (debut de saison)
             if (valinit && !isNaN(parseFloat(valinit)) && parseFloat(valinit) > 0) {
-              valeurInitiale = parseFloat(valinit)
+              valeurInitiale = Math.round(parseFloat(valinit))
             }
             
             // Categorie

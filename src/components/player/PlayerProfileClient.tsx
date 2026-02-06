@@ -117,8 +117,8 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
   const isNational = player.category?.match(/^N(\d+)$/i)
   const nationalRank = isNational ? parseInt(isNational[1]) : null
 
-  // Points à afficher
-  const displayPoints = player.pointsMensuels || player.fftt_points_exact || player.fftt_points || 0
+  // Points à afficher (arrondi pour eviter les decimales float)
+  const displayPoints = Math.round(player.pointsMensuels || player.fftt_points_exact || player.fftt_points || 0)
 
   // Parties à afficher (20 ou toutes)
   const partiesToShow = showAllParties ? parties : parties.slice(0, 20)

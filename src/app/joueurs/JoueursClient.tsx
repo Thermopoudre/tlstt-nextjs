@@ -33,11 +33,11 @@ function parseNationalRanking(category: string | null): { isNational: boolean; r
 function getPlayerPoints(player: Player): number {
   if (player.fftt_points_exact !== null && player.fftt_points_exact !== undefined) {
     const exact = Number(player.fftt_points_exact)
-    if (!isNaN(exact) && exact > 0) return exact
+    if (!isNaN(exact) && exact > 0) return Math.round(exact)
   }
   if (player.fftt_points !== null && player.fftt_points !== undefined) {
     const points = Number(player.fftt_points)
-    return isNaN(points) ? 500 : points
+    return isNaN(points) ? 500 : Math.round(points)
   }
   return 500
 }

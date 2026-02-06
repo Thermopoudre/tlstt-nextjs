@@ -1,5 +1,70 @@
 # SUIVI DES MODIFICATIONS - TLSTT Site
 
+## 2026-02-07 - Page Equipes Operationnelle (Solution Alternative)
+
+### Probleme
+L'API FFTT SmartPing (`xml_equipe.php`) ne fonctionne pas avec les credentials actuels (retourne "Compte incorrect"). Tous les endpoints non-joueurs sont bloques.
+
+### Solution Alternative Implementee
+Scraping du site officiel TLSTT (`url.tennistabletls.com`) et de la feuille Google Sheets "Resultats Championnat" pour recuperer :
+- La liste des 13 equipes inscrites en Phase 2 2025/2026
+- Les resultats de la Phase 1 (4 journees jouees)
+- Les classements par poule
+
+### Donnees Inserees dans Supabase (table `teams`)
+
+| Equipe | Division Phase 2 | Poule | Phase 1 | V | N | D | Cla |
+|--------|-----------------|-------|---------|---|---|---|-----|
+| TLSTT 1 | Pre-Nationale | - | Nationale 3 | 1 | 1 | 2 | 6e |
+| TLSTT 2 | Regionale 2 | 1 | R2 Poule 2 | 4 | 0 | 0 | 1er |
+| TLSTT 3 | Regionale 2 | 2 | R2 Poule 1 | 0 | 1 | 3 | 7e |
+| TLSTT 4 | Regionale 3 | 5 | R3 Poule 2 | 1 | 1 | 2 | 6e |
+| TLSTT 5 | Pre-Regionale | 2 | PR Poule 1 | 2 | 0 | 2 | 3e |
+| TLSTT 6 | Departementale 1 | 1 | PR Poule 2 | 1 | 1 | 2 | 6e |
+| TLSTT 7 | Departementale 1 | 2 | D1 Poule 1 | 1 | 1 | 2 | 4e |
+| TLSTT 8 | Departementale 2 | 1 | D2 Poule 4 | 1 | 2 | 0 | 4e |
+| TLSTT 9 | Departementale 3 | 4 | D2 Poule 1 | 1 | 0 | 3 | 7e |
+| TLSTT 10 | Departementale 3 | 6 | D3 Poule 4 | 1 | 1 | 2 | 6e |
+| TLSTT 11 | Departementale 3 | 1 | D3 Poule 2 | 4 | 0 | 0 | 1er |
+| TLSTT 12 | Departementale 4 Jeunes | 1 | D4 Poule 2 | 2 | 0 | 2 | 4e |
+| TLSTT 13 | Departementale 4 Jeunes | 1 | Nouvelle | - | - | - | - |
+
+### Fichiers Modifies
+
+#### `/src/app/api/equipes/route.ts`
+- Suppression complete des appels FFTT API (xml_equipe.php, xml_initialisation.php, xml_result_equ.php)
+- Lecture directe depuis la table Supabase `teams`
+- Tri par niveau de division (Pre-Nationale > Regionale > Departementale)
+- Code simplifie de 326 lignes a 80 lignes
+
+#### `/src/app/equipes/page.tsx`
+- Refonte complete de l'interface
+- Badges colores par niveau de division (rouge=national, orange=regional, bleu/vert=departemental)
+- Statistiques globales (13 equipes, matchs joues, victoires, nuls, defaites)
+- Barre de progression V/N/D globale avec pourcentage
+- Filtres par division
+- Classement avec badge (or/argent/bronze pour top 3)
+- Taux de victoire par equipe
+- Info sur la Phase 1 d'origine (avant promotions/relegations)
+
+### Sources de Donnees
+- **Site officiel TLSTT**: `url.tennistabletls.com/tt-equipes/equipes-inscrites` (calendrier Phase 2)
+- **Google Sheets**: `docs.google.com/spreadsheets/d/1G0avLWu4dRoKpSwGN89S4vxMRCs0ugW37nGuDH9ziBc` (resultats Phase 1)
+
+### Etat des Pages (mis a jour)
+- **Joueurs** : FONCTIONNEL - 225 joueurs avec points exacts
+- **Progressions** : FONCTIONNEL - Donnees corrigees
+- **Player detail** : FONCTIONNEL - Points exacts, parties, historique
+- **Equipes** : FONCTIONNEL - 13 equipes avec resultats Phase 1, divisions Phase 2
+
+### TODO
+- [ ] Ajouter resultats Phase 2 au fur et a mesure des journees
+- [ ] Upload vraies images labels FFTT
+- [ ] Configurer envoi emails (newsletter, secretariat)
+- [ ] Ajouter produits reels boutique
+
+---
+
 ## 2026-02-04 - Correction Points Exacts via xml_joueur.php
 
 ### Solution Implémentée ✅

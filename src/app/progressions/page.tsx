@@ -186,7 +186,7 @@ export default function ProgressionsPage() {
                     <h4 className="text-lg font-bold mb-1 text-white">{player.prenom} {player.nom}</h4>
                     <p className="text-gray-500 text-sm mb-3">{player.licence}</p>
                     <div className="text-3xl font-bold text-[#3b9fd8]">
-                      {player.pointsActuels} <span className="text-lg text-gray-500">pts</span>
+                      {Math.round(player.pointsActuels)} <span className="text-lg text-gray-500">pts</span>
                     </div>
                     {player.progressionMois !== 0 && (
                       <div className={`mt-2 text-sm font-semibold ${player.progressionMois > 0 ? 'text-green-400' : 'text-red-400'}`}>
@@ -290,7 +290,7 @@ export default function ProgressionsPage() {
                         </Link>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <span className="font-bold text-[#3b9fd8] text-lg">{player.pointsActuels}</span>
+                        <span className="font-bold text-[#3b9fd8] text-lg">{Math.round(player.pointsActuels)}</span>
                       </td>
                       <td className="px-4 py-3 text-right hidden md:table-cell">
                         {player.progressionMois !== 0 ? (
@@ -363,7 +363,7 @@ export default function ProgressionsPage() {
                         </Link>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <span className="font-bold text-white">{player.pointsActuels}</span>
+                        <span className="font-bold text-white">{Math.round(player.pointsActuels)}</span>
                         <span className="text-gray-500 text-sm ml-1">pts</span>
                       </td>
                       <td className="px-4 py-3 text-right">
