@@ -284,8 +284,61 @@ Mise à jour de `API_FFTT.md` avec les nouveaux credentials.
 - Tooltips descriptifs
 - Chargement depuis Supabase
 
+## 2026-02-06 - Corrections Sync + Equipes + Progressions
+
+### Diagnostic API FFTT
+Tests exhaustifs des endpoints FFTT SmartPing. Resultats confirmes :
+- `xml_liste_joueur.php` - **FONCTIONNE** (liste 225 joueurs)
+- `xml_joueur.php` - **FONCTIONNE** (details + points exacts, apoint, valinit)
+- `xml_equipe.php` - **NE FONCTIONNE PAS** (Compte incorrect)
+- `xml_epreuve.php` - **NE FONCTIONNE PAS** (Compte incorrect)
+- `xml_club_b.php` - **NE FONCTIONNE PAS** (Compte incorrect)
+- `xml_initialisation.php` - **NE FONCTIONNE PAS** (Compte incorrect)
+- `xml_club_dep2.php` - **NE FONCTIONNE PAS** (Compte incorrect)
+
+Conclusion : Les credentials FFTT ne donnent acces qu'aux endpoints joueurs. Tous les endpoints equipes/club/competition retournent "Compte incorrect".
+
+### Corrections effectuees
+
+#### 1. Sync Joueurs (`/api/sync-joueurs`)
+- Ajout extraction de `valinit` (valeur initiale de saison) depuis xml_joueur.php
+- Correction des faux defaults 500 pour `fftt_points_ancien` et `fftt_points_initial`
+- Quand l'API ne retourne pas `apoint`/`valinit`, les points actuels sont utilises (pas de fausse progression)
+- 225 joueurs synchronises avec points exacts
+
+#### 2. Equipes - Table Supabase + Fallback API
+- Creation table `teams` dans Supabase (migration)
+- `/api/equipes` lit depuis Supabase en priorite, tente FFTT API en arriere-plan
+- Si FFTT API fonctionne un jour, les donnees sont automatiquement sauvegardees dans Supabase
+- Page frontend amelioree avec stats V/N/D, barre de progression, classement poule
+
+#### 3. Progressions - Filtrage fausses progressions
+- Detection des valeurs par defaut erronees (500 avec points actuels > 600)
+- Quand anciens/initiaux points sont 500 et actuels beaucoup plus hauts, traiter comme "pas de donnees"
+- Stats corrigees : 18 en progression, 27 en regression, 180 stables (au lieu de 100+ fausses progressions)
+
+#### 4. Correction SQL directe
+- UPDATE players SET fftt_points_ancien = fftt_points, fftt_points_initial = fftt_points WHERE fftt_points_ancien = 500 AND fftt_points > 600
+
+### Fichiers modifies
+- `src/app/api/sync-joueurs/route.ts` - Extraction valinit, correction defaults 500
+- `src/app/api/progressions/route.ts` - Filtrage fausses progressions
+- `src/app/api/equipes/route.ts` - Lecture Supabase + fallback FFTT API
+- `src/app/equipes/page.tsx` - UI amelioree avec stats detaillees
+
+### Fichiers supprimes (debug)
+- `src/app/api/test-epreuve/route.ts`
+- `src/app/api/debug-compare/route.ts`
+
+### Etat des pages
+- **Joueurs** : FONCTIONNEL - 225 joueurs avec points exacts, podium, recherche, tri
+- **Progressions** : FONCTIONNEL - Donnees corrigees, vraies progressions seulement
+- **Player detail** : FONCTIONNEL - Points exacts, parties, historique
+- **Equipes** : EN ATTENTE - Table Supabase prete, donnees manquantes (API FFTT non disponible)
+
 ### TODO
-- [ ] Appliquer migration SQL via dashboard Supabase
+- [ ] Obtenir credentials FFTT avec acces complet (equipes, epreuves, clubs)
+- [ ] OU saisir manuellement les equipes du club dans Supabase
 - [ ] Upload vraies images labels FFTT
-- [ ] Configurer envoi emails (newsletter, secrétariat)
-- [ ] Ajouter produits réels boutique
+- [ ] Configurer envoi emails (newsletter, secretariat)
+- [ ] Ajouter produits reels boutique
