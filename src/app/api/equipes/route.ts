@@ -1,16 +1,9 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
 
 // Numéro du club TLSTT Toulon La Seyne
 const TLSTT_CLUB_NUMBER = '13830083'
-
-interface Equipe {
-  libequipe: string
-  libdivision: string
-  liendivision: string
-  idepr: string
-  libepr: string
-}
 
 interface Classement {
   poule: string
@@ -25,228 +18,241 @@ interface Classement {
 }
 
 interface EquipeComplete {
-  libequipe: string
-  libepr: string
-  libdivision: string
+  id?: number
+  name: string
+  division: string
+  pool: string
+  phase: number
   cla: number
   joue: number
   pts: number
   vic: number
   def: number
   nul: number
+  link_fftt: string | null
   classement: Classement[]
 }
 
 export async function GET() {
+  const supabase = await createClient()
+
   try {
+    // 1. Toujours récupérer les données depuis Supabase d'abord
+    const { data: teamsFromDb, error: dbError } = await supabase
+      .from('teams')
+      .select('*')
+      .eq('is_active', true)
+      .order('division', { ascending: true })
+
+    if (dbError) {
+      console.error('Erreur lecture teams Supabase:', dbError)
+    }
+
+    // 2. Tenter de rafraîchir via l'API FFTT (en arrière-plan)
     const appId = process.env.SMARTPING_APP_ID || ''
     const password = process.env.SMARTPING_PASSWORD || ''
     const storedSerie = process.env.SMARTPING_SERIE || ''
 
-    if (!appId || !password) {
-      return NextResponse.json({ 
-        equipes: [], 
-        error: 'Credentials SmartPing manquants' 
-      })
-    }
+    let ffttEquipes: EquipeComplete[] = []
+    let ffttAvailable = false
+    let ffttError = ''
 
-    // Etape 1: Initialiser la série via xml_initialisation.php
-    // (comme le fait la version PHP dans son constructeur)
-    // Ceci est REQUIS pour certains endpoints comme xml_equipe.php
-    const freshSerie = generateSerie()
-    const tmInit = generateTimestamp()
-    const tmcInit = encryptTimestamp(tmInit, password)
-
-    let serie = storedSerie // Par défaut, utiliser la série stockée
-    let initMethod = 'stored'
-
-    try {
-      const initUrl = `https://www.fftt.com/mobile/pxml/xml_initialisation.php?serie=${freshSerie}&tm=${tmInit}&tmc=${tmcInit}&id=${appId}`
-      const initResponse = await fetch(initUrl, { cache: 'no-store' })
-      const initXml = await initResponse.text()
-      
-      // Vérifier si l'initialisation a réussi
-      if (initXml.includes('<appli>1</appli>') || !initXml.includes('<erreur>')) {
-        serie = freshSerie // Utiliser la nouvelle série fraîchement validée
-        initMethod = 'fresh'
-        console.log('✅ Série initialisée avec succès:', freshSerie)
-      } else {
-        console.warn('⚠️ Initialisation échouée, utilisation série stockée')
-      }
-    } catch (initErr) {
-      console.warn('⚠️ Erreur initialisation, utilisation série stockée:', initErr)
-    }
-
-    // Petit délai après initialisation pour laisser le temps au serveur FFTT
-    await new Promise(r => setTimeout(r, 300))
-
-    // Etape 2: Récupérer les équipes avec la série (fraîche ou stockée)
-    const tm = generateTimestamp()
-    const tmc = encryptTimestamp(tm, password)
-    const equipesUrl = `https://www.fftt.com/mobile/pxml/xml_equipe.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&numclu=${TLSTT_CLUB_NUMBER}`
-    
-    console.log(`📋 Récupération équipes TLSTT (série: ${initMethod})...`)
-    const equipesResponse = await fetch(equipesUrl, { cache: 'no-store' })
-    const equipesXml = await equipesResponse.text()
-    
-    // Si la série fraîche échoue aussi, tenter avec la série stockée comme fallback
-    let finalEquipesXml = equipesXml
-    if (equipesXml.includes('<erreur>') && initMethod === 'fresh' && storedSerie) {
-      console.log('⚠️ Série fraîche échouée, tentative avec série stockée...')
-      const tm3 = generateTimestamp()
-      const tmc3 = encryptTimestamp(tm3, password)
-      const fallbackUrl = `https://www.fftt.com/mobile/pxml/xml_equipe.php?serie=${storedSerie}&tm=${tm3}&tmc=${tmc3}&id=${appId}&numclu=${TLSTT_CLUB_NUMBER}`
-      const fallbackResponse = await fetch(fallbackUrl, { cache: 'no-store' })
-      finalEquipesXml = await fallbackResponse.text()
-      
-      if (!finalEquipesXml.includes('<erreur>')) {
-        initMethod = 'stored-fallback'
-      }
-    }
-
-    // Si les deux méthodes échouent, tenter avec type=M (masculin) et type=A
-    if (finalEquipesXml.includes('<erreur>')) {
-      for (const type of ['M', 'A', 'F']) {
-        const tmType = generateTimestamp()
-        const tmcType = encryptTimestamp(tmType, password)
-        const typeUrl = `https://www.fftt.com/mobile/pxml/xml_equipe.php?serie=${serie}&tm=${tmType}&tmc=${tmcType}&id=${appId}&numclu=${TLSTT_CLUB_NUMBER}&type=${type}`
-        const typeResponse = await fetch(typeUrl, { cache: 'no-store' })
-        const typeXml = await typeResponse.text()
-        
-        if (!typeXml.includes('<erreur>')) {
-          finalEquipesXml = typeXml
-          initMethod = `type-${type}`
-          console.log(`✅ Endpoint fonctionnel avec type=${type}`)
-          break
-        }
-      }
-    }
-    
-    if (finalEquipesXml.includes('<erreur>')) {
-      const error = finalEquipesXml.match(/<erreur>([^<]*)<\/erreur>/)?.[1] || 'Erreur API FFTT'
-      console.error(`❌ xml_equipe.php échoué (toutes tentatives): ${error}`)
-      return NextResponse.json({ 
-        equipes: [], 
-        error,
-        debug: { initMethod, serie: serie.substring(0, 5) + '...' }
-      })
-    }
-
-    const equipes = parseEquipesXml(finalEquipesXml)
-    console.log(`📥 ${equipes.length} équipes trouvées`)
-
-    if (equipes.length === 0) {
-      return NextResponse.json({ 
-        equipes: [], 
-        message: 'Aucune équipe trouvée pour ce club',
-        clubNumber: TLSTT_CLUB_NUMBER
-      })
-    }
-
-    // Etape 3: Pour chaque équipe, récupérer le classement
-    const equipesWithData: EquipeComplete[] = []
-
-    for (const equipe of equipes) {
+    if (appId && password) {
       try {
-        // Extraire cx_poule et D1 du liendivision
-        const params = new URLSearchParams(equipe.liendivision)
-        const cx_poule = params.get('cx_poule') || ''
-        const D1 = params.get('D1') || ''
-
-        let teamData: EquipeComplete = {
-          libequipe: equipe.libequipe,
-          libepr: equipe.libepr,
-          libdivision: equipe.libdivision,
-          cla: 0,
-          joue: 0,
-          pts: 0,
-          vic: 0,
-          def: 0,
-          nul: 0,
-          classement: []
+        // Initialiser une série fraîche
+        const freshSerie = generateSerie()
+        const tmInit = generateTimestamp()
+        const tmcInit = encryptTimestamp(tmInit, password)
+        
+        let serie = storedSerie
+        
+        // Tenter l'initialisation
+        const initUrl = `https://www.fftt.com/mobile/pxml/xml_initialisation.php?serie=${freshSerie}&tm=${tmInit}&tmc=${tmcInit}&id=${appId}`
+        const initResponse = await fetch(initUrl, { cache: 'no-store' })
+        const initXml = await initResponse.text()
+        
+        if (!initXml.includes('<erreur>')) {
+          serie = freshSerie
         }
 
-        if (D1) {
-          const tm2 = generateTimestamp()
-          const tmc2 = encryptTimestamp(tm2, password)
+        // Petit délai après initialisation
+        await new Promise(r => setTimeout(r, 200))
 
-          const classementUrl = `https://www.fftt.com/mobile/pxml/xml_result_equ.php?serie=${serie}&tm=${tm2}&tmc=${tmc2}&id=${appId}&action=classement&auto=1&D1=${D1}&cx_poule=${cx_poule}`
+        // Tenter xml_equipe.php
+        const tm = generateTimestamp()
+        const tmc = encryptTimestamp(tm, password)
+        const equipesUrl = `https://www.fftt.com/mobile/pxml/xml_equipe.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&numclu=${TLSTT_CLUB_NUMBER}`
+        
+        const equipesResponse = await fetch(equipesUrl, { cache: 'no-store' })
+        const equipesXml = await equipesResponse.text()
+        
+        if (!equipesXml.includes('<erreur>')) {
+          ffttAvailable = true
+          const parsedEquipes = parseEquipesXml(equipesXml)
           
-          const classementResponse = await fetch(classementUrl, { cache: 'no-store' })
-          const classementXml = await classementResponse.text()
-          const classement = parseClassementXml(classementXml)
+          // Si on a des équipes, les enrichir et les sauvegarder
+          for (const equipe of parsedEquipes) {
+            const teamData: EquipeComplete = {
+              name: equipe.libequipe,
+              division: equipe.libdivision,
+              pool: '',
+              phase: 1,
+              cla: 0,
+              joue: 0,
+              pts: 0,
+              vic: 0,
+              def: 0,
+              nul: 0,
+              link_fftt: equipe.liendivision,
+              classement: []
+            }
 
-          // Trouver notre équipe dans le classement
-          const ourTeam = classement.find(c => 
-            c.numero === TLSTT_CLUB_NUMBER || 
-            c.equipe.toLowerCase().includes('toulon') ||
-            c.equipe.toLowerCase().includes('tlstt') ||
-            c.equipe.toLowerCase().includes('seyne')
-          )
+            // Extraire D1 et cx_poule pour récupérer le classement
+            if (equipe.liendivision) {
+              try {
+                const params = new URLSearchParams(equipe.liendivision)
+                const cx_poule = params.get('cx_poule') || ''
+                const D1 = params.get('D1') || ''
+                teamData.pool = cx_poule
 
-          if (ourTeam) {
-            teamData.cla = parseInt(ourTeam.clt) || 0
-            teamData.joue = parseInt(ourTeam.joue) || 0
-            teamData.pts = parseInt(ourTeam.pts) || 0
-            teamData.vic = parseInt(ourTeam.vic) || 0
-            teamData.def = parseInt(ourTeam.def) || 0
-            teamData.nul = parseInt(ourTeam.nul) || 0
+                if (D1) {
+                  const tm2 = generateTimestamp()
+                  const tmc2 = encryptTimestamp(tm2, password)
+                  const classementUrl = `https://www.fftt.com/mobile/pxml/xml_result_equ.php?serie=${serie}&tm=${tm2}&tmc=${tmc2}&id=${appId}&action=classement&auto=1&D1=${D1}&cx_poule=${cx_poule}`
+                  
+                  const classementResponse = await fetch(classementUrl, { cache: 'no-store' })
+                  const classementXml = await classementResponse.text()
+                  const classement = parseClassementXml(classementXml)
+
+                  const ourTeam = classement.find(c =>
+                    c.numero === TLSTT_CLUB_NUMBER ||
+                    c.equipe.toLowerCase().includes('toulon') ||
+                    c.equipe.toLowerCase().includes('tlstt') ||
+                    c.equipe.toLowerCase().includes('seyne')
+                  )
+
+                  if (ourTeam) {
+                    teamData.cla = parseInt(ourTeam.clt) || 0
+                    teamData.joue = parseInt(ourTeam.joue) || 0
+                    teamData.pts = parseInt(ourTeam.pts) || 0
+                    teamData.vic = parseInt(ourTeam.vic) || 0
+                    teamData.def = parseInt(ourTeam.def) || 0
+                    teamData.nul = parseInt(ourTeam.nul) || 0
+                  }
+
+                  teamData.classement = classement
+                }
+              } catch {
+                // Ignorer les erreurs de classement
+              }
+            }
+
+            ffttEquipes.push(teamData)
+            await new Promise(r => setTimeout(r, 200))
           }
 
-          teamData.classement = classement
+          // Sauvegarder dans Supabase pour la prochaine fois
+          if (ffttEquipes.length > 0) {
+            for (const team of ffttEquipes) {
+              const { data: existing } = await supabase
+                .from('teams')
+                .select('id')
+                .eq('name', team.name)
+                .single()
+
+              const teamRow = {
+                name: team.name,
+                division: team.division,
+                pool: team.pool,
+                phase: team.phase,
+                link_fftt: team.link_fftt,
+                cla: team.cla,
+                joue: team.joue,
+                pts: team.pts,
+                vic: team.vic,
+                def: team.def,
+                nul: team.nul,
+                is_active: true,
+                updated_at: new Date().toISOString()
+              }
+
+              if (existing) {
+                await supabase.from('teams').update(teamRow).eq('id', existing.id)
+              } else {
+                await supabase.from('teams').insert(teamRow)
+              }
+            }
+          }
+        } else {
+          ffttError = equipesXml.match(/<erreur>([^<]*)<\/erreur>/)?.[1] || 'Erreur API FFTT'
         }
-
-        equipesWithData.push(teamData)
-      } catch (err) {
-        console.error(`Erreur équipe ${equipe.libequipe}:`, err)
-        equipesWithData.push({
-          libequipe: equipe.libequipe,
-          libepr: equipe.libepr,
-          libdivision: equipe.libdivision,
-          cla: 0,
-          joue: 0,
-          pts: 0,
-          vic: 0,
-          def: 0,
-          nul: 0,
-          classement: []
-        })
+      } catch (err: any) {
+        ffttError = err.message
       }
-
-      // Petit délai entre les appels
-      await new Promise(r => setTimeout(r, 200))
     }
 
+    // 3. Retourner les données disponibles
+    // Priorité : FFTT live > Supabase stocké
+    let equipesToReturn: EquipeComplete[] = []
+    let source = 'Aucune donnée'
+
+    if (ffttAvailable && ffttEquipes.length > 0) {
+      equipesToReturn = ffttEquipes
+      source = 'FFTT Live'
+    } else if (teamsFromDb && teamsFromDb.length > 0) {
+      equipesToReturn = teamsFromDb.map(t => ({
+        id: t.id,
+        name: t.name,
+        division: t.division || '',
+        pool: t.pool || '',
+        phase: t.phase || 1,
+        cla: t.cla || 0,
+        joue: t.joue || 0,
+        pts: t.pts || 0,
+        vic: t.vic || 0,
+        def: t.def || 0,
+        nul: t.nul || 0,
+        link_fftt: t.link_fftt,
+        classement: []
+      }))
+      source = 'Base de données'
+    }
+
+    // Reformater pour la compatibilité avec la page frontend
+    const equipes = equipesToReturn.map(e => ({
+      libequipe: e.name,
+      libepr: e.division,
+      libdivision: e.division,
+      cla: e.cla,
+      joue: e.joue,
+      pts: e.pts,
+      vic: e.vic,
+      def: e.def,
+      nul: e.nul,
+      classement: e.classement || []
+    }))
+
     return NextResponse.json({
-      equipes: equipesWithData,
+      equipes,
       clubNumber: TLSTT_CLUB_NUMBER,
-      source: 'FFTT Live',
-      initMethod,
+      source,
+      ffttError: ffttError || undefined,
       timestamp: new Date().toISOString()
     })
 
   } catch (error: any) {
     console.error('Erreur API equipes:', error)
-    return NextResponse.json({ 
-      equipes: [], 
-      error: error.message 
+    return NextResponse.json({
+      equipes: [],
+      error: error.message
     })
   }
 }
 
-function generateSerie(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-  let serie = ''
-  for (let i = 0; i < 15; i++) {
-    serie += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return serie
-}
-
-function parseEquipesXml(xml: string): Equipe[] {
+function parseEquipesXml(xml: string): { libequipe: string; libdivision: string; liendivision: string; idepr: string; libepr: string }[] {
   if (!xml) return []
 
-  const equipes: Equipe[] = []
+  const equipes: { libequipe: string; libdivision: string; liendivision: string; idepr: string; libepr: string }[] = []
   const matches = xml.matchAll(/<equipe>([\s\S]*?)<\/equipe>/g)
 
   for (const match of matches) {
@@ -295,6 +301,15 @@ function parseClassementXml(xml: string): Classement[] {
   }
 
   return classements
+}
+
+function generateSerie(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  let serie = ''
+  for (let i = 0; i < 15; i++) {
+    serie += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return serie
 }
 
 function generateTimestamp(): string {
