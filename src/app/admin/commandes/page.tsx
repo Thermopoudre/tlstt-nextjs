@@ -19,6 +19,7 @@ export default function AdminCommandesPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('pending')
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
 
   useEffect(() => { fetchOrders() }, [])
 
@@ -103,7 +104,7 @@ export default function AdminCommandesPage() {
                       <div className="flex items-center justify-center gap-2">
                         {order.status === 'pending' && <button onClick={() => updateStatus(order.id, 'processing')} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Marquer en cours"><i className="fas fa-play"></i></button>}
                         {order.status === 'processing' && <button onClick={() => updateStatus(order.id, 'completed')} className="p-2 text-green-600 hover:bg-green-50 rounded-lg" title="Marquer terminée"><i className="fas fa-check"></i></button>}
-                        <button className="p-2 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-lg" title="Voir détails"><i className="fas fa-eye"></i></button>
+                        <button onClick={() => setSelectedOrder(order)} className="p-2 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-lg" title="Voir détails"><i className="fas fa-eye"></i></button>
                       </div>
                     </td>
                   </tr>
@@ -113,6 +114,64 @@ export default function AdminCommandesPage() {
           </div>
         )}
       </div>
+      {/* Modal Details */}
+      {selectedOrder && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setSelectedOrder(null)}></div>
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
+              <div className="p-6 border-b flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-800">Commande #{selectedOrder.order_number}</h2>
+                <button onClick={() => setSelectedOrder(null)} className="p-2 text-gray-400 hover:text-gray-700 rounded-lg"><i className="fas fa-times"></i></button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div><p className="text-sm text-gray-500">Client</p><p className="font-semibold">{selectedOrder.customer_name}</p></div>
+                  <div><p className="text-sm text-gray-500">Email</p><p className="font-semibold">{selectedOrder.customer_email}</p></div>
+                  <div><p className="text-sm text-gray-500">Date</p><p className="font-semibold">{new Date(selectedOrder.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
+                  <div><p className="text-sm text-gray-500">Statut</p>{getStatusBadge(selectedOrder.status)}</div>
+                </div>
+                <div className="border-t pt-4">
+                  <h3 className="font-bold text-gray-800 mb-3">Articles</h3>
+                  {selectedOrder.items && selectedOrder.items.length > 0 ? (
+                    <div className="space-y-2">
+                      {selectedOrder.items.map((item: any, idx: number) => (
+                        <div key={idx} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                          <div>
+                            <p className="font-medium text-gray-800">{item.name || `Article #${idx + 1}`}</p>
+                            {item.size && <p className="text-xs text-gray-500">Taille: {item.size}</p>}
+                            <p className="text-xs text-gray-500">Qte: {item.quantity || 1}</p>
+                          </div>
+                          <p className="font-bold text-primary">{item.price || '-'}€</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">Aucun detail disponible</p>
+                  )}
+                </div>
+                <div className="border-t pt-4 flex items-center justify-between">
+                  <span className="text-lg font-bold text-gray-800">Total</span>
+                  <span className="text-2xl font-bold text-primary">{selectedOrder.total}€</span>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  {selectedOrder.status === 'pending' && (
+                    <button onClick={() => { updateStatus(selectedOrder.id, 'processing'); setSelectedOrder(null); }} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                      <i className="fas fa-play mr-2"></i>En cours
+                    </button>
+                  )}
+                  {selectedOrder.status === 'processing' && (
+                    <button onClick={() => { updateStatus(selectedOrder.id, 'completed'); setSelectedOrder(null); }} className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                      <i className="fas fa-check mr-2"></i>Terminee
+                    </button>
+                  )}
+                  <button onClick={() => setSelectedOrder(null)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Fermer</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

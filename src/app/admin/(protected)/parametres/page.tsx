@@ -16,13 +16,15 @@ export default function AdminParametresPage() {
     postal_code: '83500',
   })
   const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
 
   useEffect(() => { fetchSettings() }, [])
 
   const fetchSettings = async () => {
     const { data } = await supabase.from('site_settings').select('*').eq('page', 'global').single()
-    if (data?.settings) setSettings({ ...settings, ...data.settings })
+    if (data?.settings) setSettings((prev) => ({ ...prev, ...data.settings }))
+    setLoading(false)
   }
 
   const handleSave = async () => {
@@ -47,6 +49,9 @@ export default function AdminParametresPage() {
 
       {message && <div className={`p-4 rounded-lg ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{message.text}</div>}
 
+      {loading ? (
+        <div className="text-center py-12"><i className="fas fa-spinner fa-spin text-3xl text-primary"></i></div>
+      ) : (
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -67,6 +72,7 @@ export default function AdminParametresPage() {
           </div>
         </div>
       </div>
+      )}
     </div>
   )
 }

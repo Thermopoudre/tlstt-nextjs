@@ -507,10 +507,128 @@ Conclusion : Les credentials FFTT ne donnent acces qu'aux endpoints joueurs. Tou
 | Cookies | /admin/pages/cookies | OK |
 | Parametres | /admin/parametres | OK |
 
+---
+
+## 2026-02-07 - Check-up Complet Back-Office + Corrections UX
+
+### Audit Back-Office complet
+Analyse systematique de chaque page admin : C/R/U/D, bugs, UX, liens casses.
+
+### Corrections critiques appliquees
+
+#### 1. Admin Partenaires - CRUD complet (REFONTE)
+- Converti de Server Component a Client Component
+- Ajout CRUD complet inline avec modale (Create, Edit, Delete)
+- Toggle actif/inactif en 1 clic
+- Logo affiche dans la liste
+- Corrige: champ `position` (pas `display_order`) aligné avec la DB
+- **Fichier** : `src/app/admin/partenaires/page.tsx`
+
+#### 2. Admin Planning - CRUD complet (REFONTE)
+- Converti de Server Component a Client Component
+- Ajout Create, Edit, Delete via modale
+- Toggle actif/inactif en 1 clic
+- Formulaire : jour, horaires, type, niveau, description
+- **Fichier** : `src/app/admin/planning/page.tsx`
+
+#### 3. Admin Actualites - Filtres + Delete (REFONTE)
+- Converti de Server Component a Client Component
+- Filtres fonctionnels par categorie et statut
+- Bouton Delete fonctionnel avec confirmation
+- Toggle statut publie/brouillon en 1 clic
+- **Fichier** : `src/app/admin/actualites/page.tsx`
+
+#### 4. Admin Boutique - Edit + Delete (FIX)
+- Corrige: champ `is_active` (pas `active`) aligne avec DB
+- Ajout modale d'edition inline
+- Ajout bouton Delete avec confirmation
+- Affichage tailles et badges stock/rupture
+- **Fichier** : `src/app/admin/boutique/page.tsx`
+
+#### 5. Admin Competitions - CRUD complet avec table Supabase (REFONTE)
+- Ancien code utilisait API FFTT qui ne fonctionnait pas → nouveau code Supabase
+- Table `competitions` creee en DB avec 7 matchs exemples
+- CRUD complet via modale (date, heure, equipe, adversaire, lieu, score, statut)
+- Saisie rapide du score via bouton "Marquer termine"
+- Couleurs victoire/defaite/nul
+- **Fichier** : `src/app/admin/competitions/page.tsx`
+- **Migration** : `create_competitions_table`
+
+#### 6. Admin Commandes - Detail modal (FIX)
+- Bouton "Voir details" maintenant fonctionnel
+- Modale avec infos client, articles, total, changement de statut
+- **Fichier** : `src/app/admin/commandes/page.tsx`
+
+#### 7. Loading states ajoutees
+- Pages Accueil et Parametres admin : spinner de chargement
+- **Fichiers** : `admin/(protected)/accueil/page.tsx`, `admin/(protected)/parametres/page.tsx`
+
+#### 8. Table `site_settings` creee
+- Pour stocker les settings des pages admin (accueil, parametres, club, contact)
+- **Migration** : `create_site_settings_table`
+
+### Corrections Front-Office critiques
+
+#### 9. BUG FIX: Actualites page vide (CRITIQUE)
+- `.eq('published', true)` → `.eq('status', 'published')`
+- La colonne `published` n'existe pas, la colonne correcte est `status`
+- **Fichier** : `src/app/actualites/[category]/page.tsx`
+
+#### 10. BUG FIX: Galerie page vide (CRITIQUE)
+- Meme bug que actualites: `.eq('published', true)` → `.eq('status', 'published')`
+- **Fichier** : `src/app/galerie/page.tsx`
+
+#### 11. BUG FIX: Partenaires front-office lien casse
+- `partner.website` → `partner.website_url` (nom de colonne correct)
+- **Fichier** : `src/app/partenaires/page.tsx`
+
+#### 12. Competitions front-office (REFONTE)
+- Ancien code : fetch API FFTT instable
+- Nouveau code : Server Component fetching Supabase `competitions` table
+- Stats victoires/defaites/nuls
+- Design coherent dark theme
+- **Fichier** : `src/app/competitions/page.tsx`
+
+#### 13. Page /club redirect (FIX 404)
+- Le hero homepage liait vers `/club` qui n'existait pas → 404
+- Page redirect creee vers `/club/a-propos`
+- **Fichier** : `src/app/club/page.tsx`
+
+#### 14. UX: Actualites dark theme
+- Page actualites front-office harmonisee avec le theme dark du site
+- Couleurs `#0f3057` + `#5bc0de` → `#0a0a0a` + `#3b9fd8`
+- **Fichier** : `src/app/actualites/[category]/page.tsx`
+
+#### 15. Fix params Next.js 16
+- `params: { category: string }` → `params: Promise<{ category: string }>`
+- **Fichier** : `src/app/actualites/[category]/page.tsx`
+
+### Matrice Admin Back-Office mise a jour (apres corrections)
+
+| Page Admin | Table | C | R | U | D | Statut |
+|-----------|-------|---|---|---|---|--------|
+| Accueil | site_settings | - | OK | OK | - | OK + loading |
+| Parametres | site_settings | - | OK | OK | - | OK + loading |
+| Actualites | news | OK | OK | OK | OK | REFAIT |
+| Carousel | carousel_slides | OK | OK | OK | OK | OK |
+| Galerie | albums/photos | OK | OK | OK | OK | OK |
+| Equipes | teams | OK | OK | OK | OK | OK |
+| Competitions | competitions | OK | OK | OK | OK | REFAIT |
+| Planning | trainings | OK | OK | OK | OK | REFAIT |
+| Partenaires | partners | OK | OK | OK | OK | REFAIT |
+| Boutique | shop_products | OK | OK | OK | OK | FIX |
+| Commandes | shop_orders | - | OK | OK | - | FIX |
+| Messages | contact_messages | - | OK | OK | - | OK |
+| Newsletter | newsletters | - | OK | - | - | OK |
+| Membres | member_profiles | - | OK | OK | - | OK |
+| Labels | labels | OK | OK | OK | OK | OK |
+| HelloAsso | settings | - | OK | OK | - | OK |
+| Email | - | - | - | - | - | OK (config) |
+| Marketplace | marketplace_listings | - | OK | OK | - | OK |
+
 ### TODO Restant
 - [ ] Upload vraies images labels FFTT
 - [ ] Configurer les variables SMTP dans Vercel
 - [ ] Creer les campagnes HelloAsso et configurer les URLs
 - [ ] Ajouter resultats Phase 2 au fur et a mesure
-- [ ] Ameliorer la page competitions (CRUD admin)
 - [ ] Page admin joueurs : ajouter edition

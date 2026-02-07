@@ -142,9 +142,9 @@ export default async function PartenairesPage() {
 
                       {/* Infos supplémentaires */}
                       <div className="space-y-2 text-sm text-gray-500 mb-4">
-                        {partner.website && (
+                        {partner.website_url && (
                           <a
-                            href={partner.website}
+                            href={partner.website_url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 hover:text-[#3b9fd8] transition-colors"

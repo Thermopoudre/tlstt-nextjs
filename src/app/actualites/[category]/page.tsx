@@ -18,33 +18,33 @@ const categoryDescriptions: Record<string, string> = {
 export default async function ActualitesPage({
   params,
 }: {
-  params: { category: string }
+  params: Promise<{ category: string }>
 }) {
-  const category = params.category
+  const { category } = await params
   const supabase = await createClient()
 
   const { data: news } = await supabase
     .from('news')
     .select('*')
     .eq('category', category)
-    .eq('published', true)
+    .eq('status', 'published')
     .order('created_at', { ascending: false })
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-[#0a0a0a]">
       {/* Header */}
-      <div className="bg-[#0f3057] py-12">
+      <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
         <div className="max-w-7xl mx-auto px-5">
-          <Breadcrumbs className="text-gray-400 mb-6" />
+          <Breadcrumbs className="text-gray-500 mb-6" />
           
           <div className="flex items-center gap-4">
-            <i className="fas fa-newspaper text-4xl text-[#5bc0de]"></i>
+            <i className="fas fa-newspaper text-4xl text-[#3b9fd8]"></i>
             <div>
               <h1 className="text-3xl font-bold text-white">
-                {categoryLabels[category] || 'Actualités'}
+                {categoryLabels[category] || 'Actualites'}
               </h1>
-              <p className="text-gray-300">
-                {categoryDescriptions[category] || 'Toutes les actualités'}
+              <p className="text-gray-400">
+                {categoryDescriptions[category] || 'Toutes les actualites'}
               </p>
             </div>
           </div>
@@ -61,8 +61,8 @@ export default async function ActualitesPage({
               href={`/actualites/${key}`}
               className={`px-4 py-2 rounded-full font-medium whitespace-nowrap transition-colors ${
                 category === key
-                  ? 'bg-[#5bc0de] text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                  ? 'bg-[#3b9fd8] text-white'
+                  : 'bg-[#1a1a1a] border border-[#333] text-gray-400 hover:bg-[#222]'
               }`}
             >
               {label}
@@ -77,7 +77,7 @@ export default async function ActualitesPage({
               <Link
                 key={article.id}
                 href={`/actualites/${category}/${article.id}`}
-                className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 group"
+                className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden hover:border-[#3b9fd8]/50 transition-all hover:-translate-y-1 group"
               >
                 {article.image_url && (
                   <div className="relative h-48 overflow-hidden">
@@ -90,18 +90,18 @@ export default async function ActualitesPage({
                   </div>
                 )}
                 <div className="p-4">
-                  <h2 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-[#5bc0de] transition-colors">
+                  <h2 className="text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-[#3b9fd8] transition-colors">
                     {article.title}
                   </h2>
-                  <p className="text-gray-600 text-sm line-clamp-3 mb-4">
+                  <p className="text-gray-500 text-sm line-clamp-3 mb-4">
                     {article.excerpt || article.content?.substring(0, 150)}
                   </p>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500 flex items-center gap-1">
+                    <span className="text-gray-600 flex items-center gap-1">
                       <i className="far fa-calendar"></i>
                       {new Date(article.created_at).toLocaleDateString('fr-FR')}
                     </span>
-                    <span className="text-[#5bc0de] font-medium">
+                    <span className="text-[#3b9fd8] font-medium">
                       Lire la suite <i className="fas fa-arrow-right"></i>
                     </span>
                   </div>
@@ -110,10 +110,10 @@ export default async function ActualitesPage({
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-xl p-12 text-center">
-            <i className="fas fa-newspaper text-6xl text-gray-300 mb-4"></i>
-            <h3 className="text-xl font-bold text-gray-700 mb-2">Aucune actualité</h3>
-            <p className="text-gray-500">Aucun article dans cette catégorie pour le moment.</p>
+          <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-12 text-center">
+            <i className="fas fa-newspaper text-6xl text-gray-600 mb-4"></i>
+            <h3 className="text-xl font-bold text-white mb-2">Aucune actualite</h3>
+            <p className="text-gray-500">Aucun article dans cette categorie pour le moment.</p>
           </div>
         )}
       </div>

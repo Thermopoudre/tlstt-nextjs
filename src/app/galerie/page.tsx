@@ -9,7 +9,7 @@ export default async function GaleriePage() {
   const { data: albums } = await supabase
     .from('albums')
     .select('*, photos(count)')
-    .eq('published', true)
+    .eq('status', 'published')
     .order('created_at', { ascending: false })
 
   const totalAlbums = albums?.length || 0
