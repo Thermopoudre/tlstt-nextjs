@@ -23,7 +23,7 @@ interface Listing {
 }
 
 export default function MarketplacePage() {
-  const { user, loading } = useAuth()
+  const { user, profile, loading } = useAuth()
   const [listings, setListings] = useState<Listing[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<string>('')
@@ -115,6 +115,48 @@ export default function MarketplacePage() {
               <h3 className="font-bold text-white mb-2">Don</h3>
               <p className="text-sm text-gray-500">Donnez aux nouveaux joueurs</p>
             </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Verifier si membre valide du club (pas visiteur simple)
+  const isMemberValidated = profile?.role === 'admin' || profile?.role === 'member' || profile?.is_validated === true
+
+  // Membre connecte mais pas valide comme membre du club
+  if (!loading && user && !isMemberValidated) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a]">
+        <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
+          <div className="max-w-7xl mx-auto px-5">
+            <Breadcrumbs className="text-gray-500 mb-6" />
+            <div className="flex items-center gap-4">
+              <i className="fas fa-handshake text-4xl text-[#3b9fd8]"></i>
+              <div>
+                <h1 className="text-3xl font-bold text-white">Marketplace</h1>
+                <p className="text-gray-400">Achetez, vendez, echangez entre membres</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-2xl mx-auto px-5 py-16">
+          <div className="bg-[#1a1a1a] border border-yellow-500/30 rounded-2xl p-8 text-center">
+            <div className="w-20 h-20 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-id-badge text-4xl text-yellow-500"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-4">Reserve aux membres du club</h2>
+            <p className="text-gray-400 mb-6">
+              La marketplace est exclusivement reservee aux membres licencies du TLSTT.
+              Votre compte doit etre valide par le secretariat pour acceder a cet espace.
+            </p>
+            <Link
+              href="/espace-membre"
+              className="px-8 py-3 bg-[#3b9fd8] text-white rounded-xl font-semibold hover:bg-[#2d8bc9] transition-colors inline-block"
+            >
+              <i className="fas fa-user mr-2"></i>
+              Mon espace membre
+            </Link>
           </div>
         </div>
       </div>

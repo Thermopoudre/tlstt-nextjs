@@ -17,6 +17,8 @@ export interface MemberProfile {
   secretariat_notifications: boolean
   membership_status: 'pending' | 'active' | 'expired'
   membership_expires_at: string | null
+  role?: 'visitor' | 'member' | 'admin'
+  is_validated?: boolean
 }
 
 interface AuthContextType {

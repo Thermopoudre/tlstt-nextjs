@@ -33,23 +33,44 @@ export default function BoutiquePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
   const [showCart, setShowCart] = useState(false)
+  const [helloassoUrl, setHelloassoUrl] = useState<string>('')
+  const [helloassoCotisationUrl, setHelloassoCotisationUrl] = useState<string>('')
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       const supabase = createClient()
+      
+      // Charger les produits
       const { data } = await supabase
         .from('shop_products')
         .select('*')
         .eq('is_active', true)
         .order('category')
       setProducts(data || [])
+      
+      // Charger les URLs HelloAsso
+      const { data: settings } = await supabase
+        .from('settings')
+        .select('setting_key, setting_value')
+        .in('setting_key', ['helloasso_boutique_url', 'helloasso_cotisation_url'])
+      
+      if (settings) {
+        const boutUrl = settings.find(s => s.setting_key === 'helloasso_boutique_url')?.setting_value
+        const cotUrl = settings.find(s => s.setting_key === 'helloasso_cotisation_url')?.setting_value
+        if (boutUrl) setHelloassoUrl(boutUrl)
+        if (cotUrl) setHelloassoCotisationUrl(cotUrl)
+      }
+      
       setIsLoading(false)
     }
-    if (user) fetchProducts()
+    if (user) fetchData()
     else setIsLoading(false)
   }, [user])
 
-  // Page pour visiteurs non connectés
+  // Membre connecte mais pas encore valide
+  const isMemberValidated = profile?.role === 'admin' || profile?.role === 'member' || profile?.is_validated === true
+
+  // Page pour visiteurs non connectes
   if (!loading && !user) {
     return (
       <div className="min-h-screen bg-[#0a0a0a]">
@@ -114,6 +135,45 @@ export default function BoutiquePage() {
                 <p className="text-sm text-gray-400">Équipement</p>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Membre en attente de validation
+  if (!loading && user && !isMemberValidated) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a]">
+        <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
+          <div className="max-w-7xl mx-auto px-5">
+            <Breadcrumbs className="text-gray-500 mb-6" />
+            <div className="flex items-center gap-4">
+              <i className="fas fa-store text-4xl text-[#3b9fd8]"></i>
+              <div>
+                <h1 className="text-3xl font-bold text-white">Boutique du Club</h1>
+                <p className="text-gray-400">Articles officiels TLSTT</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-2xl mx-auto px-5 py-16">
+          <div className="bg-[#1a1a1a] border border-yellow-500/30 rounded-2xl p-8 text-center">
+            <div className="w-20 h-20 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-hourglass-half text-4xl text-yellow-500"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-4">Validation en attente</h2>
+            <p className="text-gray-400 mb-6">
+              Votre compte est en attente de validation par le secretariat du club.
+              La boutique sera accessible une fois votre inscription validee.
+            </p>
+            <Link
+              href="/espace-membre"
+              className="px-8 py-3 bg-[#3b9fd8] text-white rounded-xl font-semibold hover:bg-[#2d8bc9] transition-colors inline-block"
+            >
+              <i className="fas fa-user mr-2"></i>
+              Mon espace membre
+            </Link>
           </div>
         </div>
       </div>
@@ -228,6 +288,38 @@ export default function BoutiquePage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-5 pb-12 -mt-4">
+        {/* Section Cotisation HelloAsso */}
+        {helloassoCotisationUrl && (
+          <div className="mb-8 bg-gradient-to-r from-[#4c40cf]/10 to-[#3b9fd8]/10 border border-[#4c40cf]/30 rounded-2xl p-6">
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-white mb-2">
+                  <i className="fas fa-id-card mr-2 text-[#4c40cf]"></i>
+                  Cotisation Saison 2025/2026
+                </h2>
+                <p className="text-gray-400 mb-4">
+                  Renouvelez votre licence ou inscrivez-vous pour la nouvelle saison.
+                  Paiement securise via HelloAsso.
+                </p>
+                <div className="flex flex-wrap gap-2 text-sm text-gray-500">
+                  <span className="bg-[#1a1a1a] px-3 py-1 rounded-full"><i className="fas fa-check mr-1 text-green-400"></i>Licence FFTT incluse</span>
+                  <span className="bg-[#1a1a1a] px-3 py-1 rounded-full"><i className="fas fa-check mr-1 text-green-400"></i>Assurance</span>
+                  <span className="bg-[#1a1a1a] px-3 py-1 rounded-full"><i className="fas fa-check mr-1 text-green-400"></i>Acces entrainements</span>
+                </div>
+              </div>
+              <a
+                href={helloassoCotisationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-[#4c40cf] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#3d32b0] transition-colors flex items-center gap-3 whitespace-nowrap"
+              >
+                <img src="https://api.helloasso.com/v5/img/logo-ha.svg" alt="HelloAsso" className="h-5" />
+                S&apos;inscrire / Renouveler
+              </a>
+            </div>
+          </div>
+        )}
+
         {isLoading ? (
           <div className="text-center py-12">
             <i className="fas fa-spinner fa-spin text-4xl text-[#3b9fd8] mb-4"></i>
@@ -355,12 +447,25 @@ export default function BoutiquePage() {
                       <span className="text-gray-400">Total</span>
                       <span className="text-[#3b9fd8] font-bold text-2xl">{cartTotal.toFixed(2)}€</span>
                     </div>
-                    <button className="w-full bg-[#3b9fd8] text-white py-4 rounded-xl font-bold hover:bg-[#2d8bc9] transition-colors">
-                      <i className="fas fa-credit-card mr-2"></i>
-                      Commander
-                    </button>
+                    {helloassoUrl ? (
+                      <a
+                        href={helloassoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full bg-[#4c40cf] text-white py-4 rounded-xl font-bold hover:bg-[#3d32b0] transition-colors flex items-center justify-center gap-2"
+                      >
+                        <img src="https://api.helloasso.com/v5/img/logo-ha.svg" alt="HelloAsso" className="h-5" />
+                        Payer avec HelloAsso
+                      </a>
+                    ) : (
+                      <button className="w-full bg-[#3b9fd8] text-white py-4 rounded-xl font-bold hover:bg-[#2d8bc9] transition-colors">
+                        <i className="fas fa-credit-card mr-2"></i>
+                        Commander
+                      </button>
+                    )}
                     <p className="text-gray-600 text-xs text-center mt-3">
-                      Retrait au club uniquement
+                      <i className="fas fa-lock mr-1"></i>
+                      Paiement securise - Retrait au club
                     </p>
                   </div>
                 </>

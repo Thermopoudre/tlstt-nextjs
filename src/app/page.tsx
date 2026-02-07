@@ -28,10 +28,12 @@ export default async function HomePage() {
     { count: totalPlayers },
     { count: totalNews },
     { count: totalAlbums },
+    { count: totalTeams },
   ] = await Promise.all([
     supabase.from('players').select('*', { count: 'exact', head: true }).ilike('admin_notes', '%TLSTT%'),
     supabase.from('news').select('*', { count: 'exact', head: true }),
     supabase.from('albums').select('*', { count: 'exact', head: true }),
+    supabase.from('teams').select('*', { count: 'exact', head: true }).eq('is_active', true),
   ])
 
   // Récupérer les prochains entraînements
@@ -90,8 +92,8 @@ export default async function HomePage() {
               <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
                 <i className="fas fa-trophy text-2xl text-white"></i>
               </div>
-              <div className="text-4xl font-bold text-white mb-1">12</div>
-              <div className="text-sm text-[#3b9fd8]">Équipes</div>
+              <div className="text-4xl font-bold text-white mb-1">{totalTeams || 13}</div>
+              <div className="text-sm text-[#3b9fd8]">Equipes</div>
             </div>
 
             <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">

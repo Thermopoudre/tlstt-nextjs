@@ -403,7 +403,114 @@ Conclusion : Les credentials FFTT ne donnent acces qu'aux endpoints joueurs. Tou
 
 ### TODO
 - [ ] Obtenir credentials FFTT avec acces complet (equipes, epreuves, clubs)
-- [ ] OU saisir manuellement les equipes du club dans Supabase
+- [x] Saisir manuellement les equipes du club dans Supabase (fait, 13 equipes)
+- [ ] Upload vraies images labels FFTT (admin page creee)
+- [x] Configurer envoi emails - Gmail SMTP integre (nodemailer)
+- [x] Ajouter produits boutique (15 produits inseres)
+- [x] Integration HelloAsso (cotisation + boutique, configurable en admin)
+
+## 2026-02-07 - Audit Complet et Corrections Majeures
+
+### Problemes identifies et corriges
+
+#### 1. Admin Equipes - PLACEHOLDER remplace par vraie BDD
+- **Avant** : Page admin avec 4 fausses equipes hardcodees
+- **Apres** : CRUD complet connecte a la table Supabase `teams` (13 equipes reelles)
+- **Fichier** : `src/app/admin/equipes/page.tsx` - Reecrit entierement
+
+#### 2. Systeme de roles membre/visiteur
+- **Avant** : Pas de distinction entre membre du club et visiteur simple
+- **Apres** : 
+  - Migration SQL : ajout colonnes `role` (visitor/member/admin) et `is_validated` dans `member_profiles`
+  - Formulaire inscription : choix "Membre du club" vs "Visiteur"
+  - Membres du club doivent fournir licence FFTT et etre valides par le secretariat
+  - **Fichiers** : `AuthProvider.tsx`, `RegisterModal.tsx`
+
+#### 3. Controle d'acces boutique + marketplace
+- **Avant** : Boutique accessible a tout utilisateur connecte
+- **Apres** : Boutique et Marketplace reservees aux membres valides (`role=member + is_validated=true` ou `role=admin`)
+- Les visiteurs simples voient un message "Validation en attente"
+- **Fichiers** : `boutique/page.tsx`, `marketplace/page.tsx`
+
+#### 4. Admin Gestion des membres (NOUVEAU)
+- Page `/admin/membres` pour valider les inscriptions
+- Visualisation : total inscrits, membres valides, en attente, visiteurs
+- Actions : Valider, Refuser, Promouvoir admin
+- Filtrage par statut (tous, en attente, valides, visiteurs)
+- Badge notification dans le sidebar admin
+
+#### 5. Admin Labels FFTT (NOUVEAU)
+- Page `/admin/labels` avec CRUD complet
+- Ajouter/modifier/supprimer des labels
+- Toggle actif/inactif
+- URL image configurable
+- **Fichier** : `src/app/admin/labels/page.tsx`
+
+#### 6. Gmail SMTP pour envoi emails
+- Utilitaire `src/lib/email.ts` avec nodemailer
+- Configuration via variables d'environnement Vercel (SMTP_HOST, SMTP_USER, SMTP_PASS, etc.)
+- Emails automatiques : notification contact, bienvenue membre
+- Page admin `/admin/email` avec guide de configuration et test
+- Route API `/api/email/test` (GET: test connexion, POST: email test)
+- Route `/api/contact` mise a jour pour envoyer notification email
+
+#### 7. Integration HelloAsso
+- Page admin `/admin/helloasso` pour configurer les URLs HelloAsso
+- Settings Supabase : `helloasso_cotisation_url`, `helloasso_boutique_url`, `helloasso_org_slug`
+- Page Boutique : section cotisation HelloAsso + bouton "Payer avec HelloAsso" dans le panier
+- Guide de configuration dans l'admin
+- **Fichiers** : `admin/helloasso/page.tsx`, `boutique/page.tsx`
+
+#### 8. Admin Boutique - Page creation produit (NOUVEAU)
+- Page `/admin/boutique/nouveau` pour creer des produits
+- Formulaire complet : nom, description, prix, stock, tailles, image, categorie
+- **Fichier** : `src/app/admin/boutique/nouveau/page.tsx`
+
+#### 9. Homepage - Stats dynamiques
+- "Equipes" maintenant dynamique depuis table `teams` (au lieu de hardcode "12")
+- **Fichier** : `src/app/page.tsx`
+
+#### 10. Navigation - Lien Boutique pour membres
+- Le lien "Boutique" apparait dans le header quand un utilisateur est connecte
+- **Fichier** : `src/components/layout/Header.tsx`
+
+#### 11. 10 produits supplementaires ajoutes en BDD
+- Total : 15 produits (textile, accessoires, equipement)
+- Produits : Polo competition, Veste coupe-vent, Casquette, Gourde, Housses de raquette, Balles 3 etoiles, Sweat capuche, Bracelet, Porte-cles
+
+### Sidebar admin mis a jour
+- Ajout : Membres, Labels FFTT, Config Email, HelloAsso
+- **Fichier** : `src/components/admin/AdminSidebar.tsx`
+
+### Matrice Front/Back-Office (apres corrections)
+
+| Page Front | Admin Back | Statut CRUD |
+|-----------|-----------|-------------|
+| Accueil | /admin/accueil | OK - Update |
+| Actualites | /admin/actualites | OK - Full CRUD |
+| Carousel | /admin/carousel | OK - Full CRUD |
+| Equipes | /admin/equipes | OK - Full CRUD (corrige) |
+| Joueurs | /admin/joueurs | Lecture seule |
+| Galerie | /admin/galerie | OK - Full CRUD |
+| Planning | /admin/planning | OK - Full CRUD |
+| Partenaires | /admin/partenaires | OK - Full CRUD |
+| Contact | /admin/contact + /admin/messages | OK |
+| Newsletter | /admin/newsletter | OK - Lecture + Export |
+| Boutique | /admin/boutique | OK - Full CRUD (corrige) |
+| Marketplace | /admin/marketplace | OK - Moderation |
+| Labels | /admin/labels | OK - Full CRUD (nouveau) |
+| Membres | /admin/membres | OK - Validation (nouveau) |
+| Email | /admin/email | OK - Config + Test (nouveau) |
+| HelloAsso | /admin/helloasso | OK - Config (nouveau) |
+| Mentions legales | /admin/pages/mentions-legales | OK |
+| Confidentialite | /admin/pages/confidentialite | OK |
+| Cookies | /admin/pages/cookies | OK |
+| Parametres | /admin/parametres | OK |
+
+### TODO Restant
 - [ ] Upload vraies images labels FFTT
-- [ ] Configurer envoi emails (newsletter, secretariat)
-- [ ] Ajouter produits reels boutique
+- [ ] Configurer les variables SMTP dans Vercel
+- [ ] Creer les campagnes HelloAsso et configurer les URLs
+- [ ] Ajouter resultats Phase 2 au fur et a mesure
+- [ ] Ameliorer la page competitions (CRUD admin)
+- [ ] Page admin joueurs : ajouter edition

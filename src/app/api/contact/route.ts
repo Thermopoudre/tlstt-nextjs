@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { sendContactNotification } from '@/lib/email'
 
 export async function POST(request: Request) {
   try {
@@ -33,8 +34,12 @@ export async function POST(request: Request) {
       throw error
     }
 
-    // TODO: Envoyer un email de notification (optionnel)
-    // await sendNotificationEmail({ name, email, subject, message })
+    // Envoyer un email de notification a l'admin
+    const emailResult = await sendContactNotification({ name, email, subject, message, phone })
+    if (!emailResult.success) {
+      console.warn('Email notification non envoye:', emailResult.error)
+      // On ne bloque pas la soumission si l'email echoue
+    }
 
     return NextResponse.json(
       { success: true, message: 'Message envoyé avec succès' },

@@ -24,21 +24,29 @@
 
 ## Fonctionnalités Prévues
 
-### Phase 3 - Admin Back-Office
-- Gestion actualités
-- Gestion carrousel
-- Gestion partenaires
-- Gestion produits boutique
-- Gestion labels
-- Validation membres
-- Envoi communications
+### Phase 3 - Admin Back-Office (En cours)
+- [x] Gestion actualites (CRUD complet)
+- [x] Gestion carrousel (CRUD complet)
+- [x] Gestion partenaires (CRUD complet)
+- [x] Gestion produits boutique (CRUD + creation)
+- [x] Gestion labels FFTT (CRUD complet)
+- [x] Validation membres (admin page avec roles)
+- [x] Gestion equipes (CRUD complet avec resultats)
+- [x] Configuration email SMTP Gmail
+- [x] Integration HelloAsso (cotisation + boutique)
+- [x] Gestion planning (CRUD complet)
+- [x] Gestion galerie (CRUD complet)
+- [x] Gestion pages legales (edition)
+- [ ] Envoi newsletter par email
+- [ ] Communications secretariat par email
 
-### Phase 4 - Fonctionnalités Avancées
-- Paiement en ligne (Stripe)
-- Notifications push
-- Chat entre membres
-- Calendrier réservation salles
-- Statistiques avancées joueurs
+### Phase 4 - Fonctionnalites Avancees
+- [x] Paiement en ligne via HelloAsso (gratuit pour associations)
+- [ ] Notifications push
+- [ ] Chat entre membres
+- [ ] Calendrier reservation salles
+- [ ] Statistiques avancees joueurs
+- [ ] Auto-update resultats Phase 2 (CRON ou scraping)
 
 ## Architecture Technique
 

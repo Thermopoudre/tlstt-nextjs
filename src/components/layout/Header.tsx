@@ -22,6 +22,7 @@ export default function Header() {
     { label: 'Compét.', href: '/competitions', hasSubmenu: true },
     { label: 'Club', href: '/club/a-propos', hasSubmenu: true },
     { label: 'Contact', href: '/contact' },
+    ...(user ? [{ label: 'Boutique', href: '/boutique' }] : []),
   ]
 
   const submenus: Record<string, { label: string; href: string }[]> = {

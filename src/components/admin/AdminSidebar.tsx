@@ -41,11 +41,13 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
     {
       title: 'Club',
       items: [
+        { title: 'Membres', icon: 'fa-id-card', path: '/admin/membres', badge: true },
         { title: 'Joueurs', icon: 'fa-user-group', path: '/admin/joueurs' },
         { title: 'Équipes', icon: 'fa-people-group', path: '/admin/equipes' },
         { title: 'Compétitions', icon: 'fa-trophy', path: '/admin/competitions' },
         { title: 'Planning', icon: 'fa-calendar-alt', path: '/admin/planning' },
         { title: 'À propos', icon: 'fa-info-circle', path: '/admin/club' },
+        { title: 'Labels FFTT', icon: 'fa-award', path: '/admin/labels' },
       ]
     },
     {
@@ -54,6 +56,7 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
         { title: 'Boutique', icon: 'fa-shop', path: '/admin/boutique' },
         { title: 'Marketplace', icon: 'fa-store', path: '/admin/marketplace' },
         { title: 'Commandes', icon: 'fa-shopping-cart', path: '/admin/commandes' },
+        { title: 'HelloAsso', icon: 'fa-credit-card', path: '/admin/helloasso' },
       ]
     },
     {
@@ -61,6 +64,7 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
       items: [
         { title: 'Messages', icon: 'fa-comments', path: '/admin/messages', badge: true },
         { title: 'Contact', icon: 'fa-address-card', path: '/admin/contact' },
+        { title: 'Config Email', icon: 'fa-envelope', path: '/admin/email' },
         { title: 'Partenaires', icon: 'fa-handshake', path: '/admin/partenaires' },
       ]
     },
