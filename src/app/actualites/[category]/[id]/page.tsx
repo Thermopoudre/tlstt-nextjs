@@ -1,15 +1,57 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import JsonLd from '@/components/seo/JsonLd'
+import { articleJsonLd, breadcrumbJsonLd, autoDescription, autoKeywords, generatePageMeta } from '@/lib/seo'
 
 type NewsCategory = 'tt' | 'club' | 'handi'
+
+const categoryNames: Record<string, string> = {
+  club: 'Club',
+  tt: 'Tennis de Table',
+  handi: 'Handisport',
+}
 
 interface ArticlePageProps {
   params: Promise<{
     category: NewsCategory
     id: string
   }>
+}
+
+export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
+  const { category, id } = await params
+  const supabase = await createClient()
+
+  const { data: article } = await supabase
+    .from('news')
+    .select('title, content, excerpt, image_url, meta_title, meta_description, created_at, updated_at')
+    .eq('id', id)
+    .eq('category', category)
+    .eq('status', 'published')
+    .single()
+
+  if (!article) {
+    return { title: 'Article non trouvé' }
+  }
+
+  const metaTitle = article.meta_title || article.title
+  const metaDesc = article.meta_description || article.excerpt || autoDescription(article.content || '')
+  const keywords = autoKeywords(article.title, article.content || '')
+
+  return generatePageMeta({
+    title: metaTitle,
+    description: metaDesc,
+    path: `/actualites/${category}/${id}`,
+    image: article.image_url || undefined,
+    type: 'article',
+    publishedTime: article.created_at,
+    modifiedTime: article.updated_at || article.created_at,
+    author: 'TLSTT',
+    keywords,
+  })
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
@@ -39,8 +81,26 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     .order('published_at', { ascending: false })
     .limit(3)
 
+  const jsonLdData = [
+    articleJsonLd({
+      title: article.title,
+      description: article.excerpt || autoDescription(article.content || ''),
+      url: `/actualites/${category}/${id}`,
+      image: article.image_url || undefined,
+      publishedTime: article.published_at || article.created_at,
+      modifiedTime: article.updated_at || article.created_at,
+      category: categoryNames[category] || category,
+    }),
+    breadcrumbJsonLd([
+      { name: 'Accueil', url: '/' },
+      { name: `Actualités ${categoryNames[category] || ''}`, url: `/actualites/${category}` },
+      { name: article.title, url: `/actualites/${category}/${id}` },
+    ]),
+  ]
+
   return (
     <div className="container-custom">
+      <JsonLd data={jsonLdData} />
       {/* Breadcrumb */}
       <nav className="mb-6 text-sm">
         <ol className="flex items-center space-x-2">

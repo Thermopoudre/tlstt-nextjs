@@ -30,7 +30,10 @@ export default function EditActualitePage({ params }: EditActualitePageProps) {
     category: 'club' as 'club' | 'tt' | 'handi',
     status: 'draft' as 'draft' | 'published',
     image_url: '',
+    meta_title: '',
+    meta_description: '',
   })
+  const [showSeo, setShowSeo] = useState(false)
 
   useEffect(() => {
     params.then(({ id }) => {
@@ -51,6 +54,8 @@ export default function EditActualitePage({ params }: EditActualitePageProps) {
         category: data.category,
         status: data.status,
         image_url: data.image_url || '',
+        meta_title: data.meta_title || '',
+        meta_description: data.meta_description || '',
       })
     } catch {
       setMessage({ type: 'error', text: 'Erreur lors du chargement' })
@@ -77,6 +82,19 @@ export default function EditActualitePage({ params }: EditActualitePageProps) {
         .eq('id', articleId)
 
       if (error) throw error
+
+      // Auto-ping moteurs de recherche si publié
+      if (formData.status === 'published') {
+        fetch('/api/seo/ping', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: `/actualites/${formData.category}/${articleId}`,
+            type: 'article',
+          }),
+        }).catch(() => {}) // fire-and-forget
+      }
+
       setMessage({ type: 'success', text: 'Article mis à jour !' })
       setTimeout(() => router.push('/admin/actualites'), 1000)
     } catch (error: any) {
@@ -235,6 +253,73 @@ export default function EditActualitePage({ params }: EditActualitePageProps) {
             placeholder="Rédigez votre article ici..."
             storageFolder="articles"
           />
+        </div>
+
+        {/* SEO - Section pliable */}
+        <div className="bg-white rounded-xl shadow overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowSeo(!showSeo)}
+            className="w-full p-6 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div>
+              <span className="text-sm font-bold text-gray-700">
+                <i className="fas fa-search mr-1 text-green-600"></i>
+                SEO - Référencement
+              </span>
+              <p className="text-xs text-gray-400 mt-0.5">Personnalisez le titre et la description pour Google (optionnel)</p>
+            </div>
+            <i className={`fas fa-chevron-${showSeo ? 'up' : 'down'} text-gray-400`}></i>
+          </button>
+          {showSeo && (
+            <div className="px-6 pb-6 space-y-4 border-t border-gray-100">
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Titre SEO <span className="text-gray-400 font-normal">(max 60 caractères)</span>
+                </label>
+                <input
+                  type="text"
+                  maxLength={60}
+                  value={formData.meta_title}
+                  onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder={formData.title || 'Auto-généré depuis le titre'}
+                />
+                <p className="text-xs text-gray-400 mt-1">{formData.meta_title.length}/60</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description SEO <span className="text-gray-400 font-normal">(max 155 caractères)</span>
+                </label>
+                <textarea
+                  maxLength={155}
+                  rows={2}
+                  value={formData.meta_description}
+                  onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder={formData.excerpt || 'Auto-généré depuis le résumé'}
+                />
+                <p className="text-xs text-gray-400 mt-1">{formData.meta_description.length}/155</p>
+              </div>
+
+              {/* Aperçu Google */}
+              <div className="bg-gray-50 rounded-lg p-4 border">
+                <p className="text-xs text-gray-500 mb-2 font-semibold">
+                  <i className="fab fa-google mr-1"></i>
+                  Aperçu Google
+                </p>
+                <div className="font-sans">
+                  <p className="text-[#1a0dab] text-lg leading-tight truncate">
+                    {formData.meta_title || formData.title || 'Titre de l\'article'} | TLSTT
+                  </p>
+                  <p className="text-green-700 text-sm">tlstt-nextjs.vercel.app &rsaquo; actualites &rsaquo; {formData.category}</p>
+                  <p className="text-gray-600 text-sm line-clamp-2">
+                    {formData.meta_description || formData.excerpt || 'Description auto-générée...'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between bg-white p-6 rounded-xl shadow">

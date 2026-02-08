@@ -6,11 +6,14 @@ import { getPlanningSettings, getGlobalSettings } from '@/lib/settings'
 
 export const metadata: Metadata = {
   title: 'Planning - Horaires des Entraînements',
-  description: 'Consultez le planning hebdomadaire des entraînements du club TLSTT. École de ping, entraînement dirigé, jeu libre.',
+  description: 'Consultez le planning hebdomadaire des entraînements du club TLSTT Toulon La Seyne. École de ping, entraînement dirigé, jeu libre. Tarifs et informations pratiques.',
+  alternates: { canonical: '/planning' },
   openGraph: {
-    title: 'Planning TLSTT',
-    description: 'Horaires des entraînements de tennis de table',
+    title: 'Planning & Horaires TLSTT',
+    description: 'Horaires des entraînements de tennis de table au TLSTT - Tous niveaux, du débutant au compétiteur.',
+    url: '/planning',
   },
+  keywords: ['planning', 'horaires', 'entraînement', 'tennis de table', 'TLSTT', 'cours', 'tarifs', 'école de ping'],
 }
 
 interface Training {

@@ -1,7 +1,10 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd, generatePageMeta } from '@/lib/seo'
 
 const categoryLabels: Record<string, string> = {
   club: 'Actualités du Club',
@@ -13,6 +16,26 @@ const categoryDescriptions: Record<string, string> = {
   club: 'Les dernières nouvelles du club TLSTT',
   tt: 'Actualités du monde du tennis de table',
   handi: 'Sport adapté et handisport',
+}
+
+const categorySeoDescriptions: Record<string, string> = {
+  club: 'Toutes les actualités du club TLSTT Toulon La Seyne Tennis de Table : événements, résultats, vie du club, inscriptions et nouveautés.',
+  tt: 'Actualités tennis de table : résultats des championnats, tournois, informations FFTT et nouvelles du ping-pong à Toulon La Seyne.',
+  handi: 'Actualités handisport et tennis de table adapté au TLSTT. Sport inclusif pour tous à Toulon La Seyne-sur-Mer.',
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ category: string }>
+}): Promise<Metadata> {
+  const { category } = await params
+  return generatePageMeta({
+    title: categoryLabels[category] || 'Actualités',
+    description: categorySeoDescriptions[category] || 'Toutes les actualités du club TLSTT',
+    path: `/actualites/${category}`,
+    keywords: ['actualités', 'TLSTT', 'tennis de table', categoryLabels[category] || '', 'Toulon', 'La Seyne'],
+  })
 }
 
 export default async function ActualitesPage({
@@ -32,6 +55,10 @@ export default async function ActualitesPage({
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: categoryLabels[category] || 'Actualités', url: `/actualites/${category}` },
+      ])} />
       {/* Header */}
       <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
         <div className="max-w-7xl mx-auto px-5">

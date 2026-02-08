@@ -3,12 +3,15 @@ import { Metadata } from 'next'
 import JoueursClient from './JoueursClient'
 
 export const metadata: Metadata = {
-  title: 'Joueurs - Classement des Licenciés | TLSTT',
-  description: 'Découvrez tous les joueurs licenciés du club TLSTT Toulon La Seyne Tennis de Table, leurs classements FFTT et leurs points actuels.',
+  title: 'Joueurs - Classement des Licenciés',
+  description: 'Découvrez tous les joueurs licenciés du club TLSTT Toulon La Seyne Tennis de Table, leurs classements FFTT et leurs points actuels. Données officielles en temps réel.',
+  alternates: { canonical: '/joueurs' },
   openGraph: {
-    title: 'Joueurs TLSTT - Classement Officiel',
+    title: 'Joueurs TLSTT - Classement Officiel FFTT',
     description: 'Classement des joueurs du club de tennis de table TLSTT - Données FFTT en temps réel',
+    url: '/joueurs',
   },
+  keywords: ['joueurs', 'classement', 'FFTT', 'licenciés', 'TLSTT', 'tennis de table', 'points', 'Toulon', 'La Seyne'],
 }
 
 export default async function JoueursPage() {

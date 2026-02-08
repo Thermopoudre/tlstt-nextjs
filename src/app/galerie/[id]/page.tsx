@@ -1,10 +1,36 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd, generatePageMeta } from '@/lib/seo'
 
 interface AlbumPageProps {
   params: Promise<{ id: string }>
+}
+
+export async function generateMetadata({ params }: AlbumPageProps): Promise<Metadata> {
+  const { id } = await params
+  const supabase = await createClient()
+
+  const { data: album } = await supabase
+    .from('albums')
+    .select('title, description, cover_url')
+    .eq('id', parseInt(id))
+    .single()
+
+  if (!album) {
+    return { title: 'Album non trouvé' }
+  }
+
+  return generatePageMeta({
+    title: `${album.title} - Galerie Photo`,
+    description: album.description || `Album photo "${album.title}" du club TLSTT Toulon La Seyne Tennis de Table.`,
+    path: `/galerie/${id}`,
+    image: album.cover_url || undefined,
+    keywords: ['galerie', 'photos', album.title, 'TLSTT', 'tennis de table'],
+  })
 }
 
 export default async function AlbumPage({ params }: AlbumPageProps) {
@@ -31,6 +57,11 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
 
   return (
     <div className="container-custom">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Galerie', url: '/galerie' },
+        { name: album.title, url: `/galerie/${id}` },
+      ])} />
       {/* Breadcrumb */}
       <nav className="mb-6 text-sm">
         <ol className="flex items-center space-x-2">

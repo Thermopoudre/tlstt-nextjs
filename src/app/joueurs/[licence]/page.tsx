@@ -59,7 +59,14 @@ export async function generateMetadata({ params }: PlayerPageProps) {
   const points = player.fftt_points_exact || player.fftt_points
 
   return {
-    title: `${player.first_name} ${player.last_name} - ${points} pts | TLSTT`,
-    description: `Profil de ${player.first_name} ${player.last_name}, joueur du Toulon La Seyne Tennis de Table. Classement: ${points} points.`,
+    title: `${player.first_name} ${player.last_name} - ${points} pts`,
+    description: `Profil et statistiques de ${player.first_name} ${player.last_name}, joueur licencié au TLSTT Toulon La Seyne Tennis de Table. Classement FFTT: ${points} points. Historique et progression.`,
+    alternates: { canonical: `/joueurs/${licence}` },
+    openGraph: {
+      title: `${player.first_name} ${player.last_name} - ${points} pts | TLSTT`,
+      description: `Joueur du TLSTT - Classement: ${points} points FFTT`,
+      url: `/joueurs/${licence}`,
+    },
+    keywords: [player.first_name, player.last_name, 'joueur', 'TLSTT', 'tennis de table', 'classement FFTT'],
   }
 }

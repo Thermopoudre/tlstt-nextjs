@@ -4,12 +4,15 @@ import { getGlobalSettings, getContactSettings } from '@/lib/settings'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Contact - Nous contacter',
-  description: 'Contactez le club de tennis de table TLSTT. Questions, inscriptions, partenariats.',
+  title: 'Contact - Nous Contacter',
+  description: 'Contactez le club de tennis de table TLSTT Toulon La Seyne-sur-Mer. Questions, inscriptions, partenariats. Formulaire de contact et coordonnées.',
+  alternates: { canonical: '/contact' },
   openGraph: {
     title: 'Contact TLSTT',
-    description: 'Contactez le club de tennis de table de Toulon La Seyne',
+    description: 'Contactez le club de tennis de table TLSTT à Toulon La Seyne-sur-Mer.',
+    url: '/contact',
   },
+  keywords: ['contact', 'TLSTT', 'tennis de table', 'inscription', 'Toulon', 'La Seyne-sur-Mer', 'formulaire'],
 }
 
 export default async function ContactPage() {

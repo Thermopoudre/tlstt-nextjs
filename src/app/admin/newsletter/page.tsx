@@ -84,15 +84,30 @@ export default function AdminNewsletterPage() {
     }
 
     let error
+    let newId: number | null = null
     if (editingId) {
       ({ error } = await supabase.from('newsletters').update(data).eq('id', editingId))
+      newId = editingId
     } else {
-      ({ error } = await supabase.from('newsletters').insert(data))
+      const result = await supabase.from('newsletters').insert(data).select('id').single()
+      error = result.error
+      newId = result.data?.id || null
     }
 
     if (error) {
       setMessage({ type: 'error', text: error.message })
     } else {
+      // Auto-ping moteurs de recherche si publié
+      if (compose.status === 'published' && newId) {
+        fetch('/api/seo/ping', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: `/newsletters/${newId}`,
+            type: 'newsletter',
+          }),
+        }).catch(() => {})
+      }
       setMessage({ type: 'success', text: editingId ? 'Newsletter mise à jour !' : 'Newsletter créée !' })
       resetCompose()
       setActiveTab('sent')

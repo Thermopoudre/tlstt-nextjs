@@ -1,7 +1,10 @@
+import type { Metadata } from 'next'
 import { SmartPingAPI } from '@/lib/smartping/api'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd, generatePageMeta } from '@/lib/seo'
 
 export const revalidate = 1800 // Revalider toutes les 30 minutes
 
@@ -9,6 +12,28 @@ const TLSTT_CLUB_NUMBER = '13830083'
 
 interface PageProps {
   params: Promise<{ id: string }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params
+  const supabase = await createClient()
+
+  const { data: team } = await supabase
+    .from('teams')
+    .select('name, division')
+    .eq('id', parseInt(id))
+    .single()
+
+  if (!team) {
+    return { title: 'Équipe non trouvée' }
+  }
+
+  return generatePageMeta({
+    title: `${team.name} - ${team.division || 'Championnat'}`,
+    description: `Classement, résultats et statistiques de l'équipe ${team.name} du TLSTT en ${team.division || 'championnat FFTT'}. Données officielles en temps réel.`,
+    path: `/equipes/${id}`,
+    keywords: ['équipe', team.name, team.division || '', 'TLSTT', 'championnat', 'résultats', 'tennis de table'],
+  })
 }
 
 interface ClassementEntry {
@@ -223,6 +248,11 @@ export default async function EquipeDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Équipes', url: '/equipes' },
+        { name: teamName, url: `/equipes/${id}` },
+      ])} />
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-6">

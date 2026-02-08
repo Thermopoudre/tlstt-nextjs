@@ -1,7 +1,20 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+
+export const metadata: Metadata = {
+  title: 'Galerie Photo - Moments Forts du Club',
+  description: 'Galerie photos du TLSTT : découvrez les meilleurs moments du club de tennis de table Toulon La Seyne en images. Compétitions, événements et vie du club.',
+  alternates: { canonical: '/galerie' },
+  openGraph: {
+    title: 'Galerie Photo TLSTT',
+    description: 'Les meilleurs moments du club de tennis de table TLSTT en images.',
+    url: '/galerie',
+  },
+  keywords: ['galerie', 'photos', 'TLSTT', 'tennis de table', 'événements', 'Toulon', 'La Seyne'],
+}
 
 export default async function GaleriePage() {
   const supabase = await createClient()

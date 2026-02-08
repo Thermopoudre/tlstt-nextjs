@@ -1,6 +1,19 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'Nos Partenaires - Sponsors et Soutiens du Club',
+  description: 'Découvrez les partenaires et sponsors du TLSTT Toulon La Seyne Tennis de Table. Merci à nos soutiens pour le développement du tennis de table dans le Var.',
+  alternates: { canonical: '/partenaires' },
+  openGraph: {
+    title: 'Partenaires TLSTT',
+    description: 'Les partenaires et sponsors du club de tennis de table TLSTT.',
+    url: '/partenaires',
+  },
+  keywords: ['partenaires', 'sponsors', 'TLSTT', 'tennis de table', 'Toulon', 'La Seyne', 'soutien'],
+}
 
 export default async function PartenairesPage() {
   const supabase = await createClient()

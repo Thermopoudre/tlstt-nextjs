@@ -3,8 +3,10 @@ import { getPageContent } from '@/lib/settings'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Mentions Légales | TLSTT',
-  description: 'Mentions légales du site du club Toulon La Seyne Tennis de Table',
+  title: 'Mentions Légales',
+  description: 'Mentions légales du site du club Toulon La Seyne Tennis de Table (TLSTT).',
+  alternates: { canonical: '/mentions-legales' },
+  robots: { index: true, follow: true },
 }
 
 export default async function MentionsLegalesPage() {

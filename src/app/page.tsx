@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import HeroCarousel from '@/components/HeroCarousel'
@@ -5,6 +6,19 @@ import NewsCard from '@/components/NewsCard'
 import PartnerCard from '@/components/PartnerCard'
 import LabelsSection from '@/components/home/LabelsSection'
 import { getGlobalSettings } from '@/lib/settings'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
+
+export const metadata: Metadata = {
+  title: 'TLSTT - Toulon La Seyne Tennis de Table | Club de Ping-Pong Var 83',
+  description: 'Club de tennis de table à Toulon et La Seyne-sur-Mer. Entraînements, compétitions FFTT, handisport, école de ping pour tous niveaux. Plus de 70 ans d\'histoire sportive dans le Var.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: 'TLSTT - Toulon La Seyne Tennis de Table',
+    description: 'Club de tennis de table dans le Var. Rejoignez-nous pour des cours, des compétitions et du sport pour tous !',
+    url: '/',
+  },
+}
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -76,6 +90,9 @@ export default async function HomePage() {
 
   return (
     <div className="bg-[#0a0a0a]">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+      ])} />
       {/* Hero Carousel Section */}
       <HeroCarousel images={carouselImages} />
 

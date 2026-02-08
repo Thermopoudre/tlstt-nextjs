@@ -1,6 +1,9 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import JsonLd from '@/components/seo/JsonLd'
+import { articleJsonLd, breadcrumbJsonLd, autoDescription, generatePageMeta } from '@/lib/seo'
 
 interface NewsletterPageProps {
   params: Promise<{ id: string }>
@@ -20,8 +23,26 @@ export default async function NewsletterDetailPage({ params }: NewsletterPagePro
     notFound()
   }
 
+  const jsonLdData = [
+    articleJsonLd({
+      title: newsletter.title,
+      description: newsletter.excerpt || autoDescription(newsletter.content || ''),
+      url: `/newsletters/${id}`,
+      image: newsletter.cover_image_url || undefined,
+      publishedTime: newsletter.published_at || newsletter.created_at,
+      modifiedTime: newsletter.updated_at || newsletter.published_at,
+      category: 'Newsletter',
+    }),
+    breadcrumbJsonLd([
+      { name: 'Accueil', url: '/' },
+      { name: 'Newsletters', url: '/newsletters' },
+      { name: newsletter.title, url: `/newsletters/${id}` },
+    ]),
+  ]
+
   return (
     <div className="min-h-screen">
+      <JsonLd data={jsonLdData} />
       {/* Hero */}
       <div
         className="relative h-[40vh] bg-cover bg-center"
@@ -77,13 +98,13 @@ export default async function NewsletterDetailPage({ params }: NewsletterPagePro
   )
 }
 
-export async function generateMetadata({ params }: NewsletterPageProps) {
+export async function generateMetadata({ params }: NewsletterPageProps): Promise<Metadata> {
   const { id } = await params
   const supabase = await createClient()
 
   const { data: newsletter } = await supabase
     .from('newsletters')
-    .select('title, excerpt')
+    .select('title, excerpt, content, cover_image_url, created_at, updated_at')
     .eq('id', parseInt(id))
     .single()
 
@@ -91,8 +112,14 @@ export async function generateMetadata({ params }: NewsletterPageProps) {
     return { title: 'Newsletter non trouvée' }
   }
 
-  return {
-    title: `${newsletter.title} | TLSTT`,
-    description: newsletter.excerpt,
-  }
+  return generatePageMeta({
+    title: newsletter.title,
+    description: newsletter.excerpt || autoDescription(newsletter.content || ''),
+    path: `/newsletters/${id}`,
+    image: newsletter.cover_image_url || undefined,
+    type: 'article',
+    publishedTime: newsletter.created_at,
+    modifiedTime: newsletter.updated_at || newsletter.created_at,
+    keywords: ['newsletter', 'TLSTT', 'tennis de table', 'Toulon', 'La Seyne'],
+  })
 }
