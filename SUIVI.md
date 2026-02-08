@@ -1,5 +1,61 @@
 # SUIVI DES MODIFICATIONS - TLSTT Site
 
+## 2026-02-08 - SEO Automatique Complet
+
+### Objectif
+Mettre en place un systeme SEO complet et automatique sur toutes les pages du site, avec notification automatique des moteurs de recherche a la publication.
+
+### Fichiers crees
+| Fichier | Description |
+|---------|-------------|
+| `src/app/sitemap.ts` | Sitemap XML dynamique auto-genere (pages statiques + articles + newsletters + albums + joueurs) |
+| `src/app/robots.ts` | robots.txt optimise (bloque /admin/, /api/, /espace-membre/) |
+| `src/lib/seo.ts` | Utilitaire SEO centralise : generatePageMeta, autoDescription, autoKeywords, JSON-LD (Organization, Article, Event, BreadcrumbList, FAQ) |
+| `src/components/seo/JsonLd.tsx` | Composant reutilisable pour injecter des structured data JSON-LD |
+| `src/app/api/seo/ping/route.ts` | API de notification auto Google + Bing + IndexNow a la publication |
+| `src/app/equipes/layout.tsx` | Metadata SEO pour la page equipes (composant client) |
+| `src/app/boutique/layout.tsx` | Metadata SEO pour la page boutique (composant client) |
+| `src/app/progressions/layout.tsx` | Metadata SEO pour la page progressions (composant client) |
+
+### Fichiers modifies
+| Fichier | Modification |
+|---------|-------------|
+| `src/app/layout.tsx` | metadataBase, keywords enrichis, robots directives, verification Google, Organization JSON-LD global |
+| `src/app/page.tsx` | Export metadata homepage + BreadcrumbList JSON-LD |
+| `src/app/actualites/[category]/page.tsx` | generateMetadata dynamique par categorie + BreadcrumbList JSON-LD |
+| `src/app/actualites/[category]/[id]/page.tsx` | generateMetadata + Article JSON-LD + BreadcrumbList + auto-description + auto-keywords |
+| `src/app/newsletters/[id]/page.tsx` | generateMetadata enrichi + Article JSON-LD + BreadcrumbList |
+| `src/app/galerie/page.tsx` | Metadata statique avec canonical |
+| `src/app/galerie/[id]/page.tsx` | generateMetadata dynamique + BreadcrumbList |
+| `src/app/equipes/[id]/page.tsx` | generateMetadata dynamique + BreadcrumbList |
+| `src/app/competitions/page.tsx` | Metadata statique |
+| `src/app/partenaires/page.tsx` | Metadata statique |
+| `src/app/joueurs/page.tsx` | Metadata enrichi avec canonical et keywords |
+| `src/app/joueurs/[licence]/page.tsx` | generateMetadata enrichi avec canonical, OG, keywords |
+| `src/app/planning/page.tsx` | Metadata enrichi avec canonical et keywords |
+| `src/app/contact/page.tsx` | Metadata enrichi avec canonical et keywords |
+| `src/app/mentions-legales/page.tsx` | Metadata avec canonical |
+| `src/app/admin/actualites/nouveau/page.tsx` | Champs SEO (meta_title, meta_description) + apercu Google + auto-ping |
+| `src/app/admin/actualites/[id]/edit/page.tsx` | Champs SEO + apercu Google + auto-ping |
+| `src/app/admin/newsletter/page.tsx` | Auto-ping moteurs de recherche a la publication |
+
+### Migration Supabase
+- `add_seo_columns_to_news_newsletters` : Ajout colonnes `meta_title` et `meta_description` aux tables `news` et `newsletters`
+
+### Fonctionnalites SEO implementees
+1. **Sitemap dynamique** : 130+ URLs auto-generees depuis les donnees Supabase
+2. **robots.txt** : Sections admin/api bloquees, sitemap reference
+3. **Structured Data JSON-LD** : Organization (global), Article (actualites, newsletters), BreadcrumbList (toutes pages)
+4. **Meta tags optimises** : title, description, canonical, OG, Twitter Card sur TOUTES les pages
+5. **Auto-description** : Generation automatique de meta_description depuis le contenu HTML (strip tags, 155 chars)
+6. **Auto-keywords** : Extraction automatique de mots-cles depuis le titre
+7. **Champs SEO editables** : meta_title + meta_description dans le BO articles avec compteur de caracteres
+8. **Apercu Google** : Preview live dans le BO pour voir le rendu dans les resultats de recherche
+9. **Ping automatique** : Notification Google + Bing + IndexNow a chaque publication d'article ou newsletter
+10. **Google Site Verification** : Support via variable d'env `GOOGLE_SITE_VERIFICATION`
+
+---
+
 ## 2026-02-08 - Phase 2 : Divisions correctes + Sync automatique
 
 ### Probleme
