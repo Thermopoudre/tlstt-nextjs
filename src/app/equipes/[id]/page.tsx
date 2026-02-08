@@ -146,48 +146,57 @@ export default async function EquipeDetailPage({ params }: PageProps) {
     teamDivision = teamFromDb.division || ''
     teamPool = teamFromDb.pool || ''
 
-    // 2. Récupérer les équipes du club depuis l'API FFTT pour avoir D1 et cx_poule
-    const equipesXml = await api.getEquipes(TLSTT_CLUB_NUMBER)
-    const equipesFFTT = parseEquipesXml(equipesXml)
+    // 2. Récupérer D1 et cx_poule depuis le champ link_fftt (format: "D1=xxx&cx_poule=yyy")
+    let D1 = ''
+    let cx_poule = ''
 
-    // 3. Trouver l'équipe correspondante dans les données FFTT
-    // Matching par nom (ex: "TOULON LA SEYNE 1" pour "TLSTT 1")
-    const teamNumber = teamName.replace(/TLSTT\s*/i, '').trim()
-    const matchingEquipe = equipesFFTT.find((eq) => {
-      const ffttNumber = eq.libequipe.replace(/.*?(\d+)\s*$/, '$1').trim()
-      return ffttNumber === teamNumber
-    })
+    if (teamFromDb.link_fftt && teamFromDb.link_fftt.includes('D1=')) {
+      const linkParams = new URLSearchParams(teamFromDb.link_fftt)
+      D1 = linkParams.get('D1') || ''
+      cx_poule = linkParams.get('cx_poule') || ''
+    }
 
-    if (!matchingEquipe) {
-      error = `Équipe "${teamName}" non trouvée dans les données FFTT (${equipesFFTT.length} équipes trouvées)`
-      // On continue quand même pour afficher ce qu'on peut
-    } else {
-      // 4. Extraire D1 et cx_poule depuis liendivision
-      const params = new URLSearchParams(matchingEquipe.liendivision)
-      const D1 = params.get('D1') || ''
-      const cx_poule = params.get('cx_poule') || ''
+    if (!D1 || !cx_poule) {
+      // Fallback: essayer de récupérer via xml_equipe.php
+      try {
+        const equipesXml = await api.getEquipes(TLSTT_CLUB_NUMBER)
+        const equipesFFTT = parseEquipesXml(equipesXml)
 
-      teamDivision = matchingEquipe.libdivision || teamDivision
+        const teamNumber = teamName.replace(/TLSTT\s*/i, '').trim()
+        const matchingEquipe = equipesFFTT.find((eq) => {
+          const ffttNumber = eq.libequipe.replace(/.*?(\d+)\s*$/, '$1').trim()
+          return ffttNumber === teamNumber
+        })
 
-      if (D1 && cx_poule) {
-        // 5. Récupérer le classement de la poule
-        try {
-          const classementXml = await api.getClassementPoule(D1, cx_poule)
-          classement = parseClassementXml(classementXml)
-        } catch (e: any) {
-          console.error('Erreur classement:', e.message)
+        if (matchingEquipe) {
+          const eqParams = new URLSearchParams(matchingEquipe.liendivision)
+          D1 = eqParams.get('D1') || ''
+          cx_poule = eqParams.get('cx_poule') || ''
+          teamDivision = matchingEquipe.libdivision || teamDivision
         }
-
-        // 6. Récupérer les rencontres (résultats)
-        try {
-          const rencontresXml = await api.getResultatsPoule(D1, cx_poule)
-          rencontres = parseRencontresXml(rencontresXml)
-        } catch (e: any) {
-          console.error('Erreur rencontres:', e.message)
-        }
-      } else {
-        error = `Paramètres D1/cx_poule manquants pour ${teamName}`
+      } catch {
+        // xml_equipe.php may return 401, continue with what we have
       }
+    }
+
+    if (D1 && cx_poule) {
+      // 3. Récupérer le classement de la poule
+      try {
+        const classementXml = await api.getClassementPoule(D1, cx_poule)
+        classement = parseClassementXml(classementXml)
+      } catch (e: any) {
+        console.error('Erreur classement:', e.message)
+      }
+
+      // 4. Récupérer les rencontres (résultats)
+      try {
+        const rencontresXml = await api.getResultatsPoule(D1, cx_poule)
+        rencontres = parseRencontresXml(rencontresXml)
+      } catch (e: any) {
+        console.error('Erreur rencontres:', e.message)
+      }
+    } else {
+      error = `Données de poule non disponibles pour ${teamName}. Lancez la découverte via /api/discover-equipes pour synchroniser les paramètres FFTT.`
     }
   } catch (e: any) {
     error = e.message

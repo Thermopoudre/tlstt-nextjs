@@ -38,6 +38,11 @@ export class SmartPingAPI {
     return hmac.digest('hex')
   }
 
+  // Méthode publique pour les appels API directs (utilisée par discover-equipes)
+  async request_public(endpoint: string, params: Record<string, string> = {}): Promise<any> {
+    return this.request(endpoint, params)
+  }
+
   private async request(endpoint: string, params: Record<string, string> = {}): Promise<any> {
     if (!this.serie) {
       throw new Error('SMARTPING_SERIE non configuré. Appelez /api/smartping-init.')
@@ -123,6 +128,23 @@ export class SmartPingAPI {
   // Récupérer les équipes d'un club
   async getEquipes(clubId: string = '13830083'): Promise<string> {
     return this.request('xml_equipe.php', { numclu: clubId })
+  }
+
+  // Récupérer les organismes (F=Fédération, Z=Zone, L=Ligue, D=Département)
+  async getOrganismes(type: string = 'D', pere?: string): Promise<string> {
+    const params: Record<string, string> = { type }
+    if (pere) params.pere = pere
+    return this.request('xml_organisme.php', params)
+  }
+
+  // Récupérer les épreuves pour un organisme (E=Equipes, I=Individuelles)
+  async getEpreuves(organisme: string, type: string = 'E'): Promise<string> {
+    return this.request('xml_epreuve.php', { organisme, type })
+  }
+
+  // Récupérer les divisions pour une épreuve
+  async getDivisions(organisme: string, epreuve: string, type: string = 'E'): Promise<string> {
+    return this.request('xml_division.php', { organisme, epreuve, type })
   }
 
   // Récupérer les résultats d'une poule
