@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import crypto from 'crypto'
 
 // Numéro du club TLSTT
-const TLSTT_CLUB_NUMBER = '08830142'
+const TLSTT_CLUB_NUMBER = '13830083'
 
 interface Equipe {
   libequipe: string
