@@ -711,3 +711,64 @@ Analyse systematique de chaque page admin : C/R/U/D, bugs, UX, liens casses.
 **Limitation decouverte :** Les credentials SX044 n'ont acces qu'aux endpoints joueurs (xml_liste_joueur, xml_joueur). Les endpoints equipes/competitions (xml_equipe, xml_organisme, xml_epreuve, xml_division) retournent 401 "Compte incorrect".
 
 **Action requise :** Contacter la FFTT pour etendre les permissions du compte SX044.
+
+---
+
+### [2026-02-08] - Batch ameliorations site (10 points)
+
+**1. SMTP (config Vercel)**
+- Variables necessaires : `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `SMTP_ADMIN_EMAIL`
+- A configurer manuellement dans Vercel Dashboard > Settings > Environment Variables
+- Le code (`src/lib/email.ts`) est deja pret a les utiliser
+
+**2. SEO og:image**
+- Fichier : `src/app/layout.tsx` - ajout `openGraph.images` et `twitter.card`
+- Image : `public/og-image.png` (1200x630px, branding TLSTT)
+- Partages reseaux sociaux afficheront desormais une image du club
+
+**3. Fix images actualites**
+- Bug corrige dans `src/components/NewsCard.tsx` : `photo_url` → `image_url`
+- Les images stockees en base (colonne `image_url`) s'affichent maintenant correctement
+- News sans image : fallback Unsplash par categorie fonctionne
+
+**4. Admin BO**
+- Migration `fix_admins_table_and_add_admin` : colonne `password_hash` rendue nullable
+- Admin insere : `contact@thermopoudre.fr` / role `superadmin`
+- **ACTION REQUISE** : creer le compte Supabase Auth correspondant dans le Dashboard Supabase
+  - Aller dans Authentication > Users > Add User
+  - Email : `contact@thermopoudre.fr` + mot de passe au choix
+  - Confirmer l'email immediatement
+
+**5. Trainings / Planning**
+- 21 creneaux deja en base (du lundi au samedi)
+- Page `/planning` affiche correctement les creneaux actifs
+- 2 creneaux Toulon marques inactifs (a configurer)
+
+**7. Nettoyage endpoints debug**
+- Supprimes (9 fichiers) :
+  - `api/smartping-debug/route.ts`
+  - `api/test-equipes/route.ts`
+  - `api/debug-fftt/route.ts`
+  - `api/smartping-test/route.ts`
+  - `api/test-joueur/route.ts`
+  - `api/test-licence/route.ts`
+  - `api/smartping-init/route.ts`
+  - `api/init-phase2/route.ts`
+  - `api/smartping-status/route.ts`
+- Plus aucun endpoint de debug accessible en production
+
+**8. Planning interactif**
+- Deja complet avec 21 creneaux, legende, infos pratiques, tarifs, CTA inscription
+- Admin BO planning fonctionnel (CRUD creneaux)
+
+**9. HelloAsso**
+- Page admin deja implementee : `admin/helloasso/page.tsx`
+- Configuration par URL (pas d'API keys necessaires)
+- **ACTION REQUISE** : renseigner les URLs des campagnes HelloAsso dans le BO
+
+**10. Tables vides**
+- `paca_clubs`, `players_history`, `member_profiles`, `page_versions`, `site_settings`, `shop_orders`, `marketplace_listings`, `marketplace_messages`, `contact_messages`, `secretariat_communications`
+- Conservees pour features futures (espaces membres, marketplace, etc.)
+- Pas de nettoyage necessaire
+
+**Commit :** `0997e0c` - chore: cleanup debug endpoints, add SEO og:image, fix NewsCard image field
