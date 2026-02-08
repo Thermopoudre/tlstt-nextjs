@@ -12,7 +12,7 @@ const defaultImages: { [key: string]: string } = {
 
 export default function NewsCard({ article }: { article: any }) {
   const [imgSrc, setImgSrc] = useState(
-    article.photo_url || defaultImages[article.category] || defaultImages['default']
+    article.image_url || defaultImages[article.category] || defaultImages['default']
   )
 
   return (
