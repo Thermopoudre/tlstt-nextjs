@@ -43,6 +43,8 @@ function getClassementBadge(cla: number) {
 // Label de la division abrege
 function getDivisionShort(division: string): string {
   if (division.includes('Pre-Nationale')) return 'PN'
+  if (division.includes('Nationale')) return 'N3'
+  if (division.includes('Regionale 1')) return 'R1'
   if (division.includes('Regionale 2')) return 'R2'
   if (division.includes('Regionale 3')) return 'R3'
   if (division.includes('Pre-Regionale')) return 'PR'
@@ -149,7 +151,7 @@ export default function EquipesPage() {
           {totalMatchs > 0 && (
             <div className="mt-4 bg-[#1a1a1a] border border-[#333] rounded-xl p-4">
               <div className="flex justify-between text-sm text-gray-400 mb-2">
-                <span>Bilan global Phase 1</span>
+                <span>Bilan global Phase 2</span>
                 <span>{Math.round((totalVic / totalMatchs) * 100)}% de victoires</span>
               </div>
               <div className="flex h-3 rounded-full overflow-hidden bg-[#111]">
@@ -246,7 +248,7 @@ export default function EquipesPage() {
                       {team.pool && <span className="text-gray-500"> - Poule {team.pool}</span>}
                     </p>
                     
-                    {/* Phase 1 info */}
+                    {/* Phase info */}
                     {team.link_fftt && (
                       <p className="text-xs text-gray-500 mt-1">
                         <i className="fas fa-history mr-1"></i>
@@ -271,7 +273,7 @@ export default function EquipesPage() {
                               <p className="text-white font-semibold">
                                 {team.cla === 1 ? 'Champion de poule' : team.cla === 2 ? '2e de poule' : team.cla === 3 ? '3e de poule' : `${team.cla}e de poule`}
                               </p>
-                              <p className="text-xs text-gray-500">Phase 1 - {team.joue} matchs</p>
+                              <p className="text-xs text-gray-500">Phase 2 - {team.joue} matchs</p>
                             </div>
                           </div>
                           <div className="text-right">
@@ -330,8 +332,8 @@ export default function EquipesPage() {
             <div>
               <p className="font-medium text-white">Donnees FFTT - Saison 2025/2026</p>
               <p className="text-sm text-gray-400">
-                Les resultats affiches proviennent de la Phase 1. Le club engage {teams.length} equipes cette saison, 
-                de la Pre-Nationale a la Departementale 4 Jeunes. Les donnees sont mises a jour regulierement depuis les sources officielles.
+                Les resultats affiches proviennent de la Phase 2. Le club engage {teams.length} equipes cette saison, 
+                de la Nationale 3 a la Departementale 4 Jeunes. Les donnees sont mises a jour automatiquement apres chaque journee de championnat.
               </p>
             </div>
           </div>
