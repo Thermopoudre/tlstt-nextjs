@@ -25,7 +25,7 @@ export default function AProposPage() {
     const fetchClubInfo = async () => {
       try {
         // Numéro du club TLSTT
-        const response = await fetch('/api/clubs/08830142')
+        const response = await fetch('/api/clubs/13830083')
         const data = await response.json()
         if (data.club) {
           setClubInfo(data.club)
@@ -59,7 +59,7 @@ export default function AProposPage() {
               <span className="text-[#5bc0de]">TLSTT</span> - Toulon La Seyne Tennis de Table
             </h1>
             <p className="text-white/70 text-lg">
-              Club affilié FFTT n°08830142 - Depuis 1950
+              Club affilié FFTT n°13830083 - Depuis 1950
             </p>
           </div>
         </div>
@@ -81,7 +81,7 @@ export default function AProposPage() {
               </p>
               <p>
                 Affilié à la <strong>Fédération Française de Tennis de Table (FFTT)</strong> sous le numéro 
-                <strong className="text-[#5bc0de]"> 08830142</strong>, le club évolue en championnats départemental, 
+                <strong className="text-[#5bc0de]"> 13830083</strong>, le club évolue en championnats départemental, 
                 régional et national.
               </p>
               <p>

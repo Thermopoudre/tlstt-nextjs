@@ -1,5 +1,68 @@
 # SUIVI DES MODIFICATIONS - TLSTT Site
 
+## 2026-02-08 - Phase 2 : Divisions correctes + Sync automatique
+
+### Probleme
+Les donnees en base Supabase avaient les mauvaises divisions Phase 2 (TLSTT 1 en Pre-Nationale au lieu de Nationale 3, TLSTT 2 en Regionale 2 au lieu de Regionale 1, etc.). Le sync-equipes utilisait encore l'API FFTT qui retourne 401.
+
+### Divisions Phase 2 Officielles (source: PDF ligue PACA)
+
+| Equipe | Division Phase 2 | Poule | Phase 1 | Mouvement |
+|--------|-----------------|-------|---------|-----------|
+| TLSTT 1 | Nationale 3 | 7 | Nationale 3 | Maintien |
+| TLSTT 2 | Regionale 1 | 2 | R2 P2 (1er) | Promu R1 |
+| TLSTT 3 | Regionale 3 | 2 | R2 P1 (7e) | Relegue R3 |
+| TLSTT 4 | Regionale 3 | 6 | R3 P2 (6e) | Maintien |
+| TLSTT 5 | Pre-Regionale | 2 | PR P1 | - |
+| TLSTT 6 | Departementale 1 | 1 | PR P2 | - |
+| TLSTT 7 | Departementale 1 | 2 | D1 P1 | - |
+| TLSTT 8 | Departementale 2 | 1 | D2 P4 | - |
+| TLSTT 9 | Departementale 3 | 4 | D2 P1 | - |
+| TLSTT 10 | Departementale 3 | 6 | D3 P4 | - |
+| TLSTT 11 | Departementale 3 | 1 | D3 P2 (1er) | - |
+| TLSTT 12 | Departementale 4 Jeunes | 1 | D4 P2 | - |
+| TLSTT 13 | Departementale 4 Jeunes | 1 | Nouvelle | - |
+
+### Fichiers Modifies
+
+#### `/src/app/api/sync-equipes/route.ts` (REECRIT)
+- Suppression complete de l'API FFTT SmartPing (retournait 401)
+- Nouveau systeme de scraping du site tennisdetableregionsud.fr
+- Configuration des 13 equipes avec divisions Phase 2 officielles
+- Parse automatique des classements Phase 2 quand disponibles
+- Fallback: met a jour les divisions meme sans resultats
+
+#### `/src/app/api/init-phase2/route.ts` (NOUVEAU)
+- Route one-shot pour initialiser les divisions Phase 2
+- Remet toutes les stats a zero (debut de phase)
+- Source: PDF officiel ligue PACA 2526_equipes_paca_ph2.pdf
+
+#### `/src/app/equipes/page.tsx`
+- Toutes les references Phase 1 changees en Phase 2
+- Ajout Nationale 3 et Regionale 1 dans getDivisionShort
+- Texte d'info mis a jour (mise a jour automatique)
+
+#### `vercel.json`
+- Cron jobs: sync-equipes samedi 21h + dimanche 21h
+
+### Etat Phase 2
+- Phase 2 Journee 1 : 7-8 fevrier 2026 (ce week-end)
+- Pas encore de resultats en ligne (normal)
+- Le cron sync-equipes recuperera les resultats automatiquement
+- Le site regional charge les Phase 2 dynamiquement (JS)
+
+### TODO
+- [x] Corriger les divisions Phase 2 dans Supabase
+- [x] Reecrire sync-equipes avec scraping (sans API FFTT)
+- [x] Mettre a jour la page equipes pour Phase 2
+- [x] Ajouter crons Vercel pour sync automatique
+- [ ] Verifier le scraping quand Phase 2 resultats apparaissent (semaine prochaine)
+- [ ] Upload vraies images labels FFTT
+- [ ] Configurer les variables SMTP dans Vercel
+
+---
+
+
 ## 2026-02-07 - Page Equipes Operationnelle (Solution Alternative)
 
 ### Probleme

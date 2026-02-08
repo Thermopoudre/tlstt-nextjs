@@ -1,14 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 
 interface ContactFormProps {
   subjects: string[]
 }
 
 export default function ContactForm({ subjects }: ContactFormProps) {
-  const supabase = createClient()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -26,18 +24,23 @@ export default function ContactForm({ subjects }: ContactFormProps) {
     setError(null)
 
     try {
-      const { error: insertError } = await supabase
-        .from('contact_messages')
-        .insert({
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name: formData.name,
           email: formData.email,
           phone: formData.phone || null,
           subject: formData.subject,
-          message: formData.message,
-          status: 'new'
+          message: formData.message
         })
+      })
 
-      if (insertError) throw insertError
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erreur lors de l\'envoi')
+      }
 
       setSuccess(true)
       setFormData({ name: '', email: '', phone: '', subject: '', message: '' })
