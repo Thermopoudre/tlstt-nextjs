@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -11,6 +11,7 @@ interface EditAlbumPageProps {
 
 export default function EditAlbumPage({ params }: EditAlbumPageProps) {
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [albumId, setAlbumId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -28,6 +29,7 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
   const [photos, setPhotos] = useState<any[]>([])
   const [newPhotoUrl, setNewPhotoUrl] = useState('')
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<string>('')
 
   useEffect(() => {
     params.then(({ id }) => {
@@ -69,7 +71,7 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
       .from('photos')
       .select('*')
       .eq('album_id', id)
-      .order('display_order')
+      .order('position')
     
     if (data) setPhotos(data)
   }
@@ -106,7 +108,7 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
     }
   }
 
-  const handleAddPhoto = async () => {
+  const handleAddPhotoByUrl = async () => {
     if (!newPhotoUrl || !albumId) return
 
     setUploadingPhoto(true)
@@ -118,7 +120,7 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
         .insert([{
           album_id: parseInt(albumId),
           image_url: newPhotoUrl,
-          display_order: photos.length,
+          position: photos.length,
         }])
 
       if (error) throw error
@@ -130,6 +132,58 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
       setMessage({ type: 'error', text: 'Erreur ajout photo' })
     } finally {
       setUploadingPhoto(false)
+    }
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0 || !albumId) return
+
+    setUploadingPhoto(true)
+    const supabase = createClient()
+    let uploaded = 0
+
+    try {
+      for (const file of Array.from(files)) {
+        uploaded++
+        setUploadProgress(`Upload ${uploaded}/${files.length} : ${file.name}`)
+
+        // Generate unique filename
+        const ext = file.name.split('.').pop()
+        const fileName = `album-${albumId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+
+        // Upload to Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('gallery')
+          .upload(fileName, file, { contentType: file.type })
+
+        if (uploadError) {
+          console.error('Upload error:', uploadError)
+          continue
+        }
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('gallery')
+          .getPublicUrl(fileName)
+
+        // Insert photo record
+        await supabase.from('photos').insert([{
+          album_id: parseInt(albumId),
+          image_url: urlData.publicUrl,
+          caption: file.name.replace(/\.[^/.]+$/, ''),
+          position: photos.length + uploaded - 1,
+        }])
+      }
+
+      await loadPhotos(albumId)
+      setMessage({ type: 'success', text: `${files.length} photo(s) uploadée(s) !` })
+    } catch (error: any) {
+      setMessage({ type: 'error', text: 'Erreur lors de l\'upload' })
+    } finally {
+      setUploadingPhoto(false)
+      setUploadProgress('')
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -155,6 +209,16 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
     const supabase = createClient()
 
     try {
+      // Delete photos from storage
+      const { data: storageFiles } = await supabase.storage
+        .from('gallery')
+        .list(`album-${albumId}`)
+
+      if (storageFiles && storageFiles.length > 0) {
+        const paths = storageFiles.map(f => `album-${albumId}/${f.name}`)
+        await supabase.storage.from('gallery').remove(paths)
+      }
+
       const { error } = await supabase
         .from('albums')
         .delete()
@@ -180,7 +244,7 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
     <div className="max-w-6xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Modifier l'album</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Modifier l&apos;album</h1>
           <p className="text-gray-600 mt-1">Gérez votre album et ses photos</p>
         </div>
         <Link href="/admin/galerie" className="text-gray-600 hover:text-gray-900">
@@ -254,7 +318,7 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
                   onChange={(e) => setFormData({ ...formData, is_published: e.target.checked })}
                   className="w-5 h-5 text-primary rounded"
                 />
-                <span className="text-sm font-medium text-gray-700">Publier l'album</span>
+                <span className="text-sm font-medium text-gray-700">Publier l&apos;album</span>
               </label>
             </div>
 
@@ -286,21 +350,59 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
               <i className="fas fa-images mr-2"></i>
               Photos ({photos.length})
             </h2>
-            <div className="flex gap-2">
-              <input
-                type="url"
-                value={newPhotoUrl}
-                onChange={(e) => setNewPhotoUrl(e.target.value)}
-                placeholder="URL de la photo"
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
-              />
-              <button
-                onClick={handleAddPhoto}
-                disabled={uploadingPhoto || !newPhotoUrl}
-                className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-light"
+
+            {/* Upload fichier */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <i className="fas fa-upload mr-1"></i>
+                Uploader des photos
+              </label>
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
               >
-                <i className="fas fa-plus"></i>
-              </button>
+                <i className="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                <p className="text-sm text-gray-600">Cliquez ou glissez-déposez vos images ici</p>
+                <p className="text-xs text-gray-400 mt-1">JPG, PNG, WebP - Max 5MB par fichier</p>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </div>
+
+            {uploadingPhoto && (
+              <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <i className="fas fa-spinner fa-spin text-primary"></i>
+                  <span className="text-sm text-blue-700">{uploadProgress || 'Upload en cours...'}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Ou par URL */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Ou ajouter par URL</label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={newPhotoUrl}
+                  onChange={(e) => setNewPhotoUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                />
+                <button
+                  onClick={handleAddPhotoByUrl}
+                  disabled={uploadingPhoto || !newPhotoUrl}
+                  className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-light disabled:opacity-50"
+                >
+                  <i className="fas fa-plus"></i>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -309,7 +411,7 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
               <div key={photo.id} className="relative group">
                 <img
                   src={photo.image_url}
-                  alt=""
+                  alt={photo.caption || ''}
                   className="w-full h-32 object-cover rounded-lg"
                 />
                 <button
@@ -318,6 +420,9 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
                 >
                   <i className="fas fa-trash text-xs"></i>
                 </button>
+                {photo.caption && (
+                  <p className="text-xs text-gray-500 mt-1 truncate">{photo.caption}</p>
+                )}
               </div>
             ))}
           </div>

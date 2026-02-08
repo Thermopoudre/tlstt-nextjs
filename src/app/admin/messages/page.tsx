@@ -33,6 +33,18 @@ export default function AdminMessagesPage() {
     await loadMessages()
   }
 
+  const handleDelete = async (id: number) => {
+    if (!confirm('Supprimer ce message ?')) return
+    const supabase = createClient()
+    await supabase
+      .from('contact_messages')
+      .delete()
+      .eq('id', id)
+
+    if (selectedMessage?.id === id) setSelectedMessage(null)
+    await loadMessages()
+  }
+
   const stats = {
     total: messages.length,
     new: messages.filter(m => m.status === 'new').length,
@@ -82,9 +94,18 @@ export default function AdminMessagesPage() {
                   <p className="text-sm text-gray-600">{msg.email}</p>
                   <p className="text-sm text-gray-500 mt-1 line-clamp-1">{msg.message}</p>
                 </div>
-                {msg.status === 'new' && (
-                  <span className="bg-green-500 text-white px-2 py-1 text-xs rounded-full">Nouveau</span>
-                )}
+                <div className="flex items-center gap-2">
+                  {msg.status === 'new' && (
+                    <span className="bg-green-500 text-white px-2 py-1 text-xs rounded-full">Nouveau</span>
+                  )}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDelete(msg.id) }}
+                    className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                    title="Supprimer"
+                  >
+                    <i className="fas fa-trash text-xs"></i>
+                  </button>
+                </div>
               </div>
               <p className="text-xs text-gray-400 mt-2">
                 {new Date(msg.created_at).toLocaleDateString('fr-FR')} à {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
@@ -147,13 +168,22 @@ export default function AdminMessagesPage() {
                 </div>
               </div>
 
-              <a
-                href={`mailto:${selectedMessage.email}?subject=Re: ${selectedMessage.name}&body=Bonjour ${selectedMessage.name},%0D%0A%0D%0A`}
-                className="mt-6 bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-light inline-flex items-center gap-2"
-              >
-                <i className="fas fa-reply"></i>
-                Répondre par email
-              </a>
+              <div className="mt-6 flex gap-3">
+                <a
+                  href={`mailto:${selectedMessage.email}?subject=Re: ${selectedMessage.name}&body=Bonjour ${selectedMessage.name},%0D%0A%0D%0A`}
+                  className="bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-light inline-flex items-center gap-2"
+                >
+                  <i className="fas fa-reply"></i>
+                  Répondre par email
+                </a>
+                <button
+                  onClick={() => handleDelete(selectedMessage.id)}
+                  className="bg-red-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-red-700 inline-flex items-center gap-2"
+                >
+                  <i className="fas fa-trash"></i>
+                  Supprimer
+                </button>
+              </div>
             </div>
           ) : (
             <div className="text-center py-12 text-gray-400">

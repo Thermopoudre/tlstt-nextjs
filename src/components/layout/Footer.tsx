@@ -1,12 +1,8 @@
 import Link from 'next/link'
+import { getGlobalSettings } from '@/lib/settings'
 
-// Liens sociaux du club (fixes - pas de query Supabase)
-const socialLinks = {
-  facebook: 'https://www.facebook.com/tlstt83',
-  instagram: 'https://www.instagram.com/tlstt_officiel',
-}
-
-export default function Footer() {
+export default async function Footer() {
+  const settings = await getGlobalSettings()
   const currentYear = new Date().getFullYear()
 
   return (
@@ -17,15 +13,15 @@ export default function Footer() {
           <div className="md:col-span-1">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center overflow-hidden">
-                <img src="/logo.jpeg" alt="TLSTT" className="w-10 h-10 rounded-full object-cover" />
+                <img src="/logo.jpeg" alt={settings.site_name} className="w-10 h-10 rounded-full object-cover" />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-white">TLSTT</h3>
-                <p className="text-xs text-gray-500">Depuis 1954</p>
+                <h3 className="font-bold text-lg text-white">{settings.site_name}</h3>
+                <p className="text-xs text-gray-500">Depuis {settings.foundation_year}</p>
               </div>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed">
-              Club de tennis de table affilié à la FFTT, accueillant joueurs de tous niveaux à Toulon et La Seyne-sur-Mer.
+              {settings.club_description}
             </p>
           </div>
 
@@ -96,35 +92,39 @@ export default function Footer() {
               Suivez-nous
             </h4>
             <div className="flex flex-wrap gap-3">
-              <a
-                href={socialLinks.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 bg-[#1a1a1a] border border-[#333] rounded-full flex items-center justify-center text-white hover:bg-[#1877f2] hover:border-[#1877f2] transition-all hover:scale-110"
-                title="Facebook"
-              >
-                <i className="fab fa-facebook-f"></i>
-              </a>
-              <a
-                href={socialLinks.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 bg-[#1a1a1a] border border-[#333] rounded-full flex items-center justify-center text-white hover:bg-gradient-to-r hover:from-[#833ab4] hover:via-[#fd1d1d] hover:to-[#fcb045] hover:border-transparent transition-all hover:scale-110"
-                title="Instagram"
-              >
-                <i className="fab fa-instagram"></i>
-              </a>
+              {settings.facebook_url && (
+                <a
+                  href={settings.facebook_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-[#1a1a1a] border border-[#333] rounded-full flex items-center justify-center text-white hover:bg-[#1877f2] hover:border-[#1877f2] transition-all hover:scale-110"
+                  title="Facebook"
+                >
+                  <i className="fab fa-facebook-f"></i>
+                </a>
+              )}
+              {settings.instagram_url && (
+                <a
+                  href={settings.instagram_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-[#1a1a1a] border border-[#333] rounded-full flex items-center justify-center text-white hover:bg-gradient-to-r hover:from-[#833ab4] hover:via-[#fd1d1d] hover:to-[#fcb045] hover:border-transparent transition-all hover:scale-110"
+                  title="Instagram"
+                >
+                  <i className="fab fa-instagram"></i>
+                </a>
+              )}
             </div>
 
             {/* Contact rapide */}
             <div className="mt-4 space-y-2 text-sm">
-              <a href="mailto:contact@tlstt.fr" className="text-gray-400 hover:text-[#3b9fd8] transition-colors flex items-center gap-2">
+              <a href={`mailto:${settings.contact_email}`} className="text-gray-400 hover:text-[#3b9fd8] transition-colors flex items-center gap-2">
                 <i className="fas fa-envelope w-4"></i>
-                contact@tlstt.fr
+                {settings.contact_email}
               </a>
               <p className="text-gray-500 flex items-center gap-2">
                 <i className="fas fa-map-marker-alt w-4"></i>
-                La Seyne-sur-Mer, 83500
+                {settings.city}, {settings.postal_code}
               </p>
             </div>
           </div>
@@ -134,7 +134,7 @@ export default function Footer() {
         <div className="border-t border-[#222] mt-8 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-500 text-sm text-center md:text-left">
-              &copy; {currentYear} Toulon La Seyne Tennis de Table. Tous droits réservés.
+              &copy; {currentYear} {settings.site_description}. Tous droits réservés.
             </p>
             <div className="flex items-center gap-4">
               <a 
@@ -147,7 +147,7 @@ export default function Footer() {
                 FFTT
               </a>
               <span className="text-gray-700">|</span>
-              <span className="text-gray-500 text-sm">Club N°08830065</span>
+              <span className="text-gray-500 text-sm">Club N°{settings.club_number}</span>
             </div>
           </div>
         </div>
