@@ -101,10 +101,10 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
                 <i className="fas fa-camera"></i>
                 {photos?.length || 0} photos
               </span>
-              {album.event_type && (
+              {album.season && (
                 <span className="flex items-center gap-2 bg-secondary px-3 py-1 rounded-full">
                   <i className="fas fa-tag"></i>
-                  {album.event_type}
+                  {album.season}
                 </span>
               )}
             </div>

@@ -22,8 +22,8 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
     title: '',
     description: '',
     event_date: '',
-    event_type: 'competition' as 'competition' | 'entrainement' | 'evenement' | 'autre',
-    is_published: false,
+    season: '',
+    status: 'draft' as 'draft' | 'published' | 'archived',
   })
 
   const [photos, setPhotos] = useState<any[]>([])
@@ -54,9 +54,9 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
       setFormData({
         title: data.title,
         description: data.description || '',
-        event_date: data.event_date.split('T')[0],
-        event_type: data.event_type,
-        is_published: data.is_published,
+        event_date: data.event_date ? data.event_date.split('T')[0] : '',
+        season: data.season || '',
+        status: data.status || 'draft',
       })
     } catch (error: any) {
       setMessage({ type: 'error', text: 'Erreur lors du chargement' })
@@ -276,17 +276,14 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Type *</label>
-              <select
-                value={formData.event_type}
-                onChange={(e) => setFormData({ ...formData, event_type: e.target.value as any })}
+              <label className="block text-sm font-medium text-gray-700 mb-2">Saison</label>
+              <input
+                type="text"
+                value={formData.season}
+                onChange={(e) => setFormData({ ...formData, season: e.target.value })}
+                placeholder="Ex: 2025-2026"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              >
-                <option value="competition">Compétition</option>
-                <option value="entrainement">Entraînement</option>
-                <option value="evenement">Événement</option>
-                <option value="autre">Autre</option>
-              </select>
+              />
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow">
@@ -311,15 +308,16 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.is_published}
-                  onChange={(e) => setFormData({ ...formData, is_published: e.target.checked })}
-                  className="w-5 h-5 text-primary rounded"
-                />
-                <span className="text-sm font-medium text-gray-700">Publier l&apos;album</span>
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value as 'draft' | 'published' | 'archived' })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              >
+                <option value="draft">Brouillon</option>
+                <option value="published">Publié</option>
+                <option value="archived">Archivé</option>
+              </select>
             </div>
 
             <div className="flex items-center justify-between bg-white p-6 rounded-lg shadow">

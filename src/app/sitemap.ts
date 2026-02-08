@@ -146,7 +146,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: albums } = await supabase
     .from('albums')
     .select('id, updated_at, created_at')
-    .eq('is_published', true)
+    .eq('status', 'published')
 
   const albumPages: MetadataRoute.Sitemap = (albums || []).map((album) => ({
     url: `${SITE_URL}/galerie/${album.id}`,

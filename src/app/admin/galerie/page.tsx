@@ -45,7 +45,7 @@ export default async function AdminGaleriePage() {
         </div>
         <div className="bg-white p-6 rounded-lg shadow border-l-4 border-purple-500">
           <div className="text-3xl font-bold text-gray-900">
-            {albums?.filter(a => a.is_published).length || 0}
+            {albums?.filter(a => a.status === 'published').length || 0}
           </div>
           <div className="text-gray-600">Publiés</div>
         </div>
@@ -63,9 +63,9 @@ export default async function AdminGaleriePage() {
                 </div>
                 <div className="absolute top-2 right-2">
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    album.is_published ? 'bg-green-500 text-white' : 'bg-yellow-500 text-white'
+                    album.status === 'published' ? 'bg-green-500 text-white' : 'bg-yellow-500 text-white'
                   }`}>
-                    {album.is_published ? 'Publié' : 'Brouillon'}
+                    {album.status === 'published' ? 'Publié' : 'Brouillon'}
                   </span>
                 </div>
               </div>

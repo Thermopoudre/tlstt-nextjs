@@ -14,8 +14,8 @@ export default function NewAlbumPage() {
     title: '',
     description: '',
     event_date: new Date().toISOString().split('T')[0],
-    event_type: 'competition' as 'competition' | 'entrainement' | 'evenement' | 'autre',
-    is_published: false,
+    season: '',
+    status: 'draft' as 'draft' | 'published' | 'archived',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,18 +84,15 @@ export default function NewAlbumPage() {
         <div className="grid grid-cols-2 gap-6">
           <div className="bg-white p-6 rounded-lg shadow">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Type d'événement *
+              Saison
             </label>
-            <select
-              value={formData.event_type}
-              onChange={(e) => setFormData({ ...formData, event_type: e.target.value as any })}
+            <input
+              type="text"
+              value={formData.season}
+              onChange={(e) => setFormData({ ...formData, season: e.target.value })}
+              placeholder="Ex: 2025-2026"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            >
-              <option value="competition">Compétition</option>
-              <option value="entrainement">Entraînement</option>
-              <option value="evenement">Événement</option>
-              <option value="autre">Autre</option>
-            </select>
+            />
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow">
@@ -126,18 +123,16 @@ export default function NewAlbumPage() {
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.is_published}
-              onChange={(e) => setFormData({ ...formData, is_published: e.target.checked })}
-              className="w-5 h-5 text-primary rounded focus:ring-2 focus:ring-primary"
-            />
-            <div>
-              <span className="text-sm font-medium text-gray-700">Publier l'album</span>
-              <p className="text-xs text-gray-500">L'album sera visible sur le site</p>
-            </div>
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+          <select
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value as 'draft' | 'published' | 'archived' })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+          >
+            <option value="draft">Brouillon</option>
+            <option value="published">Publié - visible sur le site</option>
+            <option value="archived">Archivé</option>
+          </select>
         </div>
 
         <div className="flex items-center justify-between bg-white p-6 rounded-lg shadow">
