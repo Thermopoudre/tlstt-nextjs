@@ -772,3 +772,63 @@ Analyse systematique de chaque page admin : C/R/U/D, bugs, UX, liens casses.
 - Pas de nettoyage necessaire
 
 **Commit :** `0997e0c` - chore: cleanup debug endpoints, add SEO og:image, fix NewsCard image field
+
+---
+
+## Session 8 Fev 2026 - Connexion Front/BO + Ameliorations Admin
+
+### Objectif
+Connecter toutes les pages front aux donnees du Back Office pour que tout soit modifiable via l'admin.
+
+### Modifications Base de Donnees (Supabase)
+
+**Migration : `create_pages_content_and_seed_settings`**
+- Creation table `pages_content` (slug, title, content, updated_at) avec RLS
+- Seed des 3 pages legales (mentions-legales, confidentialite, cookies) avec contenu Markdown
+- Seed `site_settings` avec 3 entrees :
+  - `global` : identite club, coordonnees, reseaux sociaux, chiffres cles
+  - `contact` : sujets formulaire, horaires d'ouverture
+  - `club` : histoire, palmares, valeurs, equipements
+
+**Storage Supabase :**
+- Creation bucket `gallery` (public) avec policies RLS pour upload/delete authentifie
+
+### Fichiers Modifies
+
+**Nouveau : `src/lib/settings.ts`**
+- Utilitaire centralise pour recuperer les settings depuis Supabase
+- Fonctions : `getGlobalSettings()`, `getContactSettings()`, `getClubSettings()`, `getPageContent(slug)`
+- Types TypeScript pour `GlobalSettings`
+- Valeurs par defaut en fallback
+
+**Priorite Haute - Connexion Front/BO :**
+
+1. **`src/app/mentions-legales/page.tsx`** - Reecrit en Server Component, lit depuis `pages_content` (slug: mentions-legales), rendu Markdown
+2. **`src/app/politique-confidentialite/page.tsx`** - Idem, slug: confidentialite
+3. **`src/app/politique-cookies/page.tsx`** - Idem, slug: cookies
+4. **`src/app/club/a-propos/page.tsx`** - Reecrit en Server Component, lit depuis `site_settings` (global + club). Plus de client-side fetch API FFTT pour les infos du club. Tous les chiffres, l'histoire, les valeurs, les equipements viennent du BO
+5. **`src/components/layout/Footer.tsx`** - Converti en async Server Component, lit `site_settings.global`. Description, annee de fondation, reseaux sociaux, email, ville, numero club - tout vient du BO
+6. **`src/app/contact/page.tsx`** - Lit depuis `getGlobalSettings()` + `getContactSettings()`. Adresse, horaires, email, telephone, reseaux sociaux - tout vient du BO
+
+**Priorite Moyenne - UX Admin :**
+
+7. **`src/app/admin/page.tsx`** - Dashboard duplique supprime, remplace par redirect vers `/admin/login`
+8. **`src/app/admin/messages/page.tsx`** - Ajout fonction `handleDelete()` + bouton supprimer dans la liste et la vue detail
+9. **Boutique** - Le bouton "Nouveau produit" existait deja (lien vers `/admin/boutique/nouveau`). Pas de modification necessaire
+
+**Priorite Basse - Ameliorations :**
+
+10. **`src/app/admin/galerie/[id]/edit/page.tsx`** - Ajout upload de fichiers via Supabase Storage (drag & drop, multi-fichiers). Fix colonne `display_order` -> `position`. Upload progressif avec feedback
+11. **`src/components/admin/AdminHeader.tsx`** - Notifications fonctionnelles : compteur de messages non lus, dropdown avec les 5 derniers messages, refresh auto toutes les 30s, fermeture au clic exterieur
+12. **`src/app/admin/(protected)/parametres/page.tsx`** - Enrichi avec 3 onglets :
+    - **General** : identite club, coordonnees, reseaux sociaux, chiffres cles (nb tables, surface, licencies, equipes, entraineurs)
+    - **Contact & Horaires** : horaires d'ouverture editables, sujets du formulaire de contact
+    - **Page A propos** : histoire du club (Markdown), equipements (liste dynamique)
+
+### Resume Impact
+- **12 fichiers modifies**, 1 nouveau
+- **1033 lignes ajoutees**, 856 supprimees
+- **3 tables DB** : pages_content (nouvelle), site_settings (seedee), storage.buckets (gallery)
+- **Zero contenu hardcode restant** sur les pages front critiques
+
+**Commit :** `e5d035a` - feat: connect front pages to BO settings and improve admin UX
