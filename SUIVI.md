@@ -632,3 +632,19 @@ Analyse systematique de chaque page admin : C/R/U/D, bugs, UX, liens casses.
 - [ ] Creer les campagnes HelloAsso et configurer les URLs
 - [ ] Ajouter resultats Phase 2 au fur et a mesure
 - [ ] Page admin joueurs : ajouter edition
+
+---
+
+### [2026-02-08] - Corrections API FFTT Equipes + Diagnostic permissions
+
+**Corrections :**
+- Fix club number `08830142` → `13830083` dans `api/equipes/tlstt/route.ts` et `api/competitions/route.ts`
+- Reecriture complete `equipes/[id]/page.tsx` : lecture D1/cx_poule depuis Supabase, fallback xml_equipe
+- Reecriture `api/sync-equipes/route.ts` : API FFTT au lieu du scraping externe
+- Ajout methodes SmartPingAPI : `getOrganismes`, `getEpreuves`, `getDivisions`, `request_public`
+- Ajout `api/discover-equipes/route.ts` pour decouverte D1/cx_poule
+- Ajout cron jobs dans `vercel.json` (sync sam/dim 21:00 UTC)
+
+**Limitation decouverte :** Les credentials SX044 n'ont acces qu'aux endpoints joueurs (xml_liste_joueur, xml_joueur). Les endpoints equipes/competitions (xml_equipe, xml_organisme, xml_epreuve, xml_division) retournent 401 "Compte incorrect".
+
+**Action requise :** Contacter la FFTT pour etendre les permissions du compte SX044.
