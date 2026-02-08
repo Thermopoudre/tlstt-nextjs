@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function AdminParametresPage() {
   const supabase = createClient()
-  const [activeTab, setActiveTab] = useState<'general' | 'contact' | 'club'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'contact' | 'club' | 'planning'>('general')
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
@@ -52,6 +52,23 @@ export default function AdminParametresPage() {
     equipments: [] as string[],
   })
 
+  // Planning settings
+  const [planningSettings, setPlanningSettings] = useState({
+    tarifs: [
+      { label: 'Adultes (compétition)', price: '180€', period: '/ saison' },
+      { label: 'Adultes (loisir)', price: '120€', period: '/ saison' },
+      { label: 'Jeunes (-18 ans)', price: '150€', period: '/ saison' },
+      { label: 'Famille (2e membre)', price: '-20%', period: 'réduction' },
+    ] as { label: string; price: string; period: string }[],
+    infos_pratiques: [
+      'Essai gratuit pendant 2 séances',
+      'Certificat médical requis',
+      'Licence FFTT incluse dans la cotisation',
+      'Matériel prêté pour les débutants',
+    ] as string[],
+    location: '',
+  })
+
   useEffect(() => { fetchAllSettings() }, [])
 
   const fetchAllSettings = async () => {
@@ -67,6 +84,9 @@ export default function AdminParametresPage() {
         }
         if (row.page === 'club' && row.settings) {
           setClubSettings(prev => ({ ...prev, ...row.settings }))
+        }
+        if (row.page === 'planning' && row.settings) {
+          setPlanningSettings(prev => ({ ...prev, ...row.settings }))
         }
       }
     }
@@ -86,9 +106,12 @@ export default function AdminParametresPage() {
     } else if (activeTab === 'contact') {
       page = 'contact'
       data = contactSettings
-    } else {
+    } else if (activeTab === 'club') {
       page = 'club'
       data = clubSettings
+    } else {
+      page = 'planning'
+      data = planningSettings
     }
 
     const { error } = await supabase.from('site_settings').upsert(
@@ -125,6 +148,7 @@ export default function AdminParametresPage() {
     { id: 'general' as const, label: 'Général', icon: 'fa-cog' },
     { id: 'contact' as const, label: 'Contact & Horaires', icon: 'fa-clock' },
     { id: 'club' as const, label: 'Page À propos', icon: 'fa-info-circle' },
+    { id: 'planning' as const, label: 'Planning & Tarifs', icon: 'fa-euro-sign' },
   ]
 
   if (loading) {
@@ -397,6 +421,134 @@ export default function AdminParametresPage() {
                 <i className="fas fa-plus mr-1"></i> Ajouter un équipement
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Planning Tab */}
+      {activeTab === 'planning' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">
+              <i className="fas fa-euro-sign mr-2 text-primary"></i>
+              Tarifs des cotisations
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">Tarifs affichés sur la page Planning du site.</p>
+            <div className="space-y-3">
+              {planningSettings.tarifs.map((tarif, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    value={tarif.label}
+                    onChange={(e) => {
+                      const t = [...planningSettings.tarifs]
+                      t[index] = { ...t[index], label: e.target.value }
+                      setPlanningSettings({ ...planningSettings, tarifs: t })
+                    }}
+                    className="input-field flex-1"
+                    placeholder="Ex: Adultes"
+                  />
+                  <input
+                    type="text"
+                    value={tarif.price}
+                    onChange={(e) => {
+                      const t = [...planningSettings.tarifs]
+                      t[index] = { ...t[index], price: e.target.value }
+                      setPlanningSettings({ ...planningSettings, tarifs: t })
+                    }}
+                    className="input-field w-28"
+                    placeholder="180€"
+                  />
+                  <input
+                    type="text"
+                    value={tarif.period}
+                    onChange={(e) => {
+                      const t = [...planningSettings.tarifs]
+                      t[index] = { ...t[index], period: e.target.value }
+                      setPlanningSettings({ ...planningSettings, tarifs: t })
+                    }}
+                    className="input-field w-32"
+                    placeholder="/ saison"
+                  />
+                  <button
+                    onClick={() => setPlanningSettings({
+                      ...planningSettings,
+                      tarifs: planningSettings.tarifs.filter((_, i) => i !== index),
+                    })}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                  >
+                    <i className="fas fa-trash"></i>
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => setPlanningSettings({
+                  ...planningSettings,
+                  tarifs: [...planningSettings.tarifs, { label: '', price: '', period: '/ saison' }],
+                })}
+                className="text-primary hover:underline text-sm font-medium"
+              >
+                <i className="fas fa-plus mr-1"></i> Ajouter un tarif
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">
+              <i className="fas fa-lightbulb mr-2 text-primary"></i>
+              Informations pratiques
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">Informations affichées sur la page Planning (essai gratuit, certificat, etc.).</p>
+            <div className="space-y-2">
+              {planningSettings.infos_pratiques.map((info, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <i className="fas fa-check text-green-500"></i>
+                  <input
+                    type="text"
+                    value={info}
+                    onChange={(e) => {
+                      const infos = [...planningSettings.infos_pratiques]
+                      infos[index] = e.target.value
+                      setPlanningSettings({ ...planningSettings, infos_pratiques: infos })
+                    }}
+                    className="input-field flex-1"
+                  />
+                  <button
+                    onClick={() => setPlanningSettings({
+                      ...planningSettings,
+                      infos_pratiques: planningSettings.infos_pratiques.filter((_, i) => i !== index),
+                    })}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                  >
+                    <i className="fas fa-trash"></i>
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => setPlanningSettings({
+                  ...planningSettings,
+                  infos_pratiques: [...planningSettings.infos_pratiques, ''],
+                })}
+                className="text-primary hover:underline text-sm font-medium"
+              >
+                <i className="fas fa-plus mr-1"></i> Ajouter une info
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">
+              <i className="fas fa-map-marker-alt mr-2 text-primary"></i>
+              Lieu des entraînements
+            </h3>
+            <p className="text-sm text-gray-500 mb-2">Si différent de l&apos;adresse principale du club.</p>
+            <input
+              type="text"
+              value={planningSettings.location}
+              onChange={(e) => setPlanningSettings({ ...planningSettings, location: e.target.value })}
+              className="input-field"
+              placeholder="Gymnase Léo Lagrange, Avenue Maréchal Juin, 83500 La Seyne-sur-Mer"
+            />
           </div>
         </div>
       )}

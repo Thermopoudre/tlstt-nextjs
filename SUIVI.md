@@ -832,3 +832,107 @@ Connecter toutes les pages front aux donnees du Back Office pour que tout soit m
 - **Zero contenu hardcode restant** sur les pages front critiques
 
 **Commit :** `e5d035a` - feat: connect front pages to BO settings and improve admin UX
+
+---
+
+## Session 08/02/2026 (2) — UX BO : editeur WYSIWYG, upload images, tarifs dynamiques, newsletter
+
+### Problematique
+Le BO etait fonctionnel mais inadapte a des utilisateurs de 40-60 ans :
+- Articles necessitaient du HTML brut
+- Pas d'upload d'images (sauf galerie)
+- Tarifs du planning hardcodes
+- Stats homepage hardcodees ("70+")
+- Pas de composition de newsletter
+- `confirm()` natifs du navigateur pour les suppressions
+
+### Audit complet effectue
+- **35 pages admin** analysees
+- **25+ pages front** analysees pour identifier le contenu hardcode restant
+
+### Modifications
+
+#### 1. Editeur WYSIWYG TipTap (NOUVEAU)
+- **`src/components/admin/RichTextEditor.tsx`** (NOUVEAU) - Editeur riche complet avec :
+  - Barre d'outils : Gras, Italique, Souligne, Barre, Titres (H2/H3/H4), Paragraphe
+  - Listes a puces et numerotees
+  - Alignement texte (gauche, centre, droite)
+  - Liens et images (upload direct vers Supabase Storage)
+  - Citations, lignes horizontales
+  - Annuler/Retablir
+  - Placeholder interactif
+  - Astuce clavier en footer
+- **Dependencies** : @tiptap/react, @tiptap/starter-kit, @tiptap/extension-image, link, text-align, underline, placeholder, pm
+
+#### 2. Upload d'images reutilisable (NOUVEAU)
+- **`src/components/admin/ImageUpload.tsx`** (NOUVEAU) - Composant generique :
+  - Drag & drop de fichiers
+  - Preview de l'image avec suppression
+  - Upload vers Supabase Storage
+  - Fallback URL manuelle
+  - Props configurables (bucket, folder, label)
+
+#### 3. Modale de confirmation (NOUVEAU)
+- **`src/components/admin/ConfirmModal.tsx`** (NOUVEAU) - Remplace les `confirm()` natifs :
+  - 3 variantes : danger (rouge), warning (jaune), info (bleu)
+  - Icone animee, titre, message, boutons stylises
+  - Support du loading state
+  - Overlay avec fermeture au clic
+
+#### 4. Pages articles refaites
+- **`src/app/admin/actualites/nouveau/page.tsx`** - REECRIT :
+  - Editeur WYSIWYG au lieu de textarea HTML
+  - ImageUpload au lieu d'input URL
+  - Categorie en boutons visuels avec icones (Club/TT/Handi)
+  - Statut en boutons visuels (Brouillon/Publie) avec descriptions
+  - UX adaptee seniors : gros texte, icones, labels clairs
+- **`src/app/admin/actualites/[id]/edit/page.tsx`** - REECRIT identique + ConfirmModal pour suppression
+- **`src/app/admin/actualites/page.tsx`** - ConfirmModal remplace confirm()
+
+#### 5. Carousel avec upload images
+- **`src/app/admin/carousel/new/page.tsx`** - REECRIT en client component :
+  - ImageUpload pour l'image de fond
+  - Formulaire modernise
+- **`src/app/admin/carousel/[id]/edit/page.tsx`** - REECRIT en client component :
+  - ImageUpload pour l'image de fond
+  - ConfirmModal pour la suppression
+  - Preview live du slide
+
+#### 6. Boutique avec upload images
+- **`src/app/admin/boutique/nouveau/page.tsx`** - ImageUpload remplace l'input URL
+
+#### 7. Tarifs planning editables depuis BO
+- **DB** : `site_settings` page='planning' cree avec tarifs, infos_pratiques, location
+- **`src/lib/settings.ts`** - Ajout `getPlanningSettings()`
+- **`src/app/planning/page.tsx`** - Tarifs, infos pratiques et lieu dynamiques depuis BO
+- **`src/app/admin/(protected)/parametres/page.tsx`** - Nouvel onglet "Planning & Tarifs" :
+  - Tarifs : label + prix + periode (dynamique, ajout/suppression)
+  - Infos pratiques : liste dynamique
+  - Lieu des entrainements
+
+#### 8. Homepage stats dynamiques
+- **`src/app/page.tsx`** - "70+" remplace par calcul dynamique depuis `foundation_year` du BO
+
+#### 9. Newsletter complete
+- **DB** : Table `newsletter_subscribers` creee (email, first_name, last_name, is_subscribed)
+- **`src/app/admin/newsletter/page.tsx`** - REECRIT avec 3 onglets :
+  - **Abonnes** : liste, stats, export CSV
+  - **Rediger** : editeur WYSIWYG, image de couverture, resume, statut brouillon/publie
+  - **Newsletters** : liste des newsletters creees, modification, suppression avec ConfirmModal
+- **`src/app/newsletter/page.tsx`** - Corrige pour utiliser `newsletter_subscribers` au lieu de `newsletters`
+
+#### 10. Modales remplacement confirm()
+- **`src/app/admin/messages/page.tsx`** - ConfirmModal pour suppression
+- **`src/app/admin/actualites/page.tsx`** - ConfirmModal pour suppression
+
+#### 11. Styles TipTap
+- **`src/app/globals.css`** - Ajout styles complets pour l'editeur TipTap (headings, listes, citations, images, placeholder)
+
+### Resume Impact
+- **18 fichiers modifies**, 4 nouveaux
+- **70 packages npm** ajoutes (TipTap et dependances)
+- **1 table DB** creee : `newsletter_subscribers`
+- **1 page site_settings** creee : `planning` (tarifs, infos, lieu)
+- **Zero HTML brut** requis pour ecrire un article
+- **Zero URL a coller** pour ajouter une image (upload drag & drop)
+- UX completement adaptee aux utilisateurs 40-60 ans

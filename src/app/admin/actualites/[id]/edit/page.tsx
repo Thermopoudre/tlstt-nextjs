@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+import ImageUpload from '@/components/admin/ImageUpload'
+import ConfirmModal from '@/components/admin/ConfirmModal'
+
+const RichTextEditor = dynamic(() => import('@/components/admin/RichTextEditor'), { ssr: false })
 
 interface EditActualitePageProps {
   params: Promise<{ id: string }>
@@ -14,6 +19,7 @@ export default function EditActualitePage({ params }: EditActualitePageProps) {
   const [articleId, setArticleId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
@@ -35,25 +41,18 @@ export default function EditActualitePage({ params }: EditActualitePageProps) {
 
   const loadArticle = async (id: string) => {
     const supabase = createClient()
-    
     try {
-      const { data, error } = await supabase
-        .from('news')
-        .select('*')
-        .eq('id', id)
-        .single()
-
+      const { data, error } = await supabase.from('news').select('*').eq('id', id).single()
       if (error) throw error
-
       setFormData({
         title: data.title,
         excerpt: data.excerpt || '',
-        content: data.content,
+        content: data.content || '',
         category: data.category,
         status: data.status,
         image_url: data.image_url || '',
       })
-    } catch (error: any) {
+    } catch {
       setMessage({ type: 'error', text: 'Erreur lors du chargement' })
     } finally {
       setLoading(false)
@@ -63,12 +62,10 @@ export default function EditActualitePage({ params }: EditActualitePageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!articleId) return
-
     setSaving(true)
     setMessage(null)
 
     const supabase = createClient()
-
     try {
       const { error } = await supabase
         .from('news')
@@ -80,14 +77,10 @@ export default function EditActualitePage({ params }: EditActualitePageProps) {
         .eq('id', articleId)
 
       if (error) throw error
-
-      setMessage({ type: 'success', text: 'Actualité mise à jour avec succès !' })
-      
-      setTimeout(() => {
-        router.push('/admin/actualites')
-      }, 1000)
+      setMessage({ type: 'success', text: 'Article mis à jour !' })
+      setTimeout(() => router.push('/admin/actualites'), 1000)
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Erreur lors de la mise à jour' })
+      setMessage({ type: 'error', text: error.message })
     } finally {
       setSaving(false)
     }
@@ -95,23 +88,16 @@ export default function EditActualitePage({ params }: EditActualitePageProps) {
 
   const handleDelete = async () => {
     if (!articleId) return
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette actualité ?')) return
-
     setDeleting(true)
     const supabase = createClient()
-
     try {
-      const { error } = await supabase
-        .from('news')
-        .delete()
-        .eq('id', articleId)
-
+      const { error } = await supabase.from('news').delete().eq('id', articleId)
       if (error) throw error
-
       router.push('/admin/actualites')
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Erreur lors de la suppression' })
+      setMessage({ type: 'error', text: error.message })
       setDeleting(false)
+      setShowDeleteModal(false)
     }
   }
 
@@ -124,165 +110,166 @@ export default function EditActualitePage({ params }: EditActualitePageProps) {
   }
 
   return (
-    <div className="max-w-4xl">
-      {/* Header */}
+    <div className="max-w-5xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Modifier l'actualité</h1>
-          <p className="text-gray-600 mt-1">Éditez votre actualité</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            <i className="fas fa-edit mr-2 text-primary"></i>
+            Modifier l&apos;article
+          </h1>
+          <p className="text-gray-600 mt-1">Modifiez et mettez à jour votre article</p>
         </div>
-        <Link
-          href="/admin/actualites"
-          className="text-gray-600 hover:text-gray-900"
-        >
+        <Link href="/admin/actualites" className="text-gray-600 hover:text-gray-900">
           <i className="fas fa-times text-2xl"></i>
         </Link>
       </div>
 
-      {/* Message */}
       {message && (
-        <div className={`mb-6 p-4 rounded-lg ${
+        <div className={`mb-6 p-4 rounded-lg flex items-center gap-2 ${
           message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
         }`}>
+          <i className={`fas ${message.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
           {message.text}
         </div>
       )}
 
-      {/* Formulaire */}
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Titre */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Titre de l'actualité *
+        <div className="bg-white p-6 rounded-xl shadow">
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            <i className="fas fa-heading mr-1 text-primary"></i>
+            Titre *
           </label>
           <input
             type="text"
             required
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
           />
         </div>
 
-        {/* Catégorie et Statut */}
-        <div className="grid grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Catégorie *
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white p-6 rounded-xl shadow">
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              <i className="fas fa-tag mr-1 text-primary"></i>
+              Catégorie
             </label>
-            <select
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            >
-              <option value="club">Actualités Club</option>
-              <option value="tt">Actualités Tennis de Table</option>
-              <option value="handi">Handisport</option>
-            </select>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { value: 'club', label: 'Club', icon: 'fa-home' },
+                { value: 'tt', label: 'Tennis de Table', icon: 'fa-table-tennis-paddle-ball' },
+                { value: 'handi', label: 'Handisport', icon: 'fa-wheelchair' },
+              ].map(cat => (
+                <button
+                  key={cat.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, category: cat.value as any })}
+                  className={`p-3 rounded-lg text-center transition-colors ${
+                    formData.category === cat.value
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <i className={`fas ${cat.icon} text-lg mb-1 block`}></i>
+                  <span className="text-xs font-medium">{cat.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Statut *
+          <div className="bg-white p-6 rounded-xl shadow">
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              <i className="fas fa-eye mr-1 text-primary"></i>
+              Visibilité
             </label>
-            <select
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            >
-              <option value="draft">Brouillon</option>
-              <option value="published">Publié</option>
-            </select>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => setFormData({ ...formData, status: 'draft' })}
+                className={`p-3 rounded-lg text-center transition-colors ${
+                  formData.status === 'draft' ? 'bg-yellow-100 text-yellow-800 border-2 border-yellow-400' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}>
+                <i className="fas fa-pencil-alt text-lg mb-1 block"></i>
+                <span className="text-sm font-medium">Brouillon</span>
+              </button>
+              <button type="button" onClick={() => setFormData({ ...formData, status: 'published' })}
+                className={`p-3 rounded-lg text-center transition-colors ${
+                  formData.status === 'published' ? 'bg-green-100 text-green-800 border-2 border-green-400' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}>
+                <i className="fas fa-globe text-lg mb-1 block"></i>
+                <span className="text-sm font-medium">Publié</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Extrait */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Extrait / Résumé
+        <div className="bg-white p-6 rounded-xl shadow">
+          <ImageUpload
+            value={formData.image_url}
+            onChange={(url) => setFormData({ ...formData, image_url: url })}
+            folder="articles"
+            label="Image de couverture"
+          />
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow">
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            <i className="fas fa-align-left mr-1 text-primary"></i>
+            Résumé
           </label>
           <textarea
             value={formData.excerpt}
             onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-            rows={3}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            rows={2}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg"
+            placeholder="Une ou deux phrases qui résument l'article..."
           />
         </div>
 
-        {/* Image */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            URL de l'image
+        <div className="bg-white p-6 rounded-xl shadow">
+          <label className="block text-sm font-bold text-gray-700 mb-3">
+            <i className="fas fa-file-alt mr-1 text-primary"></i>
+            Contenu de l&apos;article *
           </label>
-          <input
-            type="url"
-            value={formData.image_url}
-            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+          <RichTextEditor
+            content={formData.content}
+            onChange={(html) => setFormData({ ...formData, content: html })}
+            placeholder="Rédigez votre article ici..."
+            storageFolder="articles"
           />
         </div>
 
-        {/* Contenu */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Contenu de l'article *
-          </label>
-          <textarea
-            required
-            value={formData.content}
-            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-            rows={15}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
-          />
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center justify-between bg-white p-6 rounded-lg shadow">
+        <div className="flex items-center justify-between bg-white p-6 rounded-xl shadow">
           <button
             type="button"
-            onClick={handleDelete}
-            disabled={deleting}
-            className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:bg-gray-400"
+            onClick={() => setShowDeleteModal(true)}
+            className="bg-red-100 text-red-700 px-5 py-3 rounded-xl font-semibold hover:bg-red-200 transition-colors text-base"
           >
-            {deleting ? (
-              <>
-                <i className="fas fa-spinner fa-spin mr-2"></i>
-                Suppression...
-              </>
-            ) : (
-              <>
-                <i className="fas fa-trash mr-2"></i>
-                Supprimer
-              </>
-            )}
+            <i className="fas fa-trash mr-2"></i>
+            Supprimer
           </button>
           <div className="flex gap-3">
-            <Link
-              href="/admin/actualites"
-              className="text-gray-600 hover:text-gray-900 font-semibold px-6 py-3"
-            >
+            <Link href="/admin/actualites" className="text-gray-600 hover:text-gray-900 font-semibold px-5 py-3 text-base">
               Annuler
             </Link>
             <button
               type="submit"
               disabled={saving}
-              className="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-light transition-colors disabled:bg-gray-400"
+              className="bg-primary text-white px-8 py-3 rounded-xl font-bold text-base hover:bg-primary/90 transition-colors disabled:bg-gray-400"
             >
-              {saving ? (
-                <>
-                  <i className="fas fa-spinner fa-spin mr-2"></i>
-                  Enregistrement...
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-save mr-2"></i>
-                  Enregistrer
-                </>
-              )}
+              {saving ? <><i className="fas fa-spinner fa-spin mr-2"></i>...</> : <><i className="fas fa-save mr-2"></i>Enregistrer</>}
             </button>
           </div>
         </div>
       </form>
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
+        title="Supprimer l'article"
+        message={`Êtes-vous sûr de vouloir supprimer "${formData.title}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        loading={deleting}
+      />
     </div>
   )
 }

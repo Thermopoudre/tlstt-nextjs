@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import ImageUpload from '@/components/admin/ImageUpload'
 
 export default function NouveauProduitPage() {
   const router = useRouter()
@@ -116,12 +117,12 @@ export default function NouveauProduitPage() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">URL de l&apos;image</label>
-            <input type="url" value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="https://..." />
-          </div>
+          <ImageUpload
+            value={form.image_url}
+            onChange={(url) => setForm({ ...form, image_url: url })}
+            folder="boutique"
+            label="Image du produit"
+          />
 
           <label className="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })}

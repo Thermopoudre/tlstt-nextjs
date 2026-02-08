@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import ConfirmModal from '@/components/admin/ConfirmModal'
 
 interface Article {
   id: string
@@ -19,6 +20,7 @@ export default function AdminActualitesPage() {
   const [news, setNews] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string, title: string } | null>(null)
 
   useEffect(() => { fetchNews() }, [])
 
@@ -28,9 +30,10 @@ export default function AdminActualitesPage() {
     setLoading(false)
   }
 
-  const deleteArticle = async (id: string, title: string) => {
-    if (!confirm(`Supprimer l'article "${title}" ?`)) return
-    await supabase.from('news').delete().eq('id', id)
+  const confirmDelete = async () => {
+    if (!deleteTarget) return
+    await supabase.from('news').delete().eq('id', deleteTarget.id)
+    setDeleteTarget(null)
     fetchNews()
   }
 
@@ -153,7 +156,7 @@ export default function AdminActualitesPage() {
                   <td className="px-4 py-3 text-right">
                     <Link href={`/actualites/${article.category}/${article.id}`} target="_blank" className="p-2 text-primary hover:bg-primary/10 rounded-lg inline-flex"><i className="fas fa-eye"></i></Link>
                     <Link href={`/admin/actualites/${article.id}/edit`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg inline-flex"><i className="fas fa-edit"></i></Link>
-                    <button onClick={() => deleteArticle(article.id, article.title)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><i className="fas fa-trash"></i></button>
+                    <button onClick={() => setDeleteTarget({ id: article.id, title: article.title })} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><i className="fas fa-trash"></i></button>
                   </td>
                 </tr>
               ))}
@@ -161,6 +164,15 @@ export default function AdminActualitesPage() {
           </table>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={deleteTarget !== null}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+        title="Supprimer l'article"
+        message={`Êtes-vous sûr de vouloir supprimer "${deleteTarget?.title}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+      />
     </div>
   )
 }

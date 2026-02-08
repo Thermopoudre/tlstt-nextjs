@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { Metadata } from 'next'
+import { getPlanningSettings, getGlobalSettings } from '@/lib/settings'
 
 export const metadata: Metadata = {
   title: 'Planning - Horaires des Entraînements',
@@ -38,6 +39,8 @@ const activityConfig: Record<string, { emoji: string; bgClass: string }> = {
 
 export default async function PlanningPage() {
   const supabase = await createClient()
+  const planningSettings = await getPlanningSettings()
+  const globalSettings = await getGlobalSettings()
 
   const { data: trainings } = await supabase
     .from('trainings')
@@ -145,17 +148,19 @@ export default async function PlanningPage() {
               <i className="fas fa-map-marker-alt text-[#3b9fd8]"></i>
               Lieu
             </h3>
-            <p className="text-gray-300 mb-1">Gymnase Léo Lagrange</p>
-            <p className="text-gray-500 text-sm">Avenue Maréchal Juin, 83500 La Seyne-sur-Mer</p>
-            <a
-              href="https://maps.google.com/?q=Gymnase+Léo+Lagrange+La+Seyne"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#3b9fd8] text-sm hover:underline mt-2 inline-block"
-            >
-              <i className="fas fa-external-link-alt mr-1"></i>
-              Voir sur Google Maps
-            </a>
+            <p className="text-gray-300 mb-1">{planningSettings.location || globalSettings.address}</p>
+            <p className="text-gray-500 text-sm">{globalSettings.postal_code} {globalSettings.city}</p>
+            {globalSettings.maps_url && (
+              <a
+                href={globalSettings.maps_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#3b9fd8] text-sm hover:underline mt-2 inline-block"
+              >
+                <i className="fas fa-external-link-alt mr-1"></i>
+                Voir sur Google Maps
+              </a>
+            )}
           </div>
 
           <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 hover:border-[#3b9fd8] transition-colors">
@@ -164,22 +169,12 @@ export default async function PlanningPage() {
               Tarifs
             </h3>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Jeunes (-18 ans)</span>
-                <span className="font-bold text-white">120€</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Adultes</span>
-                <span className="font-bold text-white">180€</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Loisir</span>
-                <span className="font-bold text-white">150€</span>
-              </div>
-              <div className="flex justify-between text-green-400">
-                <span>Réduction famille</span>
-                <span className="font-bold">-20%</span>
-              </div>
+              {planningSettings.tarifs?.map((tarif, i) => (
+                <div key={i} className={`flex justify-between ${tarif.price.startsWith('-') ? 'text-green-400' : ''}`}>
+                  <span className={tarif.price.startsWith('-') ? '' : 'text-gray-400'}>{tarif.label}</span>
+                  <span className="font-bold">{tarif.price}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -189,22 +184,12 @@ export default async function PlanningPage() {
               Infos Pratiques
             </h3>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li className="flex items-center gap-2">
-                <i className="fas fa-check text-green-500"></i>
-                Essai gratuit
-              </li>
-              <li className="flex items-center gap-2">
-                <i className="fas fa-file-medical text-[#3b9fd8]"></i>
-                Certificat médical requis
-              </li>
-              <li className="flex items-center gap-2">
-                <i className="fas fa-shoe-prints text-gray-500"></i>
-                Chaussures propres
-              </li>
-              <li className="flex items-center gap-2">
-                <i className="fas fa-table-tennis-paddle-ball text-[#3b9fd8]"></i>
-                Matériel fourni débutants
-              </li>
+              {planningSettings.infos_pratiques?.map((info, i) => (
+                <li key={i} className="flex items-center gap-2">
+                  <i className="fas fa-check text-green-500"></i>
+                  {info}
+                </li>
+              ))}
             </ul>
           </div>
         </div>

@@ -4,9 +4,12 @@ import HeroCarousel from '@/components/HeroCarousel'
 import NewsCard from '@/components/NewsCard'
 import PartnerCard from '@/components/PartnerCard'
 import LabelsSection from '@/components/home/LabelsSection'
+import { getGlobalSettings } from '@/lib/settings'
 
 export default async function HomePage() {
   const supabase = await createClient()
+  const globalSettings = await getGlobalSettings()
+  const yearsOfHistory = new Date().getFullYear() - globalSettings.foundation_year
 
   // Récupérer les slides du carrousel depuis la base de données
   const { data: carouselSlides } = await supabase
@@ -100,8 +103,8 @@ export default async function HomePage() {
               <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
                 <i className="fas fa-calendar-alt text-2xl text-white"></i>
               </div>
-              <div className="text-4xl font-bold text-white mb-1">70+</div>
-              <div className="text-sm text-[#3b9fd8]">Ans d'histoire</div>
+              <div className="text-4xl font-bold text-white mb-1">{yearsOfHistory}+</div>
+              <div className="text-sm text-[#3b9fd8]">Ans d&apos;histoire</div>
             </div>
 
             <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">

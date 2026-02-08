@@ -98,6 +98,25 @@ export async function getClubSettings() {
   }
 }
 
+export async function getPlanningSettings() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('site_settings')
+    .select('settings')
+    .eq('page', 'planning')
+    .single()
+
+  return data?.settings as {
+    tarifs: { label: string; price: string; period: string }[]
+    infos_pratiques: string[]
+    location: string
+  } || {
+    tarifs: [],
+    infos_pratiques: [],
+    location: '',
+  }
+}
+
 export async function getPageContent(slug: string) {
   const supabase = await createClient()
   const { data } = await supabase

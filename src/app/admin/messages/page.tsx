@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import ConfirmModal from '@/components/admin/ConfirmModal'
 
 export default function AdminMessagesPage() {
   const [messages, setMessages] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedMessage, setSelectedMessage] = useState<any | null>(null)
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
 
   useEffect(() => {
     loadMessages()
@@ -34,14 +36,19 @@ export default function AdminMessagesPage() {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Supprimer ce message ?')) return
+    setDeleteTargetId(id)
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteTargetId) return
     const supabase = createClient()
     await supabase
       .from('contact_messages')
       .delete()
-      .eq('id', id)
+      .eq('id', deleteTargetId)
 
-    if (selectedMessage?.id === id) setSelectedMessage(null)
+    if (selectedMessage?.id === deleteTargetId) setSelectedMessage(null)
+    setDeleteTargetId(null)
     await loadMessages()
   }
 
@@ -193,6 +200,15 @@ export default function AdminMessagesPage() {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={deleteTargetId !== null}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTargetId(null)}
+        title="Supprimer le message"
+        message="Êtes-vous sûr de vouloir supprimer ce message ? Cette action est irréversible."
+        confirmText="Supprimer"
+      />
     </div>
   )
 }

@@ -4,6 +4,10 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+import ImageUpload from '@/components/admin/ImageUpload'
+
+const RichTextEditor = dynamic(() => import('@/components/admin/RichTextEditor'), { ssr: false })
 
 export default function NewActualitePage() {
   const router = useRouter()
@@ -21,13 +25,19 @@ export default function NewActualitePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!formData.content || formData.content === '<p></p>') {
+      setMessage({ type: 'error', text: 'Le contenu de l\'article est obligatoire' })
+      return
+    }
+
     setLoading(true)
     setMessage(null)
 
     const supabase = createClient()
 
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('news')
         .insert([{
           ...formData,
@@ -38,12 +48,8 @@ export default function NewActualitePage() {
 
       if (error) throw error
 
-      setMessage({ type: 'success', text: 'Actualité créée avec succès !' })
-      
-      // Rediriger après 1 seconde
-      setTimeout(() => {
-        router.push('/admin/actualites')
-      }, 1000)
+      setMessage({ type: 'success', text: 'Article créé avec succès !' })
+      setTimeout(() => router.push('/admin/actualites'), 1000)
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || 'Erreur lors de la création' })
     } finally {
@@ -52,160 +58,168 @@ export default function NewActualitePage() {
   }
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-5xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Nouvelle actualité</h1>
-          <p className="text-gray-600 mt-1">Créez une nouvelle actualité pour votre site</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            <i className="fas fa-plus-circle mr-2 text-primary"></i>
+            Nouvel article
+          </h1>
+          <p className="text-gray-600 mt-1">Rédigez un nouvel article pour votre site</p>
         </div>
-        <Link
-          href="/admin/actualites"
-          className="text-gray-600 hover:text-gray-900"
-        >
+        <Link href="/admin/actualites" className="text-gray-600 hover:text-gray-900">
           <i className="fas fa-times text-2xl"></i>
         </Link>
       </div>
 
-      {/* Message */}
       {message && (
-        <div className={`mb-6 p-4 rounded-lg ${
+        <div className={`mb-6 p-4 rounded-lg flex items-center gap-2 ${
           message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
         }`}>
+          <i className={`fas ${message.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
           {message.text}
         </div>
       )}
 
-      {/* Formulaire */}
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Titre */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Titre de l'actualité *
+        {/* Titre - gros et visible */}
+        <div className="bg-white p-6 rounded-xl shadow">
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            <i className="fas fa-heading mr-1 text-primary"></i>
+            Titre de l&apos;article *
           </label>
           <input
             type="text"
             required
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder="Ex: Victoire de l'équipe 1"
+            className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            placeholder="Ex: Victoire de l'équipe 1 au championnat"
           />
         </div>
 
-        {/* Catégorie et Statut */}
-        <div className="grid grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Catégorie *
+        {/* Catégorie + Statut côte à côte */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white p-6 rounded-xl shadow">
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              <i className="fas fa-tag mr-1 text-primary"></i>
+              Catégorie
             </label>
-            <select
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            >
-              <option value="club">Actualités Club</option>
-              <option value="tt">Actualités Tennis de Table</option>
-              <option value="handi">Handisport</option>
-            </select>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { value: 'club', label: 'Club', icon: 'fa-home' },
+                { value: 'tt', label: 'Tennis de Table', icon: 'fa-table-tennis-paddle-ball' },
+                { value: 'handi', label: 'Handisport', icon: 'fa-wheelchair' },
+              ].map(cat => (
+                <button
+                  key={cat.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, category: cat.value as any })}
+                  className={`p-3 rounded-lg text-center transition-colors ${
+                    formData.category === cat.value
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <i className={`fas ${cat.icon} text-lg mb-1 block`}></i>
+                  <span className="text-xs font-medium">{cat.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Statut *
+          <div className="bg-white p-6 rounded-xl shadow">
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              <i className="fas fa-eye mr-1 text-primary"></i>
+              Visibilité
             </label>
-            <select
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            >
-              <option value="draft">Brouillon</option>
-              <option value="published">Publié</option>
-            </select>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, status: 'draft' })}
+                className={`p-3 rounded-lg text-center transition-colors ${
+                  formData.status === 'draft'
+                    ? 'bg-yellow-100 text-yellow-800 border-2 border-yellow-400'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <i className="fas fa-pencil-alt text-lg mb-1 block"></i>
+                <span className="text-sm font-medium">Brouillon</span>
+                <p className="text-xs mt-0.5 opacity-70">Non visible sur le site</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, status: 'published' })}
+                className={`p-3 rounded-lg text-center transition-colors ${
+                  formData.status === 'published'
+                    ? 'bg-green-100 text-green-800 border-2 border-green-400'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <i className="fas fa-globe text-lg mb-1 block"></i>
+                <span className="text-sm font-medium">Publié</span>
+                <p className="text-xs mt-0.5 opacity-70">Visible par tous</p>
+              </button>
+            </div>
           </div>
         </div>
 
+        {/* Image - avec upload */}
+        <div className="bg-white p-6 rounded-xl shadow">
+          <ImageUpload
+            value={formData.image_url}
+            onChange={(url) => setFormData({ ...formData, image_url: url })}
+            folder="articles"
+            label="Image de couverture"
+          />
+        </div>
+
         {/* Extrait */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Extrait / Résumé
+        <div className="bg-white p-6 rounded-xl shadow">
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            <i className="fas fa-align-left mr-1 text-primary"></i>
+            Résumé
+            <span className="font-normal text-gray-400 ml-2">(apparaît dans la liste des articles)</span>
           </label>
           <textarea
             value={formData.excerpt}
             onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-            rows={3}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder="Courte description qui apparaîtra dans la liste des actualités"
+            rows={2}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            placeholder="Une ou deux phrases qui résument l'article..."
           />
         </div>
 
-        {/* Image */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            URL de l'image
+        {/* Contenu riche */}
+        <div className="bg-white p-6 rounded-xl shadow">
+          <label className="block text-sm font-bold text-gray-700 mb-3">
+            <i className="fas fa-file-alt mr-1 text-primary"></i>
+            Contenu de l&apos;article *
           </label>
-          <input
-            type="url"
-            value={formData.image_url}
-            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder="https://example.com/image.jpg"
+          <RichTextEditor
+            content={formData.content}
+            onChange={(html) => setFormData({ ...formData, content: html })}
+            placeholder="Commencez à rédiger votre article ici... Utilisez la barre d'outils ci-dessus pour mettre en forme."
+            storageFolder="articles"
           />
-          <p className="text-sm text-gray-500 mt-2">
-            <i className="fas fa-info-circle mr-1"></i>
-            Collez l'URL d'une image hébergée en ligne
-          </p>
-        </div>
-
-        {/* Contenu */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Contenu de l'article *
-          </label>
-          <textarea
-            required
-            value={formData.content}
-            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-            rows={15}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
-            placeholder="Contenu HTML de votre actualité..."
-          />
-          <p className="text-sm text-gray-500 mt-2">
-            <i className="fas fa-code mr-1"></i>
-            Vous pouvez utiliser du HTML pour formatter votre contenu
-          </p>
-          <div className="mt-3 p-3 bg-gray-50 rounded text-sm text-gray-600">
-            <strong>Exemples de HTML :</strong><br />
-            <code className="bg-white px-2 py-1 rounded">&lt;h2&gt;Titre&lt;/h2&gt;</code><br />
-            <code className="bg-white px-2 py-1 rounded">&lt;p&gt;Paragraphe&lt;/p&gt;</code><br />
-            <code className="bg-white px-2 py-1 rounded">&lt;strong&gt;Gras&lt;/strong&gt;</code><br />
-            <code className="bg-white px-2 py-1 rounded">&lt;ul&gt;&lt;li&gt;Liste&lt;/li&gt;&lt;/ul&gt;</code>
-          </div>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-between bg-white p-6 rounded-lg shadow">
-          <Link
-            href="/admin/actualites"
-            className="text-gray-600 hover:text-gray-900 font-semibold"
-          >
-            Annuler
+        <div className="flex items-center justify-between bg-white p-6 rounded-xl shadow">
+          <Link href="/admin/actualites" className="text-gray-600 hover:text-gray-900 font-semibold text-base">
+            <i className="fas fa-arrow-left mr-2"></i>
+            Retour
           </Link>
           <button
             type="submit"
             disabled={loading}
-            className="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-light transition-colors disabled:bg-gray-400"
+            className="bg-primary text-white px-8 py-3 rounded-xl font-bold text-base hover:bg-primary/90 transition-colors disabled:bg-gray-400"
           >
             {loading ? (
-              <>
-                <i className="fas fa-spinner fa-spin mr-2"></i>
-                Enregistrement...
-              </>
+              <><i className="fas fa-spinner fa-spin mr-2"></i>Enregistrement...</>
             ) : (
-              <>
-                <i className="fas fa-save mr-2"></i>
-                Enregistrer
-              </>
+              <><i className="fas fa-save mr-2"></i>Enregistrer l&apos;article</>
             )}
           </button>
         </div>

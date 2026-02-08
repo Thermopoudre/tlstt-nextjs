@@ -21,7 +21,7 @@ export default function NewsletterPage() {
     try {
       // Vérifier si l'email existe déjà
       const { data: existing } = await supabase
-        .from('newsletters')
+        .from('newsletter_subscribers')
         .select('*')
         .eq('email', email)
         .single()
@@ -32,7 +32,7 @@ export default function NewsletterPage() {
         } else {
           // Réactiver l'abonnement
           await supabase
-            .from('newsletters')
+            .from('newsletter_subscribers')
             .update({ is_subscribed: true, unsubscribed_at: null })
             .eq('email', email)
 
@@ -41,7 +41,7 @@ export default function NewsletterPage() {
       } else {
         // Nouvel abonnement
         const { error } = await supabase
-          .from('newsletters')
+          .from('newsletter_subscribers')
           .insert([{
             email,
             first_name: firstName,
