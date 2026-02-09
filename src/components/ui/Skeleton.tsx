@@ -79,3 +79,52 @@ export function SkeletonGrid({ count = 6, type = 'card' }: { count?: number; typ
     </div>
   )
 }
+
+// Backward-compatible aliases for existing imports
+export function TableSkeleton({ rows = 8 }: { rows?: number } = {}) {
+  return (
+    <div className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden animate-pulse">
+      <div className="h-12 bg-white/5 border-b border-[#333]" />
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-[#222]">
+          <div className="h-3 bg-white/5 rounded w-8" />
+          <div className="h-3 bg-white/10 rounded w-32" />
+          <div className="h-3 bg-white/5 rounded flex-1" />
+          <div className="h-3 bg-white/5 rounded w-16" />
+          <div className="h-3 bg-white/5 rounded w-16" />
+          <div className="h-3 bg-white/5 rounded w-16" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function StatCardSkeleton() {
+  return (
+    <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 animate-pulse">
+      <div className="h-3 bg-white/5 rounded w-20 mb-3" />
+      <div className="h-8 bg-white/10 rounded w-16 mb-2" />
+      <div className="h-2 bg-white/5 rounded w-24" />
+    </div>
+  )
+}
+
+export function TeamCardSkeleton() {
+  return (
+    <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 animate-pulse">
+      <div className="flex items-center justify-between mb-4">
+        <div className="h-6 bg-white/10 rounded w-24" />
+        <div className="h-5 bg-white/5 rounded-full w-16" />
+      </div>
+      <div className="h-3 bg-white/5 rounded w-32 mb-4" />
+      <div className="grid grid-cols-5 gap-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="text-center">
+            <div className="h-6 bg-white/5 rounded mb-1" />
+            <div className="h-2 bg-white/5 rounded w-8 mx-auto" />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
