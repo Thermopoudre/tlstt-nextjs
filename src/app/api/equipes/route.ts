@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-// Numéro du club TLSTT Toulon La Seyne
 const TLSTT_CLUB_NUMBER = '13830083'
 
-// Ordre de tri des divisions (du plus haut au plus bas niveau)
 const DIVISION_ORDER: Record<string, number> = {
   'Nationale 3': 1,
   'Pre-Nationale': 2,
@@ -27,7 +25,6 @@ export async function GET() {
   const supabase = await createClient()
 
   try {
-    // Recuperer les equipes depuis Supabase
     const { data: teamsFromDb, error: dbError } = await supabase
       .from('teams')
       .select('*')
@@ -59,7 +56,7 @@ export async function GET() {
       return (a.name || '').localeCompare(b.name || '')
     })
 
-    // Formater pour le frontend
+    // Formater avec données Phase 1 ET Phase 2
     const equipes = sortedTeams.map(t => ({
       id: t.id,
       libequipe: t.name,
@@ -67,6 +64,7 @@ export async function GET() {
       libdivision: t.division || '',
       pool: t.pool || '',
       phase: t.phase || 2,
+      // Phase 2 (courante) stats
       cla: t.cla || 0,
       joue: t.joue || 0,
       pts: t.pts || 0,
@@ -74,6 +72,17 @@ export async function GET() {
       def: t.def || 0,
       nul: t.nul || 0,
       link_fftt: t.link_fftt || '',
+      // Phase 1 (archivée) stats
+      p1: {
+        cla: t.p1_cla || 0,
+        joue: t.p1_joue || 0,
+        pts: t.p1_pts || 0,
+        vic: t.p1_vic || 0,
+        def: t.p1_def || 0,
+        nul: t.p1_nul || 0,
+        division: t.p1_division || t.division || '',
+        pool: t.p1_pool || '',
+      }
     }))
 
     return NextResponse.json({

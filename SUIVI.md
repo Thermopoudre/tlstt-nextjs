@@ -1,5 +1,37 @@
 # SUIVI DES MODIFICATIONS - TLSTT Site
 
+## 2026-02-09 - Separation Phase 1 / Phase 2 + Redesign UX equipes et competitions
+
+### Base de donnees (migrations)
+| Migration | Description |
+|-----------|-------------|
+| `add_phase1_columns_and_competition_phase` | Ajout colonnes `p1_cla`, `p1_joue`, `p1_pts`, `p1_vic`, `p1_def`, `p1_nul`, `p1_division`, `p1_pool` sur `teams`. Copie des stats Phase 1 dans ces colonnes. Reset des colonnes principales pour Phase 2. Ajout colonne `phase` (integer) sur `competitions`. |
+| `fix_phase_data_corrections` | Correction p1_division (TLSTT 2: R2, TLSTT 3: R2). Mise a jour stats Phase 2 depuis les resultats de competitions reels (TLSTT 1: 2J 4pts, TLSTT 2: 1J 3pts, TLSTT 3: 1J 1pt, TLSTT 4: 1J 1pt). |
+
+### Fichiers modifies
+| Fichier | Description |
+|---------|-------------|
+| `src/app/api/equipes/route.ts` | Retourne maintenant les stats des DEUX phases par equipe : p2 (colonnes principales) + p1 (objet `p1` avec cla/joue/pts/vic/def/nul/division/pool) |
+| `src/app/equipes/page.tsx` | **Rewrite complet** : selecteur Phase 1/Phase 2 avec indicateur "EN COURS", classement interne TLSTT (tableau trie par points), stats globales contextuelles, cartes equipes avec rang live et comparaison inter-phase, filtres par division, affichage equipes sans donnees |
+| `src/app/competitions/page.tsx` | Refactorise en Server Component leger qui delegue au client component |
+| `src/app/competitions/CompetitionsContent.tsx` | **Nouveau** : composant client avec onglets Phase 1/Phase 2, filtre par equipe, stats contextuelles, resultats groupes par equipe, composant MatchRow reutilisable, badges division couleur |
+
+### UX Equipes - Nouvelles fonctionnalites
+- Onglets Phase 1 (ambre, "Terminee") / Phase 2 (bleu, "En cours" avec pulse vert)
+- Tableau classement interne TLSTT trie par points avec rang, division, V/N/D, barre %victoires
+- Cartes equipes cliquables avec rang en cercle (or/argent/bronze), comparaison mini de l'autre phase
+- Equipes sans donnees regroupees en bas avec liens
+- Stats globales recalculees selon la phase selectionnee
+
+### UX Competitions - Nouvelles fonctionnalites
+- Onglets Phase 1 / Phase 2 avec compteur de resultats
+- Filtre par equipe (boutons)
+- Resultats groupes par equipe quand "Toutes" est selectionne
+- MatchRow compact avec code couleur (vert victoire, rouge defaite, jaune nul)
+- Badges DOM/EXT + division sur chaque ligne
+
+---
+
 ## 2026-02-09 - Config SMTP Back Office + Table Comments + Verifications DB
 
 ### Configuration SMTP depuis le Back Office
