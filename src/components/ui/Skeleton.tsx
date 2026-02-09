@@ -1,142 +1,81 @@
-'use client'
-
-interface SkeletonProps {
-  className?: string
-  variant?: 'text' | 'circular' | 'rectangular' | 'rounded'
-  width?: string | number
-  height?: string | number
-  animation?: 'pulse' | 'wave' | 'none'
+export function SkeletonLine({ className = '' }: { className?: string }) {
+  return <div className={`animate-pulse bg-white/10 rounded ${className}`} />
 }
 
-export function Skeleton({
-  className = '',
-  variant = 'text',
-  width,
-  height,
-  animation = 'pulse'
-}: SkeletonProps) {
-  const baseClasses = 'bg-gray-200'
-  
-  const variantClasses = {
-    text: 'rounded h-4',
-    circular: 'rounded-full',
-    rectangular: '',
-    rounded: 'rounded-lg'
-  }
-  
-  const animationClasses = {
-    pulse: 'animate-pulse',
-    wave: 'skeleton-wave',
-    none: ''
-  }
-
-  const style: React.CSSProperties = {}
-  if (width) style.width = typeof width === 'number' ? `${width}px` : width
-  if (height) style.height = typeof height === 'number' ? `${height}px` : height
-
+export function SkeletonCard() {
   return (
-    <div
-      className={`${baseClasses} ${variantClasses[variant]} ${animationClasses[animation]} ${className}`}
-      style={style}
-    />
-  )
-}
-
-// Skeleton pour une carte d'actualité
-export function NewsCardSkeleton() {
-  return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-lg">
-      <Skeleton variant="rectangular" className="w-full h-48" />
-      <div className="p-4 space-y-3">
-        <Skeleton variant="text" className="w-3/4 h-6" />
-        <Skeleton variant="text" className="w-full h-4" />
-        <Skeleton variant="text" className="w-5/6 h-4" />
-        <div className="flex justify-between items-center pt-2">
-          <Skeleton variant="text" className="w-24 h-3" />
-          <Skeleton variant="text" className="w-20 h-3" />
+    <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl overflow-hidden animate-pulse">
+      <div className="aspect-video bg-white/5" />
+      <div className="p-5 space-y-3">
+        <div className="h-4 bg-white/10 rounded w-3/4" />
+        <div className="h-3 bg-white/5 rounded w-full" />
+        <div className="h-3 bg-white/5 rounded w-2/3" />
+        <div className="flex justify-between items-center mt-4">
+          <div className="h-3 bg-white/5 rounded w-20" />
+          <div className="h-8 bg-white/5 rounded w-24" />
         </div>
       </div>
     </div>
   )
 }
 
-// Skeleton pour une ligne de joueur
-export function PlayerRowSkeleton() {
+export function SkeletonTable({ rows = 5, cols = 5 }: { rows?: number; cols?: number }) {
   return (
-    <div className="flex items-center gap-4 p-4 border-b">
-      <Skeleton variant="circular" width={40} height={40} />
-      <div className="flex-1 space-y-2">
-        <Skeleton variant="text" className="w-40 h-5" />
-        <Skeleton variant="text" className="w-24 h-3" />
-      </div>
-      <Skeleton variant="text" className="w-16 h-6" />
-    </div>
-  )
-}
-
-// Skeleton pour une carte d'équipe
-export function TeamCardSkeleton() {
-  return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-lg">
-      <Skeleton variant="rectangular" className="w-full h-20" />
-      <div className="p-4 space-y-4">
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="space-y-2">
-            <Skeleton variant="text" className="w-12 h-8 mx-auto" />
-            <Skeleton variant="text" className="w-16 h-3 mx-auto" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton variant="text" className="w-12 h-8 mx-auto" />
-            <Skeleton variant="text" className="w-16 h-3 mx-auto" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton variant="text" className="w-12 h-8 mx-auto" />
-            <Skeleton variant="text" className="w-16 h-3 mx-auto" />
-          </div>
-        </div>
-        <div className="flex justify-between items-center pt-4 border-t">
-          <Skeleton variant="text" className="w-32 h-4" />
-          <div className="flex gap-2">
-            <Skeleton variant="circular" width={32} height={32} />
-            <Skeleton variant="circular" width={32} height={32} />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Skeleton pour les stats
-export function StatCardSkeleton() {
-  return (
-    <div className="bg-white rounded-xl shadow p-4">
-      <Skeleton variant="text" className="w-20 h-3 mb-2" />
-      <Skeleton variant="text" className="w-16 h-8" />
-    </div>
-  )
-}
-
-// Skeleton pour une grille de cartes
-export function CardGridSkeleton({ count = 6 }: { count?: number }) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {Array.from({ length: count }).map((_, i) => (
-        <NewsCardSkeleton key={i} />
-      ))}
-    </div>
-  )
-}
-
-// Skeleton pour un tableau
-export function TableSkeleton({ rows = 10 }: { rows?: number }) {
-  return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="p-4 border-b bg-gray-50">
-        <Skeleton variant="text" className="w-48 h-6" />
-      </div>
+    <div className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden animate-pulse">
+      <div className="h-12 bg-white/5 border-b border-[#333]" />
       {Array.from({ length: rows }).map((_, i) => (
-        <PlayerRowSkeleton key={i} />
+        <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-[#222]">
+          {Array.from({ length: cols }).map((_, j) => (
+            <div key={j} className={`h-3 bg-white/5 rounded ${j === 0 ? 'w-32' : 'flex-1'}`} />
+          ))}
+        </div>
       ))}
+    </div>
+  )
+}
+
+export function SkeletonPlayer() {
+  return (
+    <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 animate-pulse">
+      <div className="flex items-center gap-4 mb-4">
+        <div className="w-16 h-16 bg-white/5 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <div className="h-5 bg-white/10 rounded w-40" />
+          <div className="h-3 bg-white/5 rounded w-24" />
+        </div>
+        <div className="h-8 w-16 bg-white/5 rounded-full" />
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="h-12 bg-white/5 rounded-lg" />
+        <div className="h-12 bg-white/5 rounded-lg" />
+        <div className="h-12 bg-white/5 rounded-lg" />
+      </div>
+    </div>
+  )
+}
+
+export function SkeletonArticle() {
+  return (
+    <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl overflow-hidden animate-pulse">
+      <div className="aspect-[16/9] bg-white/5" />
+      <div className="p-6 space-y-3">
+        <div className="flex gap-2">
+          <div className="h-5 bg-white/10 rounded-full w-16" />
+          <div className="h-5 bg-white/5 rounded-full w-24" />
+        </div>
+        <div className="h-6 bg-white/10 rounded w-3/4" />
+        <div className="h-3 bg-white/5 rounded w-full" />
+        <div className="h-3 bg-white/5 rounded w-5/6" />
+      </div>
+    </div>
+  )
+}
+
+export function SkeletonGrid({ count = 6, type = 'card' }: { count?: number; type?: 'card' | 'player' | 'article' }) {
+  const Component = type === 'player' ? SkeletonPlayer : type === 'article' ? SkeletonArticle : SkeletonCard
+  return (
+    <div className={`grid gap-6 ${type === 'player' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+      {Array.from({ length: count }).map((_, i) => <Component key={i} />)}
     </div>
   )
 }

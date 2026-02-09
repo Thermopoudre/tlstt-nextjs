@@ -368,6 +368,77 @@ textarea.input-field {
   height: 0;
 }
 
+/* ============================================
+   LIGHT MODE OVERRIDES
+   ============================================ */
+.light-mode {
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+}
+
+.light-mode body {
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+/* Dark backgrounds -> Light */
+.light-mode .bg-\[\#0a0a0a\],
+.light-mode .bg-\[\#0a0a0b\] {
+  background-color: #f8fafc !important;
+}
+
+.light-mode .bg-\[\#1a1a1a\],
+.light-mode .bg-\[\#111\],
+.light-mode .bg-\[\#111111\] {
+  background-color: #ffffff !important;
+}
+
+/* Text colors */
+.light-mode .text-white {
+  color: #1e293b !important;
+}
+
+.light-mode .text-gray-400,
+.light-mode .text-gray-500 {
+  color: #64748b !important;
+}
+
+.light-mode .text-gray-600 {
+  color: #475569 !important;
+}
+
+/* Borders */
+.light-mode .border-\[\#333\],
+.light-mode .border-\[\#222\] {
+  border-color: #e2e8f0 !important;
+}
+
+.light-mode .border-white\/10,
+.light-mode .border-white\/20 {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Backgrounds with opacity */
+.light-mode .bg-white\/5,
+.light-mode .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Header/Footer in light mode */
+.light-mode header {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.light-mode footer {
+  background-color: #1e293b !important;
+}
+
+/* Cards */
+.light-mode .bg-\[\#1a1a1a\] {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
 /* Print styles */
 @media print {
   .no-print {

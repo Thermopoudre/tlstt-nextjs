@@ -110,7 +110,15 @@ export default function EquipesPage() {
               <i className="fas fa-users mr-3 text-[#3b9fd8]"></i>
               NOS <span className="text-[#3b9fd8]">EQUIPES</span>
             </h1>
-            <p className="text-xl text-gray-400">Championnats par equipes - Saison 2025/2026</p>
+            <p className="text-xl text-gray-400 mb-3">Championnats par equipes - Saison 2025/2026</p>
+            <a
+              href="/api/export/classement-pdf"
+              target="_blank"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-[#3b9fd8]/30 text-[#3b9fd8] rounded-lg text-sm hover:bg-[#3b9fd8]/10 transition-colors"
+            >
+              <i className="fas fa-file-pdf"></i>
+              Exporter les classements (PDF)
+            </a>
             {source && (
               <p className="text-sm text-gray-500 mt-2">
                 <i className="fas fa-database text-[#3b9fd8] mr-1"></i>

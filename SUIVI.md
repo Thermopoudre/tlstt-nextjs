@@ -1,5 +1,54 @@
 # SUIVI DES MODIFICATIONS - TLSTT Site
 
+## 2026-02-08 - Mega-Update : 17 ameliorations implementees
+
+### Priorite haute - Impact utilisateur
+| Fichier | Description |
+|---------|-------------|
+| `src/app/not-found.tsx` | Page 404 personnalisee aux couleurs du club (balle de ping-pong animee, liens retour) |
+| `src/app/boutique/page.tsx` | Bouton paiement boutique : enregistrement commande en DB + HelloAsso paiement en ligne + reservation au club |
+| `src/app/api/newsletter/send/route.ts` | API envoi newsletters par email SMTP (envoi en lots, template HTML, desabonnement) |
+| `src/app/admin/newsletter/page.tsx` | Bouton "Envoyer par email" dans l'admin newsletter + badge statut envoyee |
+| `src/app/admin/equipes/page.tsx` | Bouton "Synchroniser" pour re-sync equipes Phase 2 |
+| `src/app/opengraph-image.tsx` | OG Image dynamique generee par Next.js ImageResponse (branding TLSTT) |
+
+### Priorite moyenne - UX/Qualite
+| Fichier | Description |
+|---------|-------------|
+| `src/app/api/search/route.ts` | API recherche globale (articles, joueurs, newsletters) |
+| `src/components/layout/SearchBar.tsx` | Barre recherche avec Ctrl+K, resultats en overlay |
+| `src/components/layout/Header.tsx` | Integration SearchBar, ThemeToggle, LanguageSelector |
+| `src/app/api/notify/subscribers/route.ts` | API notification abonnes a la publication (email BCC) |
+| `src/app/admin/pages/builder/page.tsx` | Page Builder visuel admin (hero, texte, image, CTA, stats, cartes) |
+| `src/app/page/[slug]/page.tsx` | Rendu public des pages construites avec le builder |
+| `src/app/api/export/classement-pdf/route.ts` | Export HTML/PDF des classements equipes et joueurs |
+| `src/app/equipes/page.tsx` | Bouton export PDF dans la page equipes |
+| `src/components/layout/ThemeToggle.tsx` | Toggle mode sombre/clair avec persistence localStorage |
+| `src/app/globals.css` | Styles CSS light-mode complets |
+| `public/manifest.json` | Manifest PWA (icones, couleurs, standalone) |
+| `public/sw.js` | Service Worker (cache network-first, offline fallback) |
+| `src/app/layout.tsx` | PWA meta tags + SW registration + manifest link |
+| `src/components/auth/RegisterModal.tsx` | Formulaire inscription multi-etapes (3 etapes) + indicateur force mdp |
+
+### Priorite basse - Polish
+| Fichier | Description |
+|---------|-------------|
+| `src/components/ui/Skeleton.tsx` | Composants Skeleton loaders reutilisables (SkeletonCard, SkeletonTable, SkeletonPlayer, SkeletonArticle, SkeletonGrid) |
+| `src/app/galerie/[id]/page.tsx` | Lazy loading images galerie + attribut sizes responsive |
+| `src/app/galerie/page.tsx` | Lazy loading + sizes sur la page liste albums |
+| `src/app/admin/analytics/page.tsx` | Dashboard analytics admin (KPIs, articles recents, membres, categories, actions rapides) |
+| `src/lib/i18n.ts` | Systeme de traductions FR/EN (dictionnaire de cles) |
+| `src/components/layout/LanguageSelector.tsx` | Selecteur de langue FR/EN dans le header |
+| `src/components/comments/ArticleComments.tsx` | Systeme de commentaires sur les articles (pour membres connectes) |
+| `src/app/actualites/[category]/[id]/page.tsx` | Integration composant commentaires dans la page article |
+
+### Dependances ajoutees
+| Package | Usage |
+|---------|-------|
+| `nodemailer` | Envoi d'emails SMTP pour newsletters et notifications |
+
+---
+
 ## 2026-02-08 - SEO Automatique Complet
 
 ### Objectif

@@ -233,7 +233,47 @@ export default function BoutiquePage() {
     ))
   }
 
+  const [orderSubmitting, setOrderSubmitting] = useState(false)
+  const [orderSuccess, setOrderSuccess] = useState(false)
+
   const cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+
+  const handleOrder = async () => {
+    if (cart.length === 0 || !user) return
+    setOrderSubmitting(true)
+
+    try {
+      const supabase = createClient()
+      const items = cart.map(item => ({
+        product_id: item.product.id,
+        name: item.product.name,
+        size: item.size || null,
+        quantity: item.quantity,
+        unit_price: item.product.price,
+      }))
+
+      const { error } = await supabase.from('shop_orders').insert({
+        member_id: user.id,
+        items,
+        total: cartTotal,
+        status: 'pending',
+        notes: `Commande de ${cart.reduce((s, i) => s + i.quantity, 0)} article(s)`,
+      })
+
+      if (error) throw error
+
+      setCart([])
+      setOrderSuccess(true)
+      setTimeout(() => {
+        setShowCart(false)
+        setOrderSuccess(false)
+      }, 5000)
+    } catch (err: any) {
+      alert('Erreur lors de la commande : ' + (err.message || 'Veuillez reessayer'))
+    } finally {
+      setOrderSubmitting(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -400,7 +440,21 @@ export default function BoutiquePage() {
                 </button>
               </div>
 
-              {cart.length === 0 ? (
+              {orderSuccess ? (
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i className="fas fa-check-circle text-5xl text-green-500"></i>
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Commande enregistree !</h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Votre commande a ete enregistree. Vous serez contacte pour le retrait au club.
+                  </p>
+                  <p className="text-gray-500 text-xs">
+                    <i className="fas fa-envelope mr-1"></i>
+                    Un recapitulatif vous sera envoye par email.
+                  </p>
+                </div>
+              ) : cart.length === 0 ? (
                 <div className="text-center py-12">
                   <i className="fas fa-shopping-cart text-6xl text-gray-600 mb-4"></i>
                   <p className="text-gray-500">Votre panier est vide</p>
@@ -448,24 +502,44 @@ export default function BoutiquePage() {
                       <span className="text-[#3b9fd8] font-bold text-2xl">{cartTotal.toFixed(2)}€</span>
                     </div>
                     {helloassoUrl ? (
-                      <a
-                        href={helloassoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full bg-[#4c40cf] text-white py-4 rounded-xl font-bold hover:bg-[#3d32b0] transition-colors flex items-center justify-center gap-2"
-                      >
-                        <img src="https://api.helloasso.com/v5/img/logo-ha.svg" alt="HelloAsso" className="h-5" />
-                        Payer avec HelloAsso
-                      </a>
+                      <div className="space-y-3">
+                        <a
+                          href={helloassoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full bg-[#4c40cf] text-white py-4 rounded-xl font-bold hover:bg-[#3d32b0] transition-colors flex items-center justify-center gap-2"
+                        >
+                          <i className="fas fa-credit-card mr-1"></i>
+                          Payer en ligne via HelloAsso
+                        </a>
+                        <button
+                          onClick={handleOrder}
+                          disabled={orderSubmitting}
+                          className="w-full bg-[#1a1a1a] border border-[#3b9fd8]/50 text-[#3b9fd8] py-3 rounded-xl font-semibold hover:bg-[#3b9fd8]/10 transition-colors disabled:opacity-50"
+                        >
+                          {orderSubmitting ? (
+                            <><i className="fas fa-spinner fa-spin mr-2"></i>Envoi...</>
+                          ) : (
+                            <><i className="fas fa-hand-holding mr-2"></i>Reserver (paiement au club)</>
+                          )}
+                        </button>
+                      </div>
                     ) : (
-                      <button className="w-full bg-[#3b9fd8] text-white py-4 rounded-xl font-bold hover:bg-[#2d8bc9] transition-colors">
-                        <i className="fas fa-credit-card mr-2"></i>
-                        Commander
+                      <button
+                        onClick={handleOrder}
+                        disabled={orderSubmitting}
+                        className="w-full bg-[#3b9fd8] text-white py-4 rounded-xl font-bold hover:bg-[#2d8bc9] transition-colors disabled:opacity-50"
+                      >
+                        {orderSubmitting ? (
+                          <><i className="fas fa-spinner fa-spin mr-2"></i>Envoi en cours...</>
+                        ) : (
+                          <><i className="fas fa-shopping-bag mr-2"></i>Commander (retrait au club)</>
+                        )}
                       </button>
                     )}
                     <p className="text-gray-600 text-xs text-center mt-3">
-                      <i className="fas fa-lock mr-1"></i>
-                      Paiement securise - Retrait au club
+                      <i className="fas fa-store mr-1"></i>
+                      Retrait des articles au gymnase lors des entrainements
                     </p>
                   </div>
                 </>

@@ -7,6 +7,9 @@ import { useAuth } from '@/components/auth/AuthProvider'
 import UserMenu from '@/components/auth/UserMenu'
 import LoginModal from '@/components/auth/LoginModal'
 import RegisterModal from '@/components/auth/RegisterModal'
+import SearchBar from '@/components/layout/SearchBar'
+import ThemeToggle from '@/components/layout/ThemeToggle'
+import LanguageSelector from '@/components/layout/LanguageSelector'
 
 export default function Header() {
   const { user, loading } = useAuth()
@@ -112,7 +115,12 @@ export default function Header() {
               </ul>
 
               {/* Auth Section */}
-              <div className="ml-3 flex items-center gap-1.5 border-l border-white/20 pl-3">
+              <div className="ml-2 flex items-center gap-0.5">
+                <SearchBar />
+                <ThemeToggle />
+                <LanguageSelector />
+              </div>
+              <div className="ml-1.5 flex items-center gap-1.5 border-l border-white/20 pl-3">
                 {loading ? (
                   <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse"></div>
                 ) : user ? (

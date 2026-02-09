@@ -17,6 +17,8 @@ export default function AdminNewsletterPage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null)
+  const [sending, setSending] = useState<number | null>(null)
+  const [sendResult, setSendResult] = useState<{ sent: number, failed: number, total: number } | null>(null)
 
   // Compose form
   const [compose, setCompose] = useState({
@@ -126,6 +128,40 @@ export default function AdminNewsletterPage() {
     })
     setEditingId(nl.id)
     setActiveTab('compose')
+  }
+
+  const handleSendNewsletter = async (nlId: number) => {
+    if (!confirm('Envoyer cette newsletter par email a tous les abonnes actifs ?')) return
+    setSending(nlId)
+    setSendResult(null)
+    setMessage(null)
+
+    try {
+      const res = await fetch('/api/newsletter/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newsletterId: nlId }),
+      })
+      const data = await res.json()
+
+      if (data.smtpMissing) {
+        setMessage({ type: 'error', text: 'SMTP non configure. Ajoutez les variables SMTP_HOST, SMTP_USER, SMTP_PASS sur Vercel.' })
+      } else if (data.error && data.sent === undefined) {
+        setMessage({ type: 'error', text: data.error })
+      } else {
+        setSendResult({ sent: data.sent || 0, failed: data.failed || 0, total: data.total || 0 })
+        if (data.sent > 0) {
+          setMessage({ type: 'success', text: `Newsletter envoyee a ${data.sent} abonne(s) !` })
+        } else {
+          setMessage({ type: 'error', text: data.error || 'Aucun email envoye' })
+        }
+        await loadAll()
+      }
+    } catch (err: any) {
+      setMessage({ type: 'error', text: 'Erreur reseau : ' + err.message })
+    } finally {
+      setSending(null)
+    }
   }
 
   const handleDeleteNewsletter = async () => {
@@ -370,18 +406,36 @@ export default function AdminNewsletterPage() {
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-lg font-bold text-gray-900">{nl.title}</h3>
                         <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                          nl.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                          nl.status === 'sent' ? 'bg-blue-100 text-blue-800' : nl.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                         }`}>
-                          {nl.status === 'published' ? 'Publiée' : 'Brouillon'}
+                          {nl.status === 'sent' ? 'Envoyee' : nl.status === 'published' ? 'Publiee' : 'Brouillon'}
                         </span>
                       </div>
                       {nl.excerpt && <p className="text-gray-600 text-sm mb-2">{nl.excerpt}</p>}
-                      <p className="text-xs text-gray-400">
-                        <i className="fas fa-clock mr-1"></i>
-                        {new Date(nl.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                      </p>
+                      <div className="flex items-center gap-4 text-xs text-gray-400">
+                        <span>
+                          <i className="fas fa-clock mr-1"></i>
+                          {new Date(nl.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </span>
+                        {nl.sent_at && (
+                          <span className="text-blue-500">
+                            <i className="fas fa-paper-plane mr-1"></i>
+                            Envoyee le {new Date(nl.sent_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      {nl.status !== 'sent' && (
+                        <button
+                          onClick={() => handleSendNewsletter(nl.id)}
+                          disabled={sending === nl.id}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
+                          title="Envoyer par email"
+                        >
+                          {sending === nl.id ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-paper-plane"></i>}
+                        </button>
+                      )}
                       <button onClick={() => handleEditNewsletter(nl)}
                         className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Modifier">
                         <i className="fas fa-edit"></i>

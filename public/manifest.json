@@ -1,0 +1,26 @@
+{
+  "name": "TLSTT - Toulon La Seyne Tennis de Table",
+  "short_name": "TLSTT",
+  "description": "Site officiel du club de tennis de table TLSTT - Toulon La Seyne",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#3b9fd8",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports"],
+  "lang": "fr"
+}

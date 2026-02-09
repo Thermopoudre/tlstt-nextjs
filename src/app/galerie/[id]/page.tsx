@@ -132,6 +132,8 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
                 src={photo.url}
                 alt={photo.title || `Photo ${photo.id}`}
                 fill
+                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                loading="lazy"
                 className="object-cover group-hover:scale-110 transition-transform duration-300"
               />
               

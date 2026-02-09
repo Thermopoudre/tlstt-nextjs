@@ -41,6 +41,9 @@ export default function AdminEquipesPage() {
     is_active: true,
   })
 
+  const [syncing, setSyncing] = useState(false)
+  const [syncMsg, setSyncMsg] = useState<string | null>(null)
+
   useEffect(() => { fetchTeams() }, [])
 
   const fetchTeams = async () => {
@@ -50,6 +53,25 @@ export default function AdminEquipesPage() {
       .order('name')
     if (data) setTeams(data)
     setLoading(false)
+  }
+
+  const handleSync = async () => {
+    setSyncing(true)
+    setSyncMsg(null)
+    try {
+      const res = await fetch('/api/sync-equipes')
+      const data = await res.json()
+      if (data.success) {
+        setSyncMsg(`Sync OK : ${data.summary.updated} mises a jour, ${data.summary.divisionOnly} divisions, ${data.summary.errors} erreurs`)
+        await fetchTeams()
+      } else {
+        setSyncMsg('Erreur sync: ' + (data.error || 'Inconnue'))
+      }
+    } catch (err: any) {
+      setSyncMsg('Erreur: ' + err.message)
+    } finally {
+      setSyncing(false)
+    }
   }
 
   const openNewForm = () => {
@@ -129,9 +151,21 @@ export default function AdminEquipesPage() {
           <h1 className="text-2xl lg:text-3xl font-bold text-primary">Equipes</h1>
           <p className="text-gray-600 mt-1">Gerez les equipes du club et leurs resultats</p>
         </div>
-        <button onClick={openNewForm} className="btn-primary flex items-center gap-2">
-          <i className="fas fa-plus"></i>Nouvelle equipe
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={handleSync} disabled={syncing}
+            className="bg-blue-600 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2">
+            <i className={`fas ${syncing ? 'fa-spinner fa-spin' : 'fa-sync-alt'}`}></i>
+            {syncing ? 'Sync...' : 'Synchroniser'}
+          </button>
+          <button onClick={openNewForm} className="btn-primary flex items-center gap-2">
+            <i className="fas fa-plus"></i>Nouvelle equipe
+          </button>
+        </div>
+        {syncMsg && (
+          <div className={`text-sm px-4 py-2 rounded-lg ${syncMsg.includes('Erreur') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+            <i className={`fas ${syncMsg.includes('Erreur') ? 'fa-exclamation-circle' : 'fa-check-circle'} mr-2`}></i>{syncMsg}
+          </div>
+        )}
       </div>
 
       {/* Stats */}

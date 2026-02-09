@@ -24,25 +24,38 @@
 
 ## Fonctionnalités Prévues
 
-### Phase 3 - Admin Back-Office (En cours)
+### Phase 3 - Admin Back-Office (Complet)
 - [x] Gestion actualites (CRUD complet)
 - [x] Gestion carrousel (CRUD complet)
 - [x] Gestion partenaires (CRUD complet)
 - [x] Gestion produits boutique (CRUD + creation)
 - [x] Gestion labels FFTT (CRUD complet)
 - [x] Validation membres (admin page avec roles)
-- [x] Gestion equipes (CRUD complet avec resultats)
+- [x] Gestion equipes (CRUD complet avec resultats + sync)
 - [x] Configuration email SMTP Gmail
 - [x] Integration HelloAsso (cotisation + boutique)
 - [x] Gestion planning (CRUD complet)
 - [x] Gestion galerie (CRUD complet)
 - [x] Gestion pages legales (edition)
-- [ ] Envoi newsletter par email
+- [x] Envoi newsletter par email (SMTP, envoi en lots)
+- [x] Page Builder visuel (blocs hero, texte, image, CTA, stats, cartes)
+- [x] Dashboard analytics admin (KPIs, activite, actions rapides)
 - [ ] Communications secretariat par email
 
 ### Phase 4 - Fonctionnalites Avancees
 - [x] Paiement en ligne via HelloAsso (gratuit pour associations)
-- [ ] Notifications push
+- [x] Recherche globale (articles, joueurs, newsletters) + Ctrl+K
+- [x] Notifications abonnes par email a la publication
+- [x] Mode sombre/clair avec toggle
+- [x] PWA (manifest + service worker)
+- [x] Export PDF classements/progressions
+- [x] Multi-langue FR/EN
+- [x] Commentaires articles par les membres
+- [x] Skeleton loaders sur pages dynamiques
+- [x] Lazy loading images galerie optimise
+- [x] OG Image dynamique de marque
+- [x] Page 404 personnalisee
+- [x] Formulaire inscription multi-etapes
 - [ ] Chat entre membres
 - [ ] Calendrier reservation salles
 - [ ] Statistiques avancees joueurs
