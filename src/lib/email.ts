@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 
 interface EmailOptions {
   to: string | string[]
@@ -6,63 +7,110 @@ interface EmailOptions {
   text?: string
   html?: string
   replyTo?: string
+  bcc?: string | string[]
+}
+
+export interface SmtpConfig {
+  host: string
+  port: number
+  secure: boolean
+  user: string
+  pass: string
+  from: string
+  adminEmail: string
+  configured: boolean
 }
 
 /**
- * Creer un transporter SMTP Gmail.
- * 
- * Configuration requise dans les variables d'environnement :
- * - SMTP_HOST: smtp.gmail.com
- * - SMTP_PORT: 587
- * - SMTP_USER: votre-email@gmail.com
- * - SMTP_PASS: mot de passe d'application Gmail (pas le mot de passe du compte)
- * - SMTP_FROM: "TLSTT <votre-email@gmail.com>"
- * 
- * Pour obtenir un mot de passe d'application Gmail :
- * 1. Activer la validation en 2 etapes sur le compte Google
- * 2. Aller dans https://myaccount.google.com/apppasswords
- * 3. Creer un mot de passe pour "Mail" > "Autre (TLSTT)"
- * 4. Copier le mot de passe genere (16 caracteres, sans espaces)
+ * Recupere la configuration SMTP depuis la table settings (DB) avec fallback env vars.
+ * Priorite : DB > Variables d'environnement
  */
-function createTransporter() {
-  const host = process.env.SMTP_HOST || 'smtp.gmail.com'
-  const port = parseInt(process.env.SMTP_PORT || '587')
-  const user = process.env.SMTP_USER
-  const pass = process.env.SMTP_PASS
+export async function getSmtpConfig(): Promise<SmtpConfig> {
+  let dbSettings: Record<string, string> = {}
 
-  if (!user || !pass) {
-    console.warn('SMTP non configure: SMTP_USER et SMTP_PASS manquants')
+  try {
+    const supabase = await createServerClient()
+    const { data } = await supabase
+      .from('settings')
+      .select('setting_key, setting_value')
+      .in('setting_key', ['smtp_host', 'smtp_port', 'smtp_secure', 'smtp_user', 'smtp_pass', 'smtp_from', 'smtp_admin_email'])
+
+    if (data) {
+      data.forEach((s: { setting_key: string; setting_value: string | null }) => {
+        if (s.setting_value) {
+          dbSettings[s.setting_key] = s.setting_value
+        }
+      })
+    }
+  } catch {
+    // Silently fallback to env vars if DB read fails
+  }
+
+  const host = dbSettings.smtp_host || process.env.SMTP_HOST || 'smtp.gmail.com'
+  const port = parseInt(dbSettings.smtp_port || process.env.SMTP_PORT || '587')
+  const secure = (dbSettings.smtp_secure || process.env.SMTP_SECURE || 'false') === 'true' || port === 465
+  const user = dbSettings.smtp_user || process.env.SMTP_USER || ''
+  const pass = dbSettings.smtp_pass || process.env.SMTP_PASS || ''
+  const from = dbSettings.smtp_from || process.env.SMTP_FROM || user
+  const adminEmail = dbSettings.smtp_admin_email || process.env.SMTP_ADMIN_EMAIL || user
+
+  return {
+    host,
+    port,
+    secure,
+    user,
+    pass,
+    from,
+    adminEmail,
+    configured: !!(user && pass),
+  }
+}
+
+/**
+ * Creer un transporter SMTP a partir de la config (DB + env vars).
+ */
+function createTransporterFromConfig(config: SmtpConfig) {
+  if (!config.configured) {
+    console.warn('SMTP non configure: user et pass manquants')
     return null
   }
 
   return nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass },
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    auth: { user: config.user, pass: config.pass },
   })
 }
 
 /**
- * Envoyer un email via SMTP Gmail
+ * Creer un transporter SMTP (async, lit la config DB).
+ */
+async function createTransporter() {
+  const config = await getSmtpConfig()
+  return createTransporterFromConfig(config)
+}
+
+/**
+ * Envoyer un email via SMTP (config DB + env vars)
  */
 export async function sendEmail(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
-  const transporter = createTransporter()
+  const config = await getSmtpConfig()
+  const transporter = createTransporterFromConfig(config)
 
   if (!transporter) {
-    return { success: false, error: 'SMTP non configure' }
+    return { success: false, error: 'SMTP non configure. Allez dans Administration > Config Email pour configurer.' }
   }
-
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER
 
   try {
     await transporter.sendMail({
-      from,
+      from: config.from ? `"TLSTT" <${config.from}>` : config.user,
       to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
       subject: options.subject,
       text: options.text,
       html: options.html,
       replyTo: options.replyTo,
+      bcc: options.bcc ? (Array.isArray(options.bcc) ? options.bcc.join(', ') : options.bcc) : undefined,
     })
     return { success: true }
   } catch (error: unknown) {
@@ -82,7 +130,8 @@ export async function sendContactNotification(data: {
   message: string
   phone?: string
 }): Promise<{ success: boolean; error?: string }> {
-  const adminEmail = process.env.SMTP_ADMIN_EMAIL || process.env.SMTP_USER
+  const config = await getSmtpConfig()
+  const adminEmail = config.adminEmail
 
   if (!adminEmail) {
     return { success: false, error: 'Email admin non configure' }
@@ -173,17 +222,29 @@ export async function sendWelcomeEmail(email: string, firstName: string): Promis
 /**
  * Tester la connexion SMTP
  */
-export async function testSmtpConnection(): Promise<{ success: boolean; error?: string }> {
-  const transporter = createTransporter()
+export async function testSmtpConnection(): Promise<{ success: boolean; error?: string; config?: Partial<SmtpConfig> }> {
+  const config = await getSmtpConfig()
+  const transporter = createTransporterFromConfig(config)
+
+  const configInfo = {
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    user: config.user ? `${config.user.substring(0, 3)}***` : 'non configure',
+    from: config.from || 'non configure',
+    adminEmail: config.adminEmail || 'non configure',
+    configured: config.configured,
+  }
+
   if (!transporter) {
-    return { success: false, error: 'SMTP non configure: SMTP_USER et SMTP_PASS manquants' }
+    return { success: false, error: 'SMTP non configure. Allez dans Administration > Config Email.', config: configInfo }
   }
 
   try {
     await transporter.verify()
-    return { success: true }
+    return { success: true, config: configInfo }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue'
-    return { success: false, error: message }
+    return { success: false, error: message, config: configInfo }
   }
 }

@@ -1,24 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import nodemailer from 'nodemailer'
+import { getSmtpConfig } from '@/lib/email'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
-function createTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  })
-}
-
 export async function POST(request: NextRequest) {
   try {
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    const smtpConfig = await getSmtpConfig()
+    if (!smtpConfig.configured) {
       return NextResponse.json({ skipped: true, reason: 'SMTP non configure' })
     }
 
@@ -40,7 +30,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ sent: 0, reason: 'Aucun abonne' })
     }
 
-    const transporter = createTransporter()
+    const transporter = nodemailer.createTransport({
+      host: smtpConfig.host,
+      port: smtpConfig.port,
+      secure: smtpConfig.secure,
+      auth: { user: smtpConfig.user, pass: smtpConfig.pass },
+    })
     const typeLabel = type === 'article' ? 'Nouvel article' : type === 'newsletter' ? 'Nouvelle newsletter' : 'Nouvelle publication'
     const fullUrl = url.startsWith('http') ? url : `${SITE_URL}${url}`
     let sent = 0
@@ -73,7 +68,7 @@ export async function POST(request: NextRequest) {
       const batch = subscribers.slice(i, i + batchSize)
       try {
         await transporter.sendMail({
-          from: `"TLSTT" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+          from: `"TLSTT" <${smtpConfig.from || smtpConfig.user}>`,
           bcc: batch.map(s => s.email).join(','),
           subject: `[TLSTT] ${typeLabel} : ${title}`,
           html,

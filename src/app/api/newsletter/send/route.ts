@@ -1,22 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import nodemailer from 'nodemailer'
+import { getSmtpConfig } from '@/lib/email'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 const BATCH_SIZE = 50 // emails par lot
 const DELAY_BETWEEN_BATCHES = 2000 // ms
-
-function createTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  })
-}
 
 function buildEmailHtml(newsletter: any, unsubscribeUrl: string): string {
   return `
@@ -93,10 +82,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'newsletterId requis' }, { status: 400 })
     }
 
-    // Check SMTP config
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    // Check SMTP config from DB + env vars
+    const smtpConfig = await getSmtpConfig()
+    if (!smtpConfig.configured) {
       return NextResponse.json({ 
-        error: 'SMTP non configure. Ajoutez SMTP_HOST, SMTP_USER, SMTP_PASS dans les variables Vercel.',
+        error: 'SMTP non configure. Allez dans Administration > Config Email pour configurer le serveur SMTP.',
         smtpMissing: true
       }, { status: 500 })
     }
@@ -126,8 +116,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Aucun abonne actif', sent: 0 }, { status: 200 })
     }
 
-    // Send emails in batches
-    const transporter = createTransporter()
+    // Send emails in batches using DB config
+    const transporter = nodemailer.createTransport({
+      host: smtpConfig.host,
+      port: smtpConfig.port,
+      secure: smtpConfig.secure,
+      auth: { user: smtpConfig.user, pass: smtpConfig.pass },
+    })
     let sent = 0
     let failed = 0
     const errors: string[] = []
@@ -141,7 +136,7 @@ export async function POST(request: NextRequest) {
           const html = buildEmailHtml(newsletter, unsubscribeUrl)
 
           await transporter.sendMail({
-            from: `"TLSTT" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+            from: `"TLSTT" <${smtpConfig.from || smtpConfig.user}>`,
             to: sub.email,
             subject: newsletter.title,
             html,

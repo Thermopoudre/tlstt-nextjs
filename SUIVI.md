@@ -1,5 +1,34 @@
 # SUIVI DES MODIFICATIONS - TLSTT Site
 
+## 2026-02-09 - Config SMTP Back Office + Table Comments + Verifications DB
+
+### Configuration SMTP depuis le Back Office
+| Fichier | Description |
+|---------|-------------|
+| `src/lib/email.ts` | Refactorise : lit la config SMTP depuis la table `settings` (DB) avec fallback env vars. Nouvelle fonction `getSmtpConfig()`, `SmtpConfig` interface, `createTransporterFromConfig()`. Support BCC dans `sendEmail()` |
+| `src/app/admin/email/page.tsx` | Reecrit completement : formulaire SMTP complet (host, port, SSL, user, pass, from, admin email), presets rapides (Gmail, Outlook, IONOS, OVH), test connexion, envoi email de test, guide Gmail |
+| `src/app/api/settings/smtp/route.ts` | **Nouveau** : API REST GET/POST pour lire/sauvegarder la config SMTP (admin-protected) |
+| `src/app/api/email/test/route.ts` | Mis a jour : utilise `getSmtpConfig()` + `testSmtpConnection()` depuis la DB |
+| `src/app/api/newsletter/send/route.ts` | Mis a jour : utilise `getSmtpConfig()` au lieu de `process.env` directement |
+| `src/app/api/notify/subscribers/route.ts` | Mis a jour : utilise `getSmtpConfig()` au lieu de `process.env` directement |
+
+### Base de donnees
+| Table | Action |
+|-------|--------|
+| `comments` | **Creee** : id, article_id (FK news), user_id (FK auth.users), content, status (pending/approved/rejected), timestamps. RLS active avec policies lecture publique + insertion membres + update propre |
+| `shop_orders` | **Verifiee** : existe deja avec id, member_id, items (jsonb), total, status, notes, timestamps |
+| `settings` | **Ajout** : 7 nouvelles cles SMTP (smtp_host, smtp_port, smtp_secure, smtp_user, smtp_pass, smtp_from, smtp_admin_email) |
+
+### HelloAsso
+| Constat | Detail |
+|---------|--------|
+| Page BO existante | `/admin/helloasso` - formulaire complet deja en place (slug org, URL cotisation, URL boutique). Il suffit de remplir les champs. |
+
+### Correction projet Vercel
+- Le fichier `.vercel/project.json` pointait vers le mauvais projet (`temp-tlstt`). Corrige pour pointer vers `tlstt-nextjs` (prj_LQxxFd4KnVdCL6frPtnUM4XUdxyP)
+
+---
+
 ## 2026-02-08 - Mega-Update : 17 ameliorations implementees
 
 ### Priorite haute - Impact utilisateur
@@ -1041,3 +1070,62 @@ Le BO etait fonctionnel mais inadapte a des utilisateurs de 40-60 ans :
 - **Zero HTML brut** requis pour ecrire un article
 - **Zero URL a coller** pour ajouter une image (upload drag & drop)
 - UX completement adaptee aux utilisateurs 40-60 ans
+
+---
+
+### 09/02/2026 – Données réelles + Sécurité + Inscription membre
+
+#### **1. Données sportives réelles injectées**
+
+| Equipe | Division Phase 1 | Cla | J | Pts | V | N | D | Source |
+|--------|-----------------|-----|---|-----|---|---|---|--------|
+| TLSTT 1 | Nationale 3 P1 | 5e | 7 | 13 | 2 | 2 | 3 | tennisdetableregionsud.fr (national) |
+| TLSTT 2 | Régionale 2 P2 | 1er | 7 | 21 | 7 | 0 | 0 | tennisdetableregionsud.fr (régional) |
+| TLSTT 3 | Régionale 2 P1 | 7e | 7 | 10 | 1 | 1 | 5 | tennisdetableregionsud.fr (régional) |
+| TLSTT 4 | Régionale 3 P2 | 6e | 7 | 12 | 2 | 1 | 4 | tennisdetableregionsud.fr (régional) |
+
+- **29 vrais matchs** injectés dans la table `competitions` (7 matchs × 4 équipes + 1 match Phase 2 TLSTT 1)
+- Anciennes données fictives supprimées et remplacées par des scores réels
+
+#### **2. Réécriture sync-equipes**
+
+| Fichier | Modification |
+|---------|-------------|
+| `src/app/api/sync-equipes/route.ts` | Réécriture complète: scraping du site régional + national, parsing des classements et matchs, upsert des résultats dans teams + competitions |
+
+**Approche**: Scraping fiable du site tennisdetableregionsud.fr (données HTML statiques) car l'API SmartPing (SX044) n'a pas accès aux endpoints équipes (401). Le scraping parse les classements (rang, joué, pts, V, N, D) et les résultats de matchs par tour.
+
+#### **3. Sécurité RLS renforcée**
+
+| Migration | Détail |
+|-----------|--------|
+| `secure_comments_and_public_forms` | Admin peut voir/supprimer tous commentaires. `contact_messages` INSERT sécurisé (validation name/email/message non vides). `newsletter_subscribers` INSERT sécurisé (validation format email regex) |
+
+**Advisories résolus**: 2 avertissements "RLS Policy Always True" corrigés (contact_messages, newsletter_subscribers)
+
+#### **4. Inscription membre - Trigger auto-profile**
+
+| Migration | Détail |
+|-----------|--------|
+| `add_auto_create_profile_trigger` | Trigger `on_auth_user_created` sur `auth.users` qui crée automatiquement un `member_profiles` avec les métadonnées du signUp |
+
+| Fichier | Modification |
+|---------|-------------|
+| `src/components/auth/AuthProvider.tsx` | signUp envoie les metadata (first_name, last_name, phone, licence_fftt, role) via `options.data`, fallback client si trigger échoue |
+
+**Problème résolu**: Si la confirmation email est activée, le profil est maintenant créé par le trigger DB (SECURITY DEFINER) même sans session active.
+
+#### **5. Formulaire de contact vérifié**
+
+- ✅ Validation côté client et serveur
+- ✅ Insertion dans `contact_messages` avec RLS sécurisé
+- ✅ Notification email admin (dépend de la config SMTP en BO)
+- ✅ Non-bloquant si SMTP non configuré
+
+#### **✅ Statut**
+- ✅ 29 vrais matchs en DB (au lieu de 7 fictifs)
+- ✅ Stats réelles Phase 1 pour TLSTT 1-4
+- ✅ sync-equipes réécrit avec scraping fiable
+- ✅ RLS renforcé sur comments, contact_messages, newsletter_subscribers
+- ✅ Inscription membre robuste avec trigger auto-profile
+- ✅ Contact form fonctionnel (SMTP-dépendant)

@@ -88,16 +88,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Inscription
   const signUp = async (email: string, password: string, profileData: Partial<MemberProfile>) => {
-    const { data, error } = await supabase.auth.signUp({ email, password })
+    // Passer les metadata dans le signUp - le trigger DB crée automatiquement le profil
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          first_name: profileData.first_name || '',
+          last_name: profileData.last_name || '',
+          phone: profileData.phone || null,
+          licence_fftt: profileData.licence_fftt || null,
+          newsletter_subscribed: profileData.newsletter_subscribed ?? true,
+          role: profileData.role || 'visitor',
+        }
+      }
+    })
     if (error) throw error
-    
-    if (data.user) {
-      // Créer le profil membre
-      await supabase.from('member_profiles').insert({
-        id: data.user.id,
-        ...profileData,
-        membership_status: 'pending'
-      })
+
+    // Fallback: si le trigger n'a pas créé le profil et que l'utilisateur est connecté
+    if (data.user && data.session) {
+      const { data: existing } = await supabase
+        .from('member_profiles')
+        .select('id')
+        .eq('id', data.user.id)
+        .single()
+
+      if (!existing) {
+        await supabase.from('member_profiles').insert({
+          id: data.user.id,
+          ...profileData,
+          membership_status: 'pending',
+          is_validated: false,
+        })
+      }
     }
   }
 
