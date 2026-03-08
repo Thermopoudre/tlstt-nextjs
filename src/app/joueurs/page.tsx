@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { Metadata } from 'next'
 import JoueursClient from './JoueursClient'
 
+// Revalider toutes les heures (les points FFTT changent 2x/mois, sync SmartPing quotidien)
+export const revalidate = 3600
+
 export const metadata: Metadata = {
   title: 'Joueurs - Classement des Licenciés',
   description: 'Découvrez tous les joueurs licenciés du club TLSTT Toulon La Seyne Tennis de Table, leurs classements FFTT et leurs points actuels. Données officielles en temps réel.',

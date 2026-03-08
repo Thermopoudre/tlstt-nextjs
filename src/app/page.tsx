@@ -9,6 +9,9 @@ import { getGlobalSettings } from '@/lib/settings'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd } from '@/lib/seo'
 
+// Page d'accueil : revalider toutes les 30 min (actualités, carousel)
+export const revalidate = 1800
+
 export const metadata: Metadata = {
   title: 'TLSTT - Toulon La Seyne Tennis de Table | Club de Ping-Pong Var 83',
   description: 'Club de tennis de table à Toulon et La Seyne-sur-Mer. Entraînements, compétitions FFTT, handisport, école de ping pour tous niveaux. Plus de 70 ans d\'histoire sportive dans le Var.',

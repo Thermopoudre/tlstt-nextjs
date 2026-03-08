@@ -85,13 +85,21 @@ export async function GET() {
       }
     }))
 
-    return NextResponse.json({
-      equipes,
-      clubNumber: TLSTT_CLUB_NUMBER,
-      source: 'Base de donnees',
-      totalEquipes: equipes.length,
-      timestamp: new Date().toISOString()
-    })
+    return NextResponse.json(
+      {
+        equipes,
+        clubNumber: TLSTT_CLUB_NUMBER,
+        source: 'Base de donnees',
+        totalEquipes: equipes.length,
+        timestamp: new Date().toISOString()
+      },
+      {
+        headers: {
+          // Cache CDN Vercel 1h, s-maxage = cache serveur partagé
+          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200',
+        }
+      }
+    )
 
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue'

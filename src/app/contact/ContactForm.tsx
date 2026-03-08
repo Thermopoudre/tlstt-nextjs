@@ -75,7 +75,7 @@ export default function ContactForm({ subjects }: ContactFormProps) {
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Nom complet <span className="text-red-500">*</span></label>
-          <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Votre nom" className="input-field" />
+          <input type="text" required maxLength={100} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Votre nom" className="input-field" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Email <span className="text-red-500">*</span></label>
@@ -98,8 +98,13 @@ export default function ContactForm({ subjects }: ContactFormProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Message <span className="text-red-500">*</span></label>
-        <textarea required rows={5} value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} placeholder="Votre message..." className="input-field" />
+        <div className="flex justify-between items-center mb-1">
+          <label className="block text-sm font-medium text-gray-700">Message <span className="text-red-500">*</span></label>
+          <span className={`text-xs ${formData.message.length > 4500 ? 'text-red-500' : 'text-gray-400'}`}>
+            {formData.message.length}/5000
+          </span>
+        </div>
+        <textarea required rows={5} maxLength={5000} value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} placeholder="Votre message..." className="input-field" />
       </div>
 
       <button type="submit" disabled={loading} className="w-full btn-primary py-3 text-lg disabled:opacity-50">

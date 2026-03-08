@@ -3,6 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import CompetitionsContent from './CompetitionsContent'
 
+// Revalider toutes les heures (cron sync-equipes sam+dim soir)
+export const revalidate = 3600
+
 export const metadata: Metadata = {
   title: 'Compétitions - Résultats et Calendrier',
   description: 'Calendrier et résultats des compétitions de tennis de table du TLSTT. Tournois, championnats FFTT et rencontres à venir à Toulon La Seyne-sur-Mer.',

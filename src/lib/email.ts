@@ -1,6 +1,16 @@
 import nodemailer from 'nodemailer'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 
+/** Échappe les caractères HTML pour éviter les injections dans les emails */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+}
+
 interface EmailOptions {
   to: string | string[]
   subject: string
@@ -151,26 +161,26 @@ export async function sendContactNotification(data: {
           <table style="width: 100%; border-collapse: collapse;">
             <tr>
               <td style="padding: 8px 0; font-weight: bold; color: #555; width: 120px;">Nom :</td>
-              <td style="padding: 8px 0; color: #333;">${data.name}</td>
+              <td style="padding: 8px 0; color: #333;">${escapeHtml(data.name)}</td>
             </tr>
             <tr>
               <td style="padding: 8px 0; font-weight: bold; color: #555;">Email :</td>
-              <td style="padding: 8px 0;"><a href="mailto:${data.email}" style="color: #3b9fd8;">${data.email}</a></td>
+              <td style="padding: 8px 0;"><a href="mailto:${escapeHtml(data.email)}" style="color: #3b9fd8;">${escapeHtml(data.email)}</a></td>
             </tr>
             ${data.phone ? `
             <tr>
               <td style="padding: 8px 0; font-weight: bold; color: #555;">Telephone :</td>
-              <td style="padding: 8px 0; color: #333;">${data.phone}</td>
+              <td style="padding: 8px 0; color: #333;">${escapeHtml(data.phone)}</td>
             </tr>
             ` : ''}
             <tr>
               <td style="padding: 8px 0; font-weight: bold; color: #555;">Sujet :</td>
-              <td style="padding: 8px 0; color: #333;">${data.subject}</td>
+              <td style="padding: 8px 0; color: #333;">${escapeHtml(data.subject)}</td>
             </tr>
           </table>
           <div style="margin-top: 16px; padding: 16px; background: white; border-radius: 8px; border: 1px solid #e0e0e0;">
             <p style="font-weight: bold; color: #555; margin: 0 0 8px;">Message :</p>
-            <p style="color: #333; white-space: pre-wrap; margin: 0;">${data.message}</p>
+            <p style="color: #333; white-space: pre-wrap; margin: 0;">${escapeHtml(data.message)}</p>
           </div>
         </div>
         <div style="padding: 16px; text-align: center; color: #999; font-size: 12px; border-top: 1px solid #e0e0e0;">
