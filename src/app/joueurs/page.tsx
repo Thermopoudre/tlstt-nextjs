@@ -1,18 +1,22 @@
 import { createClient } from '@/lib/supabase/server'
 import { Metadata } from 'next'
 import JoueursClient from './JoueursClient'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
 
 // Revalider toutes les heures (les points FFTT changent 2x/mois, sync SmartPing quotidien)
 export const revalidate = 3600
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
+
 export const metadata: Metadata = {
   title: 'Joueurs - Classement des Licenciés',
   description: 'Découvrez tous les joueurs licenciés du club TLSTT Toulon La Seyne Tennis de Table, leurs classements FFTT et leurs points actuels. Données officielles en temps réel.',
-  alternates: { canonical: '/joueurs' },
+  alternates: { canonical: `${SITE_URL}/joueurs` },
   openGraph: {
     title: 'Joueurs TLSTT - Classement Officiel FFTT',
     description: 'Classement des joueurs du club de tennis de table TLSTT - Données FFTT en temps réel',
-    url: '/joueurs',
+    url: `${SITE_URL}/joueurs`,
   },
   keywords: ['joueurs', 'classement', 'FFTT', 'licenciés', 'TLSTT', 'tennis de table', 'points', 'Toulon', 'La Seyne'],
 }
@@ -43,5 +47,13 @@ export default async function JoueursPage() {
     admin_notes: player.admin_notes
   }))
 
-  return <JoueursClient initialPlayers={formattedPlayers} />
+  return (
+    <>
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Joueurs', url: '/joueurs' },
+      ])} />
+      <JoueursClient initialPlayers={formattedPlayers} />
+    </>
+  )
 }

@@ -3,15 +3,19 @@ import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 export const metadata: Metadata = {
   title: 'Nos Partenaires - Sponsors et Soutiens du Club',
   description: 'Découvrez les partenaires et sponsors du TLSTT Toulon La Seyne Tennis de Table. Merci à nos soutiens pour le développement du tennis de table dans le Var.',
-  alternates: { canonical: '/partenaires' },
+  alternates: { canonical: `${SITE_URL}/partenaires` },
   openGraph: {
     title: 'Partenaires TLSTT',
     description: 'Les partenaires et sponsors du club de tennis de table TLSTT.',
-    url: '/partenaires',
+    url: `${SITE_URL}/partenaires`,
   },
   keywords: ['partenaires', 'sponsors', 'TLSTT', 'tennis de table', 'Toulon', 'La Seyne', 'soutien'],
 }
@@ -43,6 +47,10 @@ export default async function PartenairesPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Partenaires', url: '/partenaires' },
+      ])} />
       {/* Hero Section */}
       <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
         <div className="container-custom">
@@ -223,13 +231,13 @@ export default async function PartenairesPage() {
                   <i className="fas fa-envelope mr-2"></i>
                   Nous contacter
                 </Link>
-                <a
-                  href="mailto:contact@tlstt.fr"
+                <Link
+                  href="/contact"
                   className="bg-[#1a1a1a] border border-[#333] text-white hover:bg-[#222] px-6 py-3 rounded-full font-semibold transition-all"
                 >
                   <i className="fas fa-phone mr-2"></i>
-                  06 12 34 56 78
-                </a>
+                  Nous appeler
+                </Link>
               </div>
             </div>
           </div>

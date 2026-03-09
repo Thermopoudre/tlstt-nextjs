@@ -3,17 +3,21 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import FaqAccordion from '@/components/FaqAccordion'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import JsonLd from '@/components/seo/JsonLd'
+import { faqJsonLd, breadcrumbJsonLd } from '@/lib/seo'
 
 export const revalidate = 3600
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 export const metadata: Metadata = {
   title: 'FAQ - Questions Fréquentes | TLSTT Tennis de Table',
   description: 'Toutes les réponses à vos questions sur le club TLSTT : inscription, horaires, compétitions, tarifs, handisport...',
-  alternates: { canonical: '/faq' },
+  alternates: { canonical: `${SITE_URL}/faq` },
   openGraph: {
     title: 'FAQ - Questions Fréquentes TLSTT',
     description: 'Inscription, horaires, compétitions, tarifs, handisport — toutes vos questions sur le TLSTT.',
-    url: '/faq',
+    url: `${SITE_URL}/faq`,
   },
 }
 
@@ -41,6 +45,13 @@ export default async function FaqPage() {
 
   return (
     <div className="bg-[#0a0a0a] min-h-screen">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'FAQ', url: '/faq' },
+      ])} />
+      {faqItems && faqItems.length > 0 && (
+        <JsonLd data={faqJsonLd(faqItems.map((item: any) => ({ question: item.question, answer: item.answer })))} />
+      )}
       {/* Hero */}
       <section className="py-12 bg-[#0a0a0a] border-b border-[#222]">
         <div className="container-custom">

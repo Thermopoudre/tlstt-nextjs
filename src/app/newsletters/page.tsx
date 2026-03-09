@@ -3,17 +3,21 @@ import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
 
 export const revalidate = 3600
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 export const metadata: Metadata = {
   title: 'Newsletters - Archives | TLSTT Tennis de Table',
   description: 'Retrouvez toutes les newsletters du club TLSTT Toulon La Seyne Tennis de Table. Actualités, résultats et informations du club.',
-  alternates: { canonical: '/newsletters' },
+  alternates: { canonical: `${SITE_URL}/newsletters` },
   openGraph: {
     title: 'Newsletters TLSTT',
     description: 'Archives des newsletters du club de tennis de table TLSTT.',
-    url: '/newsletters',
+    url: `${SITE_URL}/newsletters`,
   },
 }
 
@@ -28,6 +32,10 @@ export default async function NewslettersPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Newsletters', url: '/newsletters' },
+      ])} />
       {/* Hero */}
       <section className="py-12 bg-[#0a0a0a] border-b border-[#222]">
         <div className="container-custom">

@@ -3,6 +3,10 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -17,6 +21,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: page.title,
     description: page.meta_description || undefined,
+    alternates: { canonical: `${SITE_URL}/page/${slug}` },
+    openGraph: {
+      title: page.title,
+      description: page.meta_description || undefined,
+      url: `${SITE_URL}/page/${slug}`,
+      siteName: 'TLSTT - Toulon La Seyne Tennis de Table',
+      locale: 'fr_FR',
+      type: 'website',
+    },
   }
 }
 
@@ -36,6 +49,10 @@ export default async function DynamicPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: page.title, url: `/page/${slug}` },
+      ])} />
       <div className="container-custom py-12">
         <Breadcrumbs className="text-gray-500 mb-8" />
         {(blocks || []).map((block: any) => (

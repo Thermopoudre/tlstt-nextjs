@@ -1,307 +1,34 @@
-'use client'
+import { Metadata } from 'next'
+import MarketplaceClient from './MarketplaceClient'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useAuth } from '@/components/auth/AuthProvider'
-import { createClient } from '@/lib/supabase/client'
-import Breadcrumbs from '@/components/ui/Breadcrumbs'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
-interface Listing {
-  id: string
-  title: string
-  description: string
-  price: number | null
-  condition: string
-  type: 'vente' | 'echange' | 'don'
-  images: string[]
-  created_at: string
-  seller: {
-    first_name: string
-    last_name: string
-  }
+export const metadata: Metadata = {
+  title: 'Marketplace TLSTT | Achetez et vendez entre membres',
+  description: 'La marketplace du TLSTT (Toulon La Seyne Tennis de Table) : achetez, vendez ou échangez du matériel de tennis de table entre membres du club.',
+  alternates: {
+    canonical: `${SITE_URL}/marketplace`,
+  },
+  openGraph: {
+    title: 'Marketplace TLSTT',
+    description: 'Achetez, vendez et échangez du matériel de tennis de table entre membres du TLSTT.',
+    url: `${SITE_URL}/marketplace`,
+    siteName: 'TLSTT - Toulon La Seyne Tennis de Table',
+    locale: 'fr_FR',
+    type: 'website',
+  },
 }
 
 export default function MarketplacePage() {
-  const { user, profile, loading } = useAuth()
-  const [listings, setListings] = useState<Listing[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [filter, setFilter] = useState<string>('')
-
-  useEffect(() => {
-    const fetchListings = async () => {
-      const supabase = createClient()
-      const { data } = await supabase
-        .from('marketplace_listings')
-        .select(`
-          *,
-          seller:profiles(first_name, last_name)
-        `)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-      setListings(data || [])
-      setIsLoading(false)
-    }
-    if (user) fetchListings()
-    else setIsLoading(false)
-  }, [user])
-
-  // Page pour visiteurs non connectés
-  if (!loading && !user) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0a]">
-        <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
-          <div className="container-custom">
-            <Breadcrumbs className="text-gray-500 mb-6" />
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
-                <i className="fas fa-handshake text-2xl text-white"></i>
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-white">Marketplace</h1>
-                <p className="text-gray-400">Achetez, vendez, échangez entre membres</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-2xl mx-auto px-5 py-16">
-          <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-8 text-center">
-            <div className="w-20 h-20 bg-[#3b9fd8]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <i className="fas fa-users text-4xl text-[#3b9fd8]"></i>
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-4">Espace Membres Uniquement</h2>
-            <p className="text-gray-400 mb-8">
-              La marketplace est réservée aux membres du club. 
-              C'est l'endroit idéal pour vendre votre matériel d'occasion, 
-              échanger des articles ou faire des dons entre pongistes.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/espace-membre"
-                className="px-8 py-3 bg-[#3b9fd8] text-white rounded-xl font-semibold hover:bg-[#2d8bc9] transition-colors"
-              >
-                <i className="fas fa-sign-in-alt mr-2"></i>
-                Se connecter
-              </Link>
-              <Link
-                href="/contact"
-                className="px-8 py-3 border-2 border-[#3b9fd8] text-[#3b9fd8] rounded-xl font-semibold hover:bg-[#3b9fd8] hover:text-white transition-colors"
-              >
-                <i className="fas fa-user-plus mr-2"></i>
-                Devenir membre
-              </Link>
-            </div>
-          </div>
-
-          {/* Explication */}
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center">
-              <div className="w-14 h-14 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-tag text-2xl text-green-500"></i>
-              </div>
-              <h3 className="font-bold text-white mb-2">Vente</h3>
-              <p className="text-sm text-gray-500">Vendez votre matériel à prix membre</p>
-            </div>
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center">
-              <div className="w-14 h-14 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-exchange-alt text-2xl text-blue-500"></i>
-              </div>
-              <h3 className="font-bold text-white mb-2">Échange</h3>
-              <p className="text-sm text-gray-500">Échangez raquettes et équipements</p>
-            </div>
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center">
-              <div className="w-14 h-14 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-gift text-2xl text-purple-500"></i>
-              </div>
-              <h3 className="font-bold text-white mb-2">Don</h3>
-              <p className="text-sm text-gray-500">Donnez aux nouveaux joueurs</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Verifier si membre valide du club (pas visiteur simple)
-  const isMemberValidated = profile?.role === 'admin' || profile?.role === 'member' || profile?.is_validated === true
-
-  // Membre connecte mais pas valide comme membre du club
-  if (!loading && user && !isMemberValidated) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0a]">
-        <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
-          <div className="container-custom">
-            <Breadcrumbs className="text-gray-500 mb-6" />
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
-                <i className="fas fa-handshake text-2xl text-white"></i>
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-white">Marketplace</h1>
-                <p className="text-gray-400">Achetez, vendez, echangez entre membres</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="max-w-2xl mx-auto px-5 py-16">
-          <div className="bg-[#1a1a1a] border border-yellow-500/30 rounded-2xl p-8 text-center">
-            <div className="w-20 h-20 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <i className="fas fa-id-badge text-4xl text-yellow-500"></i>
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-4">Reserve aux membres du club</h2>
-            <p className="text-gray-400 mb-6">
-              La marketplace est exclusivement reservee aux membres licencies du TLSTT.
-              Votre compte doit etre valide par le secretariat pour acceder a cet espace.
-            </p>
-            <Link
-              href="/espace-membre"
-              className="px-8 py-3 bg-[#3b9fd8] text-white rounded-xl font-semibold hover:bg-[#2d8bc9] transition-colors inline-block"
-            >
-              <i className="fas fa-user mr-2"></i>
-              Mon espace membre
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="text-center">
-          <i className="fas fa-spinner fa-spin text-4xl text-[#3b9fd8] mb-4"></i>
-          <p className="text-gray-500">Chargement...</p>
-        </div>
-      </div>
-    )
-  }
-
-  const types = [
-    { key: '', label: 'Tout', icon: 'fa-th', color: 'bg-gray-500' },
-    { key: 'vente', label: 'Vente', icon: 'fa-tag', color: 'bg-green-500' },
-    { key: 'echange', label: 'Échange', icon: 'fa-exchange-alt', color: 'bg-blue-500' },
-    { key: 'don', label: 'Don', icon: 'fa-gift', color: 'bg-purple-500' }
-  ]
-
-  const filteredListings = filter
-    ? listings.filter(l => l.type === filter)
-    : listings
-
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
-      {/* Hero */}
-      <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
-        <div className="container-custom">
-          <Breadcrumbs className="text-gray-500 mb-6" />
-          <div className="flex justify-between items-start flex-wrap gap-4">
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-2">
-                <i className="fas fa-handshake text-[#3b9fd8] mr-3"></i>
-                Marketplace
-              </h1>
-              <p className="text-gray-400">Achetez, vendez, échangez entre membres du club</p>
-            </div>
-            <Link
-              href="/marketplace/nouveau"
-              className="bg-[#3b9fd8] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#2d8bc9] transition-colors"
-            >
-              <i className="fas fa-plus mr-2"></i>
-              Nouvelle annonce
-            </Link>
-          </div>
-
-          {/* Filtres */}
-          <div className="flex flex-wrap gap-2 mt-8">
-            {types.map(t => (
-              <button
-                key={t.key}
-                onClick={() => setFilter(t.key)}
-                className={`px-4 py-2 rounded-full font-semibold transition-all ${
-                  filter === t.key
-                    ? `${t.color} text-white`
-                    : 'bg-[#1a1a1a] border border-[#333] text-gray-400 hover:bg-[#222]'
-                }`}
-              >
-                <i className={`fas ${t.icon} mr-2`}></i>
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Listings */}
-      <div className="container-custom py-8">
-        {isLoading ? (
-          <div className="text-center py-12">
-            <i className="fas fa-spinner fa-spin text-4xl text-[#3b9fd8] mb-4"></i>
-            <p className="text-gray-500">Chargement des annonces...</p>
-          </div>
-        ) : filteredListings.length === 0 ? (
-          <div className="text-center py-12 bg-[#1a1a1a] border border-[#333] rounded-2xl">
-            <i className="fas fa-inbox text-6xl text-gray-600 mb-4"></i>
-            <h3 className="text-xl font-bold text-white mb-2">Aucune annonce</h3>
-            <p className="text-gray-500 mb-6">Soyez le premier à publier une annonce !</p>
-            <Link
-              href="/marketplace/nouveau"
-              className="inline-block bg-[#3b9fd8] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#2d8bc9] transition-colors"
-            >
-              <i className="fas fa-plus mr-2"></i>
-              Créer une annonce
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredListings.map(listing => (
-              <Link
-                key={listing.id}
-                href={`/marketplace/${listing.id}`}
-                className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden hover:border-[#3b9fd8]/50 transition-colors"
-              >
-                <div className="aspect-video bg-[#111] relative">
-                  {listing.images?.[0] ? (
-                    <Image src={listing.images[0]} alt={listing.title} fill className="object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <i className="fas fa-table-tennis-paddle-ball text-4xl text-gray-600"></i>
-                    </div>
-                  )}
-                  <span className={`absolute top-3 left-3 px-3 py-1 rounded-full text-white text-sm font-medium ${
-                    listing.type === 'vente' ? 'bg-green-500' :
-                    listing.type === 'echange' ? 'bg-blue-500' : 'bg-purple-500'
-                  }`}>
-                    {listing.type === 'vente' ? 'Vente' :
-                     listing.type === 'echange' ? 'Échange' : 'Don'}
-                  </span>
-                </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-bold text-white mb-1 line-clamp-1">{listing.title}</h3>
-                  <p className="text-gray-500 text-sm line-clamp-2 mb-3">{listing.description}</p>
-                  <div className="flex items-center justify-between">
-                    {listing.type === 'vente' && listing.price ? (
-                      <span className="text-2xl font-bold text-[#3b9fd8]">{listing.price}€</span>
-                    ) : listing.type === 'don' ? (
-                      <span className="text-lg font-bold text-purple-500">Gratuit</span>
-                    ) : (
-                      <span className="text-lg font-bold text-blue-500">À échanger</span>
-                    )}
-                    <span className="text-xs text-gray-600">
-                      {new Date(listing.created_at).toLocaleDateString('fr-FR')}
-                    </span>
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-[#333] text-sm text-gray-500">
-                    <i className="fas fa-user mr-1"></i>
-                    {listing.seller?.first_name} {listing.seller?.last_name?.[0]}.
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    <>
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Marketplace', url: '/marketplace' },
+      ])} />
+      <MarketplaceClient />
+    </>
   )
 }

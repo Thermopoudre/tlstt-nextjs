@@ -8,26 +8,28 @@ import LabelsSection from '@/components/home/LabelsSection'
 import StatCounter from '@/components/home/StatCounter'
 import { getGlobalSettings } from '@/lib/settings'
 import JsonLd from '@/components/seo/JsonLd'
-import { breadcrumbJsonLd } from '@/lib/seo'
+import { breadcrumbJsonLd, organizationJsonLd } from '@/lib/seo'
 
 // Page d'accueil : revalider toutes les 30 min (actualités, carousel)
 export const revalidate = 1800
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
+
 export const metadata: Metadata = {
   title: 'TLSTT - Toulon La Seyne Tennis de Table | Club de Ping-Pong Var 83',
   description: 'Club de tennis de table à Toulon et La Seyne-sur-Mer. Entraînements, compétitions FFTT, handisport, école de ping pour tous niveaux. Plus de 70 ans d\'histoire sportive dans le Var.',
-  alternates: { canonical: '/' },
+  alternates: { canonical: SITE_URL },
   openGraph: {
     title: 'TLSTT - Toulon La Seyne Tennis de Table',
     description: 'Club de tennis de table dans le Var. Rejoignez-nous pour des cours, des compétitions et du sport pour tous !',
-    url: '/',
+    url: SITE_URL,
   },
 }
 
 export default async function HomePage() {
   const supabase = await createClient()
   const globalSettings = await getGlobalSettings()
-  const yearsOfHistory = new Date().getFullYear() - globalSettings.foundation_year
+  const yearsOfHistory = globalSettings.foundation_year ? new Date().getFullYear() - globalSettings.foundation_year : null
 
   // Récupérer les slides du carrousel depuis la base de données
   const { data: carouselSlides } = await supabase
@@ -94,9 +96,23 @@ export default async function HomePage() {
 
   return (
     <div className="bg-[#0a0a0a]">
-      <JsonLd data={breadcrumbJsonLd([
-        { name: 'Accueil', url: '/' },
-      ])} />
+      <JsonLd data={[
+        organizationJsonLd({
+          name: globalSettings.site_name || undefined,
+          description: globalSettings.club_description || undefined,
+          email: globalSettings.contact_email || undefined,
+          phone: globalSettings.contact_phone || undefined,
+          address: globalSettings.address || undefined,
+          city: globalSettings.city || undefined,
+          postalCode: globalSettings.postal_code || undefined,
+          foundingDate: globalSettings.foundation_year || undefined,
+          facebook: globalSettings.facebook_url || undefined,
+          instagram: globalSettings.instagram_url || undefined,
+        }),
+        breadcrumbJsonLd([
+          { name: 'Accueil', url: '/' },
+        ]),
+      ]} />
       {/* Hero Carousel Section */}
       <HeroCarousel images={carouselImages} />
 

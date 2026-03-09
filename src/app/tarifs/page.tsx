@@ -2,46 +2,51 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
 
 export const revalidate = 3600
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 export const metadata: Metadata = {
   title: 'Tarifs - TLSTT | Tennis de Table Toulon La Seyne',
   description: 'Découvrez les tarifs d\'adhésion au TLSTT pour la saison. Cotisations adultes, jeunes et formules loisir. 1ère séance d\'essai gratuite.',
-  alternates: { canonical: '/tarifs' },
+  alternates: { canonical: `${SITE_URL}/tarifs` },
   openGraph: {
     title: 'Tarifs d\'adhésion - TLSTT Tennis de Table',
     description: 'Cotisations adultes, jeunes et formules loisir. Licence FFTT incluse. 1ère séance gratuite.',
-    url: '/tarifs',
+    url: `${SITE_URL}/tarifs`,
   },
 }
 
 export default async function TarifsPage() {
   const supabase = await createClient()
 
-  const { data: categories } = await supabase
-    .from('tarif_categories')
-    .select('*, tarifs(*)')
-    .order('position')
-
   const { data: tarifs } = await supabase
     .from('tarifs')
-    .select('*, tarif_categories(name)')
+    .select('*, tarif_categories(name, position)')
     .eq('is_active', true)
     .order('position')
 
-  // Grouper par catégorie
-  const grouped: Record<string, { category: string; items: any[] }> = {}
+  // Grouper par catégorie, triées par position de catégorie
+  const groupedMap: Record<string, { category: string; position: number; items: any[] }> = {}
   if (tarifs) {
     for (const t of tarifs) {
       const catName = t.tarif_categories?.name ?? 'Autres'
-      if (!grouped[catName]) grouped[catName] = { category: catName, items: [] }
-      grouped[catName].items.push(t)
+      const catPos = t.tarif_categories?.position ?? 99
+      if (!groupedMap[catName]) groupedMap[catName] = { category: catName, position: catPos, items: [] }
+      groupedMap[catName].items.push(t)
     }
   }
+  const grouped = Object.values(groupedMap).sort((a, b) => a.position - b.position)
 
   return (
     <div className="bg-[#0a0a0a] min-h-screen">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Tarifs', url: '/tarifs' },
+      ])} />
       {/* Hero */}
       <section className="py-12 bg-[#0a0a0a] border-b border-[#222]">
         <div className="container-custom">
@@ -63,7 +68,7 @@ export default async function TarifsPage() {
       {/* Tarifs */}
       <section className="py-16">
         <div className="container-custom">
-          {Object.keys(grouped).length === 0 ? (
+          {grouped.length === 0 ? (
             <div className="text-center py-16 text-gray-500">
               <i className="fas fa-tags text-4xl mb-4 text-[#3b9fd8]"></i>
               <p>Les tarifs seront affichés prochainement.</p>

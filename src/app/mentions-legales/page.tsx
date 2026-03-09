@@ -2,11 +2,15 @@ import Link from 'next/link'
 import { getPageContent } from '@/lib/settings'
 import { Metadata } from 'next'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 export const metadata: Metadata = {
   title: 'Mentions Légales',
   description: 'Mentions légales du site du club Toulon La Seyne Tennis de Table (TLSTT).',
-  alternates: { canonical: '/mentions-legales' },
+  alternates: { canonical: `${SITE_URL}/mentions-legales` },
   robots: { index: true, follow: true },
 }
 
@@ -16,6 +20,10 @@ export default async function MentionsLegalesPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Mentions légales', url: '/mentions-legales' },
+      ])} />
       {/* Hero */}
       <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
         <div className="container-custom">
@@ -61,7 +69,7 @@ export default async function MentionsLegalesPage() {
 function MarkdownRenderer({ content }: { content: string }) {
   // Simple markdown to HTML conversion for headings, bold, links, lists, tables
   const html = content
-    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+    .replace(/^### (.*$)/gm, '<h3 class="text-xl font-bold text-white mt-6 mb-3">$1</h3>')
     .replace(/^## (.*$)/gm, '<h2 class="text-2xl font-bold text-white mt-8 mb-4">$1</h2>')
     .replace(/^# (.*$)/gm, '<h1>$1</h1>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')

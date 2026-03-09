@@ -2,15 +2,19 @@ import Link from 'next/link'
 import { getPageContent } from '@/lib/settings'
 import { Metadata } from 'next'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 export const metadata: Metadata = {
   title: 'Politique de Cookies | TLSTT',
   description: 'Informations sur les cookies utilisés par le site du club TLSTT.',
-  alternates: { canonical: '/politique-cookies' },
+  alternates: { canonical: `${SITE_URL}/politique-cookies` },
   openGraph: {
     title: 'Politique de Cookies - TLSTT',
     description: 'Informations sur les cookies utilisés par notre site web.',
-    url: '/politique-cookies',
+    url: `${SITE_URL}/politique-cookies`,
   },
 }
 
@@ -20,6 +24,10 @@ export default async function PolitiqueCookiesPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Politique de cookies', url: '/politique-cookies' },
+      ])} />
       {/* Hero */}
       <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
         <div className="container-custom">

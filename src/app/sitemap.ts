@@ -104,7 +104,62 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'yearly',
       priority: 0.2,
     },
+    {
+      url: `${SITE_URL}/rejoindre`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
+      url: `${SITE_URL}/tarifs`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${SITE_URL}/faq`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/stages`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/palmares`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${SITE_URL}/clubs-paca`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
+      url: `${SITE_URL}/marketplace`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.6,
+    },
   ]
+
+  // Pages CMS dynamiques
+  const { data: cmsPages } = await supabase
+    .from('pages')
+    .select('slug, updated_at')
+    .eq('is_published', true)
+
+  const cmsPageEntries: MetadataRoute.Sitemap = (cmsPages || []).map((p) => ({
+    url: `${SITE_URL}/page/${p.slug}`,
+    lastModified: new Date(p.updated_at || new Date()),
+    changeFrequency: 'monthly' as const,
+    priority: 0.5,
+  }))
 
   // Articles publiés
   const { data: articles } = await supabase
@@ -169,12 +224,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.4,
   }))
 
+  // Équipes actives
+  const { data: teams } = await supabase
+    .from('teams')
+    .select('id, updated_at')
+    .eq('is_active', true)
+
+  const teamPages: MetadataRoute.Sitemap = (teams || []).map((team) => ({
+    url: `${SITE_URL}/equipes/${team.id}`,
+    lastModified: new Date(team.updated_at || new Date()),
+    changeFrequency: 'weekly' as const,
+    priority: 0.6,
+  }))
+
   return [
     ...staticPages,
     ...categoryPages,
+    ...cmsPageEntries,
     ...articlePages,
     ...newsletterPages,
     ...albumPages,
     ...playerPages,
+    ...teamPages,
   ]
 }

@@ -3,17 +3,21 @@ import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { Metadata } from 'next'
 import { getPlanningSettings, getGlobalSettings } from '@/lib/settings'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
 
 export const revalidate = 3600
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 export const metadata: Metadata = {
   title: 'Planning - Horaires des Entraînements',
   description: 'Consultez le planning hebdomadaire des entraînements du club TLSTT Toulon La Seyne. École de ping, entraînement dirigé, jeu libre. Tarifs et informations pratiques.',
-  alternates: { canonical: '/planning' },
+  alternates: { canonical: `${SITE_URL}/planning` },
   openGraph: {
     title: 'Planning & Horaires TLSTT',
     description: 'Horaires des entraînements de tennis de table au TLSTT - Tous niveaux, du débutant au compétiteur.',
-    url: '/planning',
+    url: `${SITE_URL}/planning`,
   },
   keywords: ['planning', 'horaires', 'entraînement', 'tennis de table', 'TLSTT', 'cours', 'tarifs', 'école de ping'],
 }
@@ -64,6 +68,10 @@ export default async function PlanningPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Planning', url: '/planning' },
+      ])} />
       {/* Header */}
       <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
         <div className="container-custom">

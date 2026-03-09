@@ -16,6 +16,7 @@ interface Team {
   def: number
   nul: number
   link_fftt: string | null
+  link_fftt_phase2: string | null
   is_active: boolean
 }
 
@@ -38,6 +39,7 @@ export default function AdminEquipesPage() {
     def: 0,
     nul: 0,
     link_fftt: '',
+    link_fftt_phase2: '',
     is_active: true,
   })
 
@@ -76,7 +78,7 @@ export default function AdminEquipesPage() {
 
   const openNewForm = () => {
     setEditingTeam(null)
-    setForm({ name: '', division: '', pool: '', phase: 2, cla: 0, joue: 0, pts: 0, vic: 0, def: 0, nul: 0, link_fftt: '', is_active: true })
+    setForm({ name: '', division: '', pool: '', phase: 2, cla: 0, joue: 0, pts: 0, vic: 0, def: 0, nul: 0, link_fftt: '', link_fftt_phase2: '', is_active: true })
     setShowForm(true)
   }
 
@@ -94,6 +96,7 @@ export default function AdminEquipesPage() {
       def: team.def,
       nul: team.nul,
       link_fftt: team.link_fftt || '',
+      link_fftt_phase2: team.link_fftt_phase2 || '',
       is_active: team.is_active,
     })
     setShowForm(true)
@@ -115,6 +118,7 @@ export default function AdminEquipesPage() {
       def: form.def,
       nul: form.nul,
       link_fftt: form.link_fftt || null,
+      link_fftt_phase2: form.link_fftt_phase2 || null,
       is_active: form.is_active,
     }
 
@@ -353,9 +357,20 @@ export default function AdminEquipesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Lien FFTT / Info</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Lien FFTT Phase 1</label>
                   <input type="text" value={form.link_fftt} onChange={e => setForm({ ...form, link_fftt: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="URL ou info complementaire" />
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="D1=xxx&cx_poule=yyy" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Lien FFTT Phase 2
+                    <span className="ml-2 text-xs font-normal text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                      Active le toggle Phase 1/2 sur la page publique
+                    </span>
+                  </label>
+                  <input type="text" value={form.link_fftt_phase2} onChange={e => setForm({ ...form, link_fftt_phase2: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="D1=xxx&cx_poule=yyy (laisser vide si une seule phase)" />
                 </div>
 
                 <label className="flex items-center gap-2 cursor-pointer">

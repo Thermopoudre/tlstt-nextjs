@@ -1,8 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import PlayerProfileClient from '@/components/player/PlayerProfileClient'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
 
 export const revalidate = 3600
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 interface PlayerPageProps {
   params: Promise<{
@@ -36,10 +40,28 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   // Passer les données initiales au composant client
   // Le composant gère le refresh en arrière-plan
   return (
-    <PlayerProfileClient 
-      initialPlayer={player} 
-      initialHistory={history || []}
-    />
+    <>
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Joueurs', url: '/joueurs' },
+        { name: `${player.first_name} ${player.last_name}`, url: `/joueurs/${licence}` },
+      ])} />
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: `${player.first_name} ${player.last_name}`,
+        url: `${SITE_URL}/joueurs/${licence}`,
+        memberOf: {
+          '@type': 'SportsOrganization',
+          name: 'TLSTT - Toulon La Seyne Tennis de Table',
+          url: SITE_URL,
+        },
+      }} />
+      <PlayerProfileClient
+        initialPlayer={player}
+        initialHistory={history || []}
+      />
+    </>
   )
 }
 
@@ -63,11 +85,11 @@ export async function generateMetadata({ params }: PlayerPageProps) {
   return {
     title: `${player.first_name} ${player.last_name} - ${points} pts`,
     description: `Profil et statistiques de ${player.first_name} ${player.last_name}, joueur licencié au TLSTT Toulon La Seyne Tennis de Table. Classement FFTT: ${points} points. Historique et progression.`,
-    alternates: { canonical: `/joueurs/${licence}` },
+    alternates: { canonical: `${SITE_URL}/joueurs/${licence}` },
     openGraph: {
       title: `${player.first_name} ${player.last_name} - ${points} pts | TLSTT`,
       description: `Joueur du TLSTT - Classement: ${points} points FFTT`,
-      url: `/joueurs/${licence}`,
+      url: `${SITE_URL}/joueurs/${licence}`,
     },
     keywords: [player.first_name, player.last_name, 'joueur', 'TLSTT', 'tennis de table', 'classement FFTT'],
   }

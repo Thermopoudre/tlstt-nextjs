@@ -90,6 +90,7 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
       items: [
         { title: 'Tarifs', icon: 'fa-euro-sign', path: '/admin/tarifs' },
         { title: 'FAQ', icon: 'fa-circle-question', path: '/admin/faq' },
+        { title: 'Stages', icon: 'fa-graduation-cap', path: '/admin/stages' },
       ]
     },
     {

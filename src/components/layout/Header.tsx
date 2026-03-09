@@ -49,6 +49,8 @@ export default function Header() {
     'Club': [
       { label: 'À Propos', href: '/club/a-propos', icon: 'fa-info-circle' },
       { label: 'Palmarès', href: '/palmares', icon: 'fa-medal' },
+      { label: 'Tarifs', href: '/tarifs', icon: 'fa-tags' },
+      { label: 'Stages', href: '/stages', icon: 'fa-graduation-cap' },
       { label: 'Galerie', href: '/galerie', icon: 'fa-images' },
       { label: 'Partenaires', href: '/partenaires', icon: 'fa-handshake' },
       { label: 'FAQ', href: '/faq', icon: 'fa-question-circle' },

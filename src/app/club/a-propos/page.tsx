@@ -2,17 +2,21 @@ import Link from 'next/link'
 import { getGlobalSettings, getClubSettings } from '@/lib/settings'
 import { Metadata } from 'next'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import JsonLd from '@/components/seo/JsonLd'
+import { organizationJsonLd, breadcrumbJsonLd } from '@/lib/seo'
 
 export const revalidate = 3600
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 export const metadata: Metadata = {
   title: 'À propos - Le Club TLSTT | Toulon La Seyne Tennis de Table',
   description: 'Découvrez le club de tennis de table TLSTT : son histoire depuis 1950, ses valeurs, ses équipements et ses chiffres clés. Club affilié FFTT dans le Var.',
-  alternates: { canonical: '/club/a-propos' },
+  alternates: { canonical: `${SITE_URL}/club/a-propos` },
   openGraph: {
     title: 'À propos du TLSTT',
     description: 'Histoire, valeurs et équipements du club de tennis de table TLSTT à Toulon La Seyne-sur-Mer.',
-    url: '/club/a-propos',
+    url: `${SITE_URL}/club/a-propos`,
   },
 }
 
@@ -20,10 +24,29 @@ export default async function AProposPage() {
   const global = await getGlobalSettings()
   const club = await getClubSettings()
 
-  const yearsExistence = new Date().getFullYear() - global.foundation_year
+  const yearsExistence = global.foundation_year ? new Date().getFullYear() - global.foundation_year : null
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
+      <JsonLd data={[
+        organizationJsonLd({
+          name: global.site_name || undefined,
+          description: global.club_description || undefined,
+          email: global.contact_email || undefined,
+          phone: global.contact_phone || undefined,
+          address: global.address || undefined,
+          city: global.city || undefined,
+          postalCode: global.postal_code || undefined,
+          foundingDate: global.foundation_year || undefined,
+          facebook: global.facebook_url || undefined,
+          instagram: global.instagram_url || undefined,
+        }),
+        breadcrumbJsonLd([
+          { name: 'Accueil', url: '/' },
+          { name: 'Club', url: '/club' },
+          { name: 'À propos', url: '/club/a-propos' },
+        ]),
+      ]} />
       {/* Hero */}
       <div className="py-12 bg-[#0a0a0a] border-b border-[#222]">
         <div className="container-custom">

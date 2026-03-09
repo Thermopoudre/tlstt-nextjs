@@ -11,6 +11,8 @@ import LikeButton from '@/components/ui/LikeButton'
 
 export const revalidate = 3600
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
+
 type NewsCategory = 'tt' | 'club' | 'handi'
 
 const categoryNames: Record<string, string> = {
@@ -197,7 +199,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               <LikeButton newsId={article.id} />
               <span className="text-gray-500 text-sm mr-1">Partager :</span>
               <a
-                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://tlstt-nextjs.vercel.app/actualites/${category}/${id}`)}`}
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${SITE_URL}/actualites/${category}/${id}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-[#1a1a1a] border border-[#333] rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:border-[#3b9fd8]/50 transition-colors"
@@ -206,7 +208,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <i className="fab fa-facebook-f"></i>
               </a>
               <a
-                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://tlstt-nextjs.vercel.app/actualites/${category}/${id}`)}&text=${encodeURIComponent(article.title)}`}
+                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`${SITE_URL}/actualites/${category}/${id}`)}&text=${encodeURIComponent(article.title)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-[#1a1a1a] border border-[#333] rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:border-[#3b9fd8]/50 transition-colors"

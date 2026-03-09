@@ -2,15 +2,19 @@ import ContactForm from './ContactForm'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { getGlobalSettings, getContactSettings } from '@/lib/settings'
 import { Metadata } from 'next'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 export const metadata: Metadata = {
   title: 'Contact - Nous Contacter',
   description: 'Contactez le club de tennis de table TLSTT Toulon La Seyne-sur-Mer. Questions, inscriptions, partenariats. Formulaire de contact et coordonnées.',
-  alternates: { canonical: '/contact' },
+  alternates: { canonical: `${SITE_URL}/contact` },
   openGraph: {
     title: 'Contact TLSTT',
     description: 'Contactez le club de tennis de table TLSTT à Toulon La Seyne-sur-Mer.',
-    url: '/contact',
+    url: `${SITE_URL}/contact`,
   },
   keywords: ['contact', 'TLSTT', 'tennis de table', 'inscription', 'Toulon', 'La Seyne-sur-Mer', 'formulaire'],
 }
@@ -21,6 +25,10 @@ export default async function ContactPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Contact', url: '/contact' },
+      ])} />
       {/* Header */}
       <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
         <div className="container-custom">

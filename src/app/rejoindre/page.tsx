@@ -1,16 +1,22 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
 
 export const revalidate = 3600
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 export const metadata: Metadata = {
   title: 'Rejoindre le TLSTT | Tennis de Table Toulon La Seyne',
   description: 'Rejoignez le TLSTT, club de tennis de table à Toulon et La Seyne-sur-Mer. 1ère séance gratuite, tous niveaux bienvenus, handisport. Découvrez nos tarifs et le processus d\'inscription.',
-  alternates: { canonical: '/rejoindre' },
+  alternates: { canonical: `${SITE_URL}/rejoindre` },
   openGraph: {
     title: 'Rejoindre le TLSTT – Tennis de Table Toulon La Seyne',
     description: '1ère séance gratuite. Tous niveaux et âges bienvenus. Section handisport.',
+    url: `${SITE_URL}/rejoindre`,
   },
 }
 
@@ -104,6 +110,10 @@ export default async function RejoindreePage() {
 
   return (
     <div className="bg-[#0a0a0a] min-h-screen">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Rejoindre le club', url: '/rejoindre' },
+      ])} />
 
       {/* ── Hero ── */}
       <section className="relative py-20 md:py-28 overflow-hidden bg-[#0a0a0a] border-b border-[#222]">

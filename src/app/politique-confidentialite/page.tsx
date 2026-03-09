@@ -2,15 +2,19 @@ import Link from 'next/link'
 import { getPageContent } from '@/lib/settings'
 import { Metadata } from 'next'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 export const metadata: Metadata = {
   title: 'Politique de Confidentialité | TLSTT',
   description: 'Politique de confidentialité et protection des données personnelles du club TLSTT.',
-  alternates: { canonical: '/politique-confidentialite' },
+  alternates: { canonical: `${SITE_URL}/politique-confidentialite` },
   openGraph: {
     title: 'Politique de Confidentialité - TLSTT',
     description: 'Protection de vos données personnelles (RGPD) — club TLSTT.',
-    url: '/politique-confidentialite',
+    url: `${SITE_URL}/politique-confidentialite`,
   },
 }
 
@@ -20,6 +24,10 @@ export default async function PolitiqueConfidentialitePage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Politique de confidentialité', url: '/politique-confidentialite' },
+      ])} />
       {/* Hero */}
       <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
         <div className="container-custom">

@@ -1,7 +1,18 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+async function checkAdmin() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+  const { data } = await supabase.from('admins').select('id').eq('id', user.id).single()
+  return data ? user : null
+}
+
 export async function GET() {
+  if (!await checkAdmin()) {
+    return NextResponse.json({ membres: 0, messages: 0 }, { status: 401 })
+  }
   try {
     const supabase = await createClient()
 

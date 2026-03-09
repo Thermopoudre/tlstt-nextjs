@@ -1,8 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
 
 export const revalidate = 3600
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -31,6 +36,10 @@ export default async function DynamicPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: page.title, url: `/${slug}` },
+      ])} />
       {blocks?.map((block) => {
         const data = block.block_data as any
 
@@ -67,11 +76,14 @@ export default async function DynamicPage({ params }: PageProps) {
           case 'image':
             return (
               <div key={block.id} className="container-custom py-8">
-                <img
-                  src={data.url}
-                  alt={data.alt || ''}
-                  className="w-full rounded-2xl"
-                />
+                <div className="relative w-full aspect-video rounded-2xl overflow-hidden">
+                  <Image
+                    src={data.url}
+                    alt={data.alt || ''}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
                 {data.caption && (
                   <p className="text-center text-gray-500 mt-2 text-sm">{data.caption}</p>
                 )}
@@ -111,5 +123,14 @@ export async function generateMetadata({ params }: PageProps) {
   return {
     title: `${page.title} | TLSTT`,
     description: page.meta_description,
+    alternates: { canonical: `${SITE_URL}/${slug}` },
+    openGraph: {
+      title: `${page.title} | TLSTT`,
+      description: page.meta_description || undefined,
+      url: `${SITE_URL}/${slug}`,
+      siteName: 'TLSTT - Toulon La Seyne Tennis de Table',
+      locale: 'fr_FR',
+      type: 'website',
+    },
   }
 }

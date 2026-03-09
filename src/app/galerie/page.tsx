@@ -3,15 +3,19 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 export const metadata: Metadata = {
   title: 'Galerie Photo - Moments Forts du Club',
   description: 'Galerie photos du TLSTT : découvrez les meilleurs moments du club de tennis de table Toulon La Seyne en images. Compétitions, événements et vie du club.',
-  alternates: { canonical: '/galerie' },
+  alternates: { canonical: `${SITE_URL}/galerie` },
   openGraph: {
     title: 'Galerie Photo TLSTT',
     description: 'Les meilleurs moments du club de tennis de table TLSTT en images.',
-    url: '/galerie',
+    url: `${SITE_URL}/galerie`,
   },
   keywords: ['galerie', 'photos', 'TLSTT', 'tennis de table', 'événements', 'Toulon', 'La Seyne'],
 }
@@ -32,6 +36,10 @@ export default async function GaleriePage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Galerie', url: '/galerie' },
+      ])} />
       {/* Header */}
       <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
         <div className="container-custom">

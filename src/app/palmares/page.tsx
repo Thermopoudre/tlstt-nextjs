@@ -2,17 +2,21 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
 
 export const revalidate = 3600
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
 export const metadata: Metadata = {
   title: 'Palmarès - TLSTT | Tennis de Table Toulon La Seyne',
   description: 'Le palmarès du TLSTT : titres, championnats et distinctions obtenues par le club de tennis de table de Toulon La Seyne depuis 1950.',
-  alternates: { canonical: '/palmares' },
+  alternates: { canonical: `${SITE_URL}/palmares` },
   openGraph: {
     title: 'Palmarès du TLSTT',
     description: 'Tous les titres et distinctions du club de tennis de table TLSTT à Toulon La Seyne.',
-    url: '/palmares',
+    url: `${SITE_URL}/palmares`,
   },
 }
 
@@ -50,6 +54,10 @@ export default async function PalmaresPage() {
 
   return (
     <div className="bg-[#0a0a0a] min-h-screen">
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Accueil', url: '/' },
+        { name: 'Palmarès', url: '/palmares' },
+      ])} />
       {/* Hero */}
       <section className="py-12 bg-[#0a0a0a] border-b border-[#222]">
         <div className="container-custom">
