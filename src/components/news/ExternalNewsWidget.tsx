@@ -17,7 +17,7 @@ interface Props {
 
 const sourceConfig: Record<SourceKey, { url: string; label: string; icon: string; color: string }> = {
   fftt: {
-    url: 'https://www.fftt.com/feed/',
+    url: 'https://www.fftt.com/site/rss/actualites.xml',
     label: 'FFTT',
     icon: 'fa-table-tennis-paddle-ball',
     color: '#3b9fd8',
