@@ -3,19 +3,26 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { useAuth } from '@/components/auth/AuthProvider'
 import UserMenu from '@/components/auth/UserMenu'
 import LoginModal from '@/components/auth/LoginModal'
 import RegisterModal from '@/components/auth/RegisterModal'
 import SearchBar from '@/components/layout/SearchBar'
 import ThemeToggle from '@/components/layout/ThemeToggle'
-import LanguageSelector from '@/components/layout/LanguageSelector'
 
 export default function Header() {
   const { user, loading } = useAuth()
+  const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [openMobileSubmenu, setOpenMobileSubmenu] = useState<string | null>(null)
   const [showLogin, setShowLogin] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
+
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/'
+    return pathname.startsWith(href)
+  }
 
   const menuItems = [
     { label: 'Accueil', href: '/' },
@@ -87,7 +94,11 @@ export default function Header() {
                   <li key={index} className="relative group">
                     <Link
                       href={item.href}
-                      className="block px-2.5 py-1.5 text-xs font-semibold text-gray-300 hover:text-[#3b9fd8] transition-colors"
+                      className={`block px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                        isActive(item.href)
+                          ? 'text-[#3b9fd8]'
+                          : 'text-gray-300 hover:text-[#3b9fd8]'
+                      }`}
                     >
                       {item.label}
                       {item.hasSubmenu && (
@@ -118,7 +129,6 @@ export default function Header() {
               <div className="ml-2 flex items-center gap-0.5">
                 <SearchBar />
                 <ThemeToggle />
-                <LanguageSelector />
               </div>
               <div className="ml-1.5 flex items-center gap-1.5 border-l border-white/20 pl-3">
                 {loading ? (
@@ -154,27 +164,47 @@ export default function Header() {
               <ul className="flex flex-col gap-1">
                 {menuItems.map((item, index) => (
                   <li key={index}>
-                    <Link
-                      href={item.href}
-                      className="block px-4 py-2 font-semibold text-gray-300 hover:bg-[#3b9fd8]/20 hover:text-[#3b9fd8] rounded transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                    {item.hasSubmenu && submenus[item.label] && (
-                      <ul className="pl-6 flex flex-col gap-1 mt-1">
-                        {submenus[item.label].map((subItem, subIndex) => (
-                          <li key={subIndex}>
-                            <Link
-                              href={subItem.href}
-                              className="block px-4 py-1 text-sm text-gray-400 hover:bg-[#3b9fd8]/10 hover:text-[#3b9fd8] rounded transition-colors"
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              {subItem.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
+                    {item.hasSubmenu && submenus[item.label] ? (
+                      <>
+                        <button
+                          className={`w-full flex items-center justify-between px-4 py-2 font-semibold rounded transition-colors ${
+                            isActive(item.href)
+                              ? 'text-[#3b9fd8] bg-[#3b9fd8]/10'
+                              : 'text-gray-300 hover:bg-[#3b9fd8]/20 hover:text-[#3b9fd8]'
+                          }`}
+                          onClick={() => setOpenMobileSubmenu(openMobileSubmenu === item.label ? null : item.label)}
+                        >
+                          <span>{item.label}</span>
+                          <i className={`fas fa-chevron-down text-xs transition-transform duration-200 ${openMobileSubmenu === item.label ? 'rotate-180' : ''}`}></i>
+                        </button>
+                        {openMobileSubmenu === item.label && (
+                          <ul className="pl-4 flex flex-col gap-1 mt-1">
+                            {submenus[item.label].map((subItem, subIndex) => (
+                              <li key={subIndex}>
+                                <Link
+                                  href={subItem.href}
+                                  className="block px-4 py-1.5 text-sm text-gray-400 hover:bg-[#3b9fd8]/10 hover:text-[#3b9fd8] rounded transition-colors"
+                                  onClick={() => { setMobileMenuOpen(false); setOpenMobileSubmenu(null) }}
+                                >
+                                  {subItem.label}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        className={`block px-4 py-2 font-semibold rounded transition-colors ${
+                          isActive(item.href)
+                            ? 'text-[#3b9fd8] bg-[#3b9fd8]/10'
+                            : 'text-gray-300 hover:bg-[#3b9fd8]/20 hover:text-[#3b9fd8]'
+                        }`}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
                     )}
                   </li>
                 ))}

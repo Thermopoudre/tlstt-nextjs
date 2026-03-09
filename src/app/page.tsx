@@ -5,6 +5,7 @@ import HeroCarousel from '@/components/HeroCarousel'
 import NewsCard from '@/components/NewsCard'
 import PartnerCard from '@/components/PartnerCard'
 import LabelsSection from '@/components/home/LabelsSection'
+import StatCounter from '@/components/home/StatCounter'
 import { getGlobalSettings } from '@/lib/settings'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd } from '@/lib/seo'
@@ -107,7 +108,7 @@ export default async function HomePage() {
               <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
                 <i className="fas fa-users text-2xl text-white"></i>
               </div>
-              <div className="text-4xl font-bold text-white mb-1">{totalPlayers || 200}+</div>
+              <StatCounter value={totalPlayers} suffix="+" />
               <div className="text-sm text-[#3b9fd8]">Licenciés</div>
             </div>
 
@@ -115,15 +116,15 @@ export default async function HomePage() {
               <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
                 <i className="fas fa-trophy text-2xl text-white"></i>
               </div>
-              <div className="text-4xl font-bold text-white mb-1">{totalTeams || 13}</div>
-              <div className="text-sm text-[#3b9fd8]">Equipes</div>
+              <StatCounter value={totalTeams} />
+              <div className="text-sm text-[#3b9fd8]">Équipes</div>
             </div>
 
             <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">
               <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
                 <i className="fas fa-calendar-alt text-2xl text-white"></i>
               </div>
-              <div className="text-4xl font-bold text-white mb-1">{yearsOfHistory}+</div>
+              <StatCounter value={yearsOfHistory} suffix="+" />
               <div className="text-sm text-[#3b9fd8]">Ans d&apos;histoire</div>
             </div>
 
@@ -131,7 +132,7 @@ export default async function HomePage() {
               <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
                 <i className="fas fa-images text-2xl text-white"></i>
               </div>
-              <div className="text-4xl font-bold text-white mb-1">{totalAlbums || 3}</div>
+              <StatCounter value={totalAlbums} />
               <div className="text-sm text-[#3b9fd8]">Albums Photos</div>
             </div>
           </div>
@@ -198,52 +199,13 @@ export default async function HomePage() {
                 )
               })
             ) : (
-              <>
-                <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 hover:border-[#3b9fd8] transition-colors">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
-                      <i className="fas fa-table-tennis text-2xl text-white"></i>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-white mb-2">École de Ping</h3>
-                      <div className="text-sm text-gray-400 space-y-1">
-                        <p><i className="fas fa-calendar mr-2 text-[#3b9fd8]"></i>Lundi</p>
-                        <p><i className="fas fa-clock mr-2 text-[#3b9fd8]"></i>17:30 - 19:00</p>
-                        <p><i className="fas fa-user mr-2 text-[#3b9fd8]"></i>Débutants</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 hover:border-[#3b9fd8] transition-colors">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
-                      <i className="fas fa-table-tennis text-2xl text-white"></i>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-white mb-2">Entraînement Dirigé</h3>
-                      <div className="text-sm text-gray-400 space-y-1">
-                        <p><i className="fas fa-calendar mr-2 text-[#3b9fd8]"></i>Lundi</p>
-                        <p><i className="fas fa-clock mr-2 text-[#3b9fd8]"></i>19:00 - 21:00</p>
-                        <p><i className="fas fa-user mr-2 text-[#3b9fd8]"></i>Tous niveaux</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 hover:border-[#3b9fd8] transition-colors">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
-                      <i className="fas fa-table-tennis text-2xl text-white"></i>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-white mb-2">Jeu Libre</h3>
-                      <div className="text-sm text-gray-400 space-y-1">
-                        <p><i className="fas fa-calendar mr-2 text-[#3b9fd8]"></i>Lundi</p>
-                        <p><i className="fas fa-clock mr-2 text-[#3b9fd8]"></i>21:00 - 23:00</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </>
+              <div className="col-span-3 text-center py-12 bg-[#1a1a1a] rounded-xl border border-[#333]">
+                <i className="fas fa-calendar-alt text-4xl text-[#3b9fd8] mb-3"></i>
+                <p className="text-gray-400 mb-4">Planning d&apos;entraînement à venir</p>
+                <Link href="/planning" className="text-[#3b9fd8] hover:underline text-sm font-semibold">
+                  Voir le planning complet →
+                </Link>
+              </div>
             )}
           </div>
           <div className="text-center mt-8">
@@ -259,38 +221,38 @@ export default async function HomePage() {
       <section className="py-16 bg-[#111111]">
         <div className="container-custom">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl text-white p-8 hover:border-[#3b9fd8] transition-all">
+            <div className="bg-[#3b9fd8] rounded-2xl text-white p-8 hover:bg-[#2d8bc9] transition-all shadow-lg shadow-[#3b9fd8]/20">
               <div className="flex items-start gap-6">
-                <div className="w-16 h-16 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
                   <i className="fas fa-user-plus text-3xl text-white"></i>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold mb-3 text-[#3b9fd8]">Nous Rejoindre</h3>
-                  <p className="text-gray-400 mb-6">
-                    Que vous soyez débutant ou confirmé, le TLSTT vous accueille toute l'année.
-                    Première séance d'essai gratuite !
+                  <h3 className="text-2xl font-bold mb-3">Nous Rejoindre</h3>
+                  <p className="text-white/80 mb-6">
+                    Que vous soyez débutant ou confirmé, le TLSTT vous accueille toute l&apos;année.
+                    Première séance d&apos;essai gratuite !
                   </p>
-                  <Link href="/contact" className="inline-block bg-[#3b9fd8] text-white px-6 py-3 rounded-full font-bold hover:bg-[#2d8bc9] transition-colors">
+                  <Link href="/contact" className="inline-block bg-white text-[#3b9fd8] px-6 py-3 rounded-full font-bold hover:bg-white/90 transition-colors">
                     <i className="fas fa-envelope mr-2"></i>
-                    S'inscrire
+                    S&apos;inscrire
                   </Link>
                 </div>
               </div>
             </div>
 
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl text-white p-8 hover:border-[#3b9fd8] transition-all">
+            <div className="bg-[#1a1a1a] border border-[#3b9fd8]/40 rounded-2xl text-white p-8 hover:border-[#3b9fd8] transition-all">
               <div className="flex items-start gap-6">
-                <div className="w-16 h-16 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
-                  <i className="fas fa-envelope-open-text text-3xl text-white"></i>
+                <div className="w-16 h-16 bg-[#3b9fd8]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i className="fas fa-envelope-open-text text-3xl text-[#3b9fd8]"></i>
                 </div>
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold mb-3 text-[#3b9fd8]">Newsletter</h3>
                   <p className="text-gray-400 mb-6">
                     Restez informé de toutes les actualités du club : événements, résultats, nouveautés...
                   </p>
-                  <Link href="/newsletter" className="inline-block bg-[#3b9fd8] text-white px-6 py-3 rounded-full font-bold hover:bg-[#2d8bc9] transition-colors">
+                  <Link href="/newsletter" className="inline-block border border-[#3b9fd8] text-[#3b9fd8] px-6 py-3 rounded-full font-bold hover:bg-[#3b9fd8] hover:text-white transition-colors">
                     <i className="fas fa-paper-plane mr-2"></i>
-                    S'abonner
+                    S&apos;abonner
                   </Link>
                 </div>
               </div>
