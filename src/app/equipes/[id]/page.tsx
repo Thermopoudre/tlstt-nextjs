@@ -222,7 +222,7 @@ export default async function EquipeDetailPage({ params }: PageProps) {
         const teamNumber = teamName.replace(/TLSTT\s*/i, '').trim()
         const matchingEquipe = equipesFFTT.find((eq) => {
           const ffttNumber = eq.libequipe.replace(/.*?(\d+)\s*$/, '$1').trim()
-          return ffttNumber === teamNumber
+          return parseInt(ffttNumber, 10) === parseInt(teamNumber, 10)
         })
         if (matchingEquipe) {
           const eqParams = new URLSearchParams(matchingEquipe.liendivision)

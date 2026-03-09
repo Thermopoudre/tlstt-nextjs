@@ -167,18 +167,6 @@ export default function MarketplaceClient() {
     )
   }
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="text-center">
-          <i className="fas fa-spinner fa-spin text-4xl text-[#3b9fd8] mb-4"></i>
-          <p className="text-gray-500">Chargement...</p>
-        </div>
-      </div>
-    )
-  }
-
   const types = [
     { key: '', label: 'Tout', icon: 'fa-th', color: 'bg-gray-500' },
     { key: 'vente', label: 'Vente', icon: 'fa-tag', color: 'bg-green-500' },
