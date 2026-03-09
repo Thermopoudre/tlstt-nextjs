@@ -63,10 +63,10 @@ export default function Header() {
     <>
       <header className="bg-[#0a0a0a] border-b border-[#3b9fd8]/30 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-3">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-              <div className="relative w-11 h-11 rounded-full border-2 border-[#3b9fd8]/50 overflow-hidden bg-white">
+              <div className="relative w-14 h-14 rounded-full border-2 border-[#3b9fd8]/50 overflow-hidden bg-white">
                 <Image
                   src="/logo.jpeg"
                   alt="TLSTT"
