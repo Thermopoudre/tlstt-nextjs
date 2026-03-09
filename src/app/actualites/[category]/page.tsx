@@ -149,9 +149,9 @@ export default async function ActualitesPage({
           </div>
         )}
 
-        {/* Flux RSS externe — FFTT pour tt, Handisport pour handi */}
-        {category === 'tt' && <ExternalNewsWidget source="fftt" limit={6} />}
-        {category === 'handi' && <ExternalNewsWidget source="handisport" limit={6} />}
+        {/* Flux RSS externe — FFTT+ETTU pour tt, Handisport pour handi */}
+        {category === 'tt' && <ExternalNewsWidget sources={['fftt', 'ettu']} limit={9} />}
+        {category === 'handi' && <ExternalNewsWidget sources={['handisport_tt', 'handisport_general']} limit={9} />}
       </div>
     </div>
   )

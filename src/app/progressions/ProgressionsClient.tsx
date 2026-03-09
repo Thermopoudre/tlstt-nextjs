@@ -39,7 +39,7 @@ export default function ProgressionsClient() {
   const [ffttStatus, setFfttStatus] = useState('')
   const [lastUpdate, setLastUpdate] = useState('')
   const [search, setSearch] = useState('')
-  const [activeTab, setActiveTab] = useState<'classement' | 'progression' | 'jeunes'>('classement')
+  const [activeTab, setActiveTab] = useState<'progression' | 'jeunes'>('progression')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,9 +89,6 @@ export default function ProgressionsClient() {
     .slice(0, 10)
   const jeunesTop3 = jeunesFiltered.slice(0, 3)
 
-  // Top 3 du classement
-  const top3 = filteredPlayers.slice(0, 3)
-
   // Meilleure progression du mois
   const bestProgression = topMois[0]
 
@@ -105,9 +102,9 @@ export default function ProgressionsClient() {
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-bold mb-4 text-white">
               <i className="fas fa-chart-line mr-3 text-[#3b9fd8]"></i>
-              <span className="text-[#3b9fd8]">CLASSEMENT</span> & PROGRESSIONS
+              <span className="text-[#3b9fd8]">PROGRESSIONS</span> DU CLUB
             </h1>
-            <p className="text-xl text-gray-400">Classement des joueurs et suivi des progressions</p>
+            <p className="text-xl text-gray-400">Suivi des progressions et classement jeunes</p>
 
             {/* Status badge */}
             <div className="flex justify-center mt-4">
@@ -179,67 +176,8 @@ export default function ProgressionsClient() {
           </div>
         )}
 
-        {/* Top 3 Podium */}
-        {!isLoading && top3.length >= 3 && !search && (
-          <div className="mb-12">
-            <h3 className="text-2xl font-bold text-center mb-8 text-white">
-              <i className="fas fa-medal mr-2 text-yellow-500"></i>
-              <span className="text-[#3b9fd8]">TOP 3</span> DU CLUB
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              {[1, 0, 2].map((idx, order) => {
-                const player = top3[idx]
-                if (!player) return null
-                const medals = ['🥈', '🥇', '🥉']
-                const positions = ['2e', '1er', '3e']
-                const borderColors = ['border-gray-400', 'border-yellow-500', 'border-amber-600']
-                const bgColors = ['bg-gray-500/10', 'bg-yellow-500/10', 'bg-amber-600/10']
-                return (
-                  <div
-                    key={player.id}
-                    className={`${bgColors[order]} border-2 ${borderColors[order]} rounded-2xl p-6 text-center ${order === 1 ? 'md:-mt-6 md:scale-105' : ''}`}
-                  >
-                    <div className="text-5xl mb-4">{medals[order]}</div>
-                    <div className="text-xl font-bold text-white mb-2">{positions[order]}</div>
-                    <div className="w-16 h-16 rounded-full bg-[#3b9fd8] flex items-center justify-center text-xl font-bold text-white mx-auto mb-4">
-                      {player.prenom?.[0]}{player.nom?.[0]}
-                    </div>
-                    <h4 className="text-lg font-bold mb-1 text-white">{player.prenom} {player.nom}</h4>
-                    <p className="text-gray-500 text-sm mb-3">{player.licence}</p>
-                    <div className="text-3xl font-bold text-[#3b9fd8]">
-                      {Math.round(player.pointsActuels)} <span className="text-lg text-gray-500">pts</span>
-                    </div>
-                    {player.progressionMois !== 0 && (
-                      <div className={`mt-2 text-sm font-semibold ${player.progressionMois > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {player.progressionMois > 0 ? '+' : ''}{player.progressionMois} ce mois
-                      </div>
-                    )}
-                    <Link
-                      href={`/joueurs/${player.licence}`}
-                      className="inline-block mt-4 px-5 py-2 bg-[#3b9fd8] text-white rounded-full font-semibold hover:bg-[#2d8bc9] transition-all text-sm"
-                    >
-                      <i className="fas fa-user mr-2"></i>Profil
-                    </Link>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Tabs */}
         <div className="flex justify-center flex-wrap gap-3 mb-6">
-          <button
-            onClick={() => setActiveTab('classement')}
-            className={`px-6 py-3 rounded-full font-semibold transition-all ${
-              activeTab === 'classement'
-                ? 'bg-[#3b9fd8] text-white'
-                : 'bg-[#1a1a1a] border border-[#333] text-gray-400 hover:border-[#3b9fd8]'
-            }`}
-          >
-            <i className="fas fa-trophy mr-2"></i>
-            Classement
-          </button>
           <button
             onClick={() => setActiveTab('progression')}
             className={`px-6 py-3 rounded-full font-semibold transition-all ${
@@ -284,79 +222,6 @@ export default function ProgressionsClient() {
         {/* Content */}
         {isLoading ? (
           <TableSkeleton rows={10} />
-        ) : activeTab === 'classement' ? (
-          /* Classement par points */
-          <div className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden">
-            <div className="p-4 border-b border-[#333] flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <i className="fas fa-list-ol text-[#3b9fd8]"></i>
-                Classement par Points
-              </h2>
-              <span className="text-sm text-gray-500">{filteredPlayers.length} joueurs</span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-[#111] border-b border-[#333]">
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400 w-16">Rang</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Joueur</th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-400">Points</th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-400 hidden md:table-cell">Évolution</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-400 hidden lg:table-cell">Catégorie</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#333]">
-                  {filteredPlayers.slice(0, 50).map((player, index) => (
-                    <tr key={player.id} className="hover:bg-[#222] transition-colors">
-                      <td className="px-4 py-3">
-                        <span className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-                          index === 0 ? 'bg-yellow-500' :
-                          index === 1 ? 'bg-gray-400' :
-                          index === 2 ? 'bg-amber-600' :
-                          'bg-[#333]'
-                        }`}>
-                          {index + 1}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Link href={`/joueurs/${player.licence}`} className="hover:text-[#3b9fd8] transition-colors">
-                          <p className="font-semibold text-white">{player.prenom} {player.nom}</p>
-                          <p className="text-xs text-gray-500">{player.licence}</p>
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className="font-bold text-[#3b9fd8] text-lg">{Math.round(player.pointsActuels)}</span>
-                      </td>
-                      <td className="px-4 py-3 text-right hidden md:table-cell">
-                        {player.progressionMois !== 0 ? (
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
-                            player.progressionMois > 0
-                              ? 'bg-green-500/20 text-green-400'
-                              : 'bg-red-500/20 text-red-400'
-                          }`}>
-                            <i className={`fas fa-arrow-${player.progressionMois > 0 ? 'up' : 'down'} mr-1`}></i>
-                            {player.progressionMois > 0 ? '+' : ''}{player.progressionMois}
-                          </span>
-                        ) : (
-                          <span className="text-gray-500 text-xs">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center hidden lg:table-cell">
-                        <span className="px-2 py-1 bg-[#111] border border-[#333] rounded text-xs text-gray-400">
-                          {player.categorie || '-'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {filteredPlayers.length > 50 && (
-              <div className="p-4 bg-[#111] text-center text-sm text-gray-500 border-t border-[#333]">
-                Affichage des 50 premiers sur {filteredPlayers.length} joueurs
-              </div>
-            )}
-          </div>
         ) : activeTab === 'progression' ? (
           /* Progressions du mois */
           <div className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden">

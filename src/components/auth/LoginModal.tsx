@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from './AuthProvider'
 
 interface LoginModalProps {
@@ -11,6 +12,7 @@ interface LoginModalProps {
 
 export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalProps) {
   const { signIn } = useAuth()
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -26,6 +28,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
     try {
       await signIn(email, password)
       onClose()
+      router.push('/espace-membre')
     } catch (err: any) {
       setError(err.message || 'Erreur de connexion')
     } finally {

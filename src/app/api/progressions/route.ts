@@ -60,11 +60,11 @@ export async function GET() {
       const anciensEstDefaut = anciensRaw === 500 && pointsActuels > 600
       const initEstDefaut = initRaw === 500 && pointsActuels > 600
       
-      const pointsAnciens = (anciensEstDefaut || !anciensRaw) ? pointsActuels : anciensRaw
-      const pointsInitiaux = (initEstDefaut || !initRaw) ? pointsActuels : initRaw
-      
-      const progressionMois = pointsActuels - pointsAnciens
-      const progressionSaison = pointsActuels - pointsInitiaux
+      const pointsAnciens = (anciensEstDefaut || anciensRaw === null || anciensRaw === undefined) ? pointsActuels : anciensRaw
+      const pointsInitiaux = (initEstDefaut || initRaw === null || initRaw === undefined) ? pointsActuels : initRaw
+
+      const progressionMois = Math.round(pointsActuels - pointsAnciens)
+      const progressionSaison = Math.round(pointsActuels - pointsInitiaux)
       const progressionPourcentage = pointsInitiaux > 0 
         ? Math.round((progressionSaison / pointsInitiaux) * 1000) / 10 
         : 0

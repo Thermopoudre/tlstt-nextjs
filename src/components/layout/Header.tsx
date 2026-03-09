@@ -63,10 +63,10 @@ export default function Header() {
     <>
       <header className="bg-[#0a0a0a] border-b border-[#3b9fd8]/30 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-3">
-          <div className="flex items-center justify-between h-14">
+          <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-              <div className="relative w-9 h-9 rounded-full border-2 border-[#3b9fd8]/50 overflow-hidden bg-white">
+              <div className="relative w-11 h-11 rounded-full border-2 border-[#3b9fd8]/50 overflow-hidden bg-white">
                 <Image
                   src="/logo.jpeg"
                   alt="TLSTT"
@@ -96,7 +96,7 @@ export default function Header() {
                     {(item as any).isCta ? (
                       <Link
                         href={item.href}
-                        className="ml-1 mr-0.5 px-3 py-1.5 text-xs font-bold bg-[#3b9fd8] text-white rounded-full hover:bg-[#2d8bc9] transition-colors"
+                        className="ml-1 mr-0.5 px-3 py-1.5 text-sm font-bold bg-[#3b9fd8] text-white rounded-full hover:bg-[#2d8bc9] transition-colors"
                       >
                         <i className="fas fa-table-tennis-paddle-ball mr-1.5"></i>
                         {item.label}
@@ -105,7 +105,7 @@ export default function Header() {
                       <>
                         <Link
                           href={item.href}
-                          className={`block px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                          className={`block px-2.5 py-1.5 text-sm font-semibold transition-colors ${
                             isActive(item.href)
                               ? 'text-[#3b9fd8]'
                               : 'text-gray-300 hover:text-[#3b9fd8]'
@@ -124,7 +124,7 @@ export default function Header() {
                               <li key={subIndex}>
                                 <Link
                                   href={subItem.href}
-                                  className="flex items-center gap-2.5 px-4 py-2 text-xs text-gray-300 hover:bg-[#3b9fd8]/20 hover:text-[#3b9fd8] transition-colors"
+                                  className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-300 hover:bg-[#3b9fd8]/20 hover:text-[#3b9fd8] transition-colors"
                                 >
                                   {subItem.icon && <i className={`fas ${subItem.icon} w-3.5 text-center opacity-60`}></i>}
                                   {subItem.label}

@@ -3,32 +3,50 @@ interface RssItem {
   link: string
   description: string
   pubDate: string
+  sourceLabel: string
+  sourceColor: string
+  sourceIcon: string
 }
 
+type SourceKey = 'fftt' | 'ettu' | 'handisport_tt' | 'handisport_general'
+
 interface Props {
-  source: 'fftt' | 'handisport'
+  sources: SourceKey[]
   limit?: number
 }
 
-const sourceConfig = {
+const sourceConfig: Record<SourceKey, { url: string; label: string; icon: string; color: string }> = {
   fftt: {
-    url: 'https://www.fftt.com/site/rss/actualites.xml',
+    url: 'https://www.fftt.com/feed/',
     label: 'FFTT',
     icon: 'fa-table-tennis-paddle-ball',
     color: '#3b9fd8',
   },
-  handisport: {
+  ettu: {
+    url: 'https://www.ettu.org/feed/',
+    label: 'ETTU',
+    icon: 'fa-globe',
+    color: '#e8532a',
+  },
+  handisport_tt: {
     url: 'https://www.handisport.org/category/tennis-de-table/feed/',
+    label: 'Handisport TT',
+    icon: 'fa-table-tennis-paddle-ball',
+    color: '#4c40cf',
+  },
+  handisport_general: {
+    url: 'https://www.handisport.org/feed/',
     label: 'Handisport',
     icon: 'fa-wheelchair',
-    color: '#4c40cf',
+    color: '#7c3aed',
   },
 }
 
-async function fetchRssItems(url: string, limit: number): Promise<RssItem[]> {
+async function fetchRssSource(key: SourceKey, limit: number): Promise<RssItem[]> {
+  const config = sourceConfig[key]
   try {
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
+    const res = await fetch(config.url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TLSTT-RSS/1.0)' },
       next: { revalidate: 3600 },
     })
     if (!res.ok) return []
@@ -39,26 +57,32 @@ async function fetchRssItems(url: string, limit: number): Promise<RssItem[]> {
 
     for (const match of text.matchAll(itemRegex)) {
       const c = match[1]
-      const title =
-        c.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/)?.[1] ||
-        c.match(/<title>(.*?)<\/title>/)?.[1] ||
-        ''
-      const link =
-        c.match(/<link>(.*?)<\/link>/)?.[1] ||
-        c.match(/<guid>(.*?)<\/guid>/)?.[1] ||
-        ''
-      const description = (
-        c.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/)?.[1] ||
-        c.match(/<description>(.*?)<\/description>/)?.[1] ||
-        ''
-      )
+      const get = (tag: string) => {
+        return (
+          c.match(new RegExp(`<${tag}><![CDATA[(.*?)]]><\/${tag}>`, 's'))?.[1] ||
+          c.match(new RegExp(`<${tag}>([^<]*)<\/${tag}>`))?.[1] ||
+          ''
+        )
+      }
+
+      const title = get('title').trim()
+      const link = (get('link') || get('guid')).trim()
+      const description = (get('description') || '')
         .replace(/<[^>]+>/g, '')
         .trim()
         .substring(0, 180)
-      const pubDate = c.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || ''
+      const pubDate = get('pubDate').trim()
 
-      if (title.trim()) {
-        items.push({ title: title.trim(), link: link.trim(), description, pubDate: pubDate.trim() })
+      if (title) {
+        items.push({
+          title,
+          link,
+          description,
+          pubDate,
+          sourceLabel: config.label,
+          sourceColor: config.color,
+          sourceIcon: config.icon,
+        })
       }
       if (items.length >= limit) break
     }
@@ -81,33 +105,45 @@ function formatDate(pubDate: string): string {
   }
 }
 
-export default async function ExternalNewsWidget({ source, limit = 6 }: Props) {
-  const config = sourceConfig[source]
-  const items = await fetchRssItems(config.url, limit)
+export default async function ExternalNewsWidget({ sources, limit = 9 }: Props) {
+  const perSource = Math.ceil(limit / sources.length)
 
-  if (items.length === 0) return null
+  const results = await Promise.all(sources.map((s) => fetchRssSource(s, perSource)))
+
+  // Merge, sort by date, take limit
+  const allItems = results
+    .flat()
+    .filter((item) => item.title)
+    .sort((a, b) => {
+      const da = a.pubDate ? new Date(a.pubDate).getTime() : 0
+      const db = b.pubDate ? new Date(b.pubDate).getTime() : 0
+      return db - da
+    })
+    .slice(0, limit)
+
+  if (allItems.length === 0) return null
+
+  const sourceLabels = sources.map((s) => sourceConfig[s].label).join(', ')
 
   return (
     <div className="mt-12">
       <div className="flex items-center gap-3 mb-6">
-        <div
-          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-          style={{ backgroundColor: config.color }}
-        >
-          <i className={`fas ${config.icon} text-white text-sm`}></i>
+        <div className="w-10 h-10 rounded-full bg-[#3b9fd8] flex items-center justify-center flex-shrink-0">
+          <i className="fas fa-rss text-white text-sm"></i>
         </div>
         <div>
           <h2 className="text-xl font-bold text-white">
-            Actualités {config.label}
+            Actualités en direct
           </h2>
           <p className="text-gray-500 text-sm">
-            <i className="fas fa-rss mr-1"></i>Flux officiel en temps réel
+            <i className="fas fa-satellite-dish mr-1"></i>
+            Flux RSS — {sourceLabels}
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {items.map((item, i) => (
+        {allItems.map((item, i) => (
           <a
             key={i}
             href={item.link}
@@ -117,14 +153,15 @@ export default async function ExternalNewsWidget({ source, limit = 6 }: Props) {
           >
             <div className="flex items-start justify-between gap-2 mb-2">
               <span
-                className="text-xs px-2 py-0.5 rounded-full font-medium"
+                className="text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1"
                 style={{
-                  backgroundColor: `${config.color}18`,
-                  color: config.color,
-                  border: `1px solid ${config.color}30`,
+                  backgroundColor: `${item.sourceColor}18`,
+                  color: item.sourceColor,
+                  border: `1px solid ${item.sourceColor}30`,
                 }}
               >
-                {config.label}
+                <i className={`fas ${item.sourceIcon} text-[10px]`}></i>
+                {item.sourceLabel}
               </span>
               <i className="fas fa-external-link-alt text-gray-600 text-xs mt-0.5 group-hover:text-[#3b9fd8] transition-colors flex-shrink-0"></i>
             </div>

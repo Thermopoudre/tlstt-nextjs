@@ -439,6 +439,67 @@ textarea.input-field {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
 
+/* Additional text colors */
+.light-mode .text-gray-300 {
+  color: #374151 !important;
+}
+
+.light-mode .text-white\/80,
+.light-mode .text-white\/70 {
+  color: #374151 !important;
+}
+
+.light-mode .text-white\/60,
+.light-mode .text-white\/50 {
+  color: #6b7280 !important;
+}
+
+/* Hover backgrounds */
+.light-mode .bg-\[\#222\],
+.light-mode .hover\:bg-\[\#222\]:hover {
+  background-color: #f1f5f9 !important;
+}
+
+.light-mode .bg-white\/20,
+.light-mode .bg-white\/30 {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.light-mode .hover\:bg-white\/10:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Borders */
+.light-mode .border-white\/30 {
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+.light-mode .border-white\/40 {
+  border-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Submenu dropdown */
+.light-mode .bg-\[\#1a1a1a\].border.border-\[\#3b9fd8\]\/30 {
+  background-color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* ThemeToggle pill in light mode */
+.light-mode .border-white\/20 {
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Nav active state readable */
+.light-mode nav a,
+.light-mode nav button {
+  color: #374151;
+}
+
+.light-mode nav a:hover,
+.light-mode nav button:hover {
+  color: #3b9fd8;
+}
+
 /* Print styles */
 @media print {
   .no-print {

@@ -150,13 +150,6 @@ export default function EquipesClient() {
   const teamsWithData = teamsWithPhaseStats.filter(t => t.active.joue > 0)
   const teamsWithoutData = teamsWithPhaseStats.filter(t => t.active.joue === 0)
 
-  // Classement interne du club (trié par pts desc, puis vic desc)
-  const rankedTeams = [...teamsWithData].sort((a, b) => {
-    if (b.active.pts !== a.active.pts) return b.active.pts - a.active.pts
-    if (b.active.vic !== a.active.vic) return b.active.vic - a.active.vic
-    return a.active.def - b.active.def
-  })
-
   // Divisions disponibles pour cette phase
   const phaseDivisions = [...new Set(teamsWithPhaseStats.map(t => t.active.division))].filter(Boolean)
 
@@ -328,103 +321,6 @@ export default function EquipesClient() {
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {/* ============================================ */}
-      {/* CLASSEMENT TABLE */}
-      {/* ============================================ */}
-      {rankedTeams.length > 0 && (
-        <div className="container-custom pb-8">
-          <div className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-[#333] flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <i className="fas fa-ranking-star text-[#3b9fd8]"></i>
-                Classement interne TLSTT — Phase {activePhase}
-              </h2>
-              <span className="text-xs text-gray-500 hidden md:block">
-                {activePhase === 2 ? 'Mise a jour en temps reel' : 'Resultats finaux'}
-              </span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-[#111] text-gray-400 text-xs uppercase tracking-wider">
-                    <th className="px-4 py-3 text-center w-12">#</th>
-                    <th className="px-4 py-3 text-left">Equipe</th>
-                    <th className="px-4 py-3 text-center hidden md:table-cell">Division</th>
-                    <th className="px-4 py-3 text-center">Rang</th>
-                    <th className="px-4 py-3 text-center">J</th>
-                    <th className="px-4 py-3 text-center font-bold">Pts</th>
-                    <th className="px-4 py-3 text-center text-green-500">V</th>
-                    <th className="px-4 py-3 text-center text-yellow-500">N</th>
-                    <th className="px-4 py-3 text-center text-red-500">D</th>
-                    <th className="px-4 py-3 text-right hidden md:table-cell">%Vic</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#222]">
-                  {rankedTeams.map((team, index) => {
-                    const stats = team.active
-                    const divColor = getDivisionColor(stats.division)
-                    const winRate = stats.joue > 0 ? Math.round((stats.vic / stats.joue) * 100) : 0
-                    const isChampion = stats.cla === 1
-
-                    return (
-                      <tr
-                        key={team.id}
-                        className="hover:bg-[#222] transition-colors group cursor-pointer"
-                      >
-                        <td className="px-4 py-3 text-center">
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mx-auto ${
-                            index === 0 ? 'bg-yellow-500 text-black' :
-                            index === 1 ? 'bg-gray-400 text-black' :
-                            index === 2 ? 'bg-amber-700 text-white' :
-                            'bg-[#333] text-gray-400'
-                          }`}>
-                            {index + 1}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <Link href={`/equipes/${team.id}`} className="flex items-center gap-2 hover:text-[#3b9fd8] transition-colors">
-                            {isChampion && <i className="fas fa-trophy text-yellow-400 text-xs"></i>}
-                            <span className="font-semibold text-white group-hover:text-[#3b9fd8]">{team.libequipe}</span>
-                          </Link>
-                        </td>
-                        <td className="px-4 py-3 text-center hidden md:table-cell">
-                          <span
-                            className="px-2 py-0.5 rounded text-xs font-bold text-white"
-                            style={{ backgroundColor: divColor }}
-                          >
-                            {getDivisionShort(stats.division)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {stats.cla > 0 ? (
-                            <span className="text-[#3b9fd8] font-semibold">{getRankLabel(stats.cla)}</span>
-                          ) : (
-                            <span className="text-gray-600">-</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-center text-gray-300">{stats.joue}</td>
-                        <td className="px-4 py-3 text-center font-bold text-[#3b9fd8] text-base">{stats.pts}</td>
-                        <td className="px-4 py-3 text-center font-semibold text-green-500">{stats.vic}</td>
-                        <td className="px-4 py-3 text-center text-yellow-500/70">{stats.nul}</td>
-                        <td className="px-4 py-3 text-center text-red-500/70">{stats.def}</td>
-                        <td className="px-4 py-3 text-right hidden md:table-cell">
-                          <div className="flex items-center justify-end gap-2">
-                            <div className="w-16 h-1.5 rounded-full bg-[#333] overflow-hidden">
-                              <div className="h-full bg-green-500 rounded-full" style={{ width: `${winRate}%` }}></div>
-                            </div>
-                            <span className="text-gray-400 text-xs w-8">{winRate}%</span>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
       )}
 
