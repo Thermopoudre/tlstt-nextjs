@@ -3,6 +3,7 @@ interface RssItem {
   link: string
   description: string
   pubDate: string
+  imageUrl: string
   sourceLabel: string
   sourceColor: string
   sourceIcon: string
@@ -48,11 +49,47 @@ const sourceConfig: Record<SourceKey, { url: string; label: string; icon: string
   },
 }
 
+function extractImage(itemContent: string): string {
+  // 1. <media:content url="...">
+  const mediaContent = itemContent.match(/<media:content[^>]+url=["']([^"']+)["'][^>]*\/?>/i)
+  if (mediaContent?.[1]) return mediaContent[1]
+
+  // 2. <media:thumbnail url="...">
+  const mediaThumbnail = itemContent.match(/<media:thumbnail[^>]+url=["']([^"']+)["'][^>]*\/?>/i)
+  if (mediaThumbnail?.[1]) return mediaThumbnail[1]
+
+  // 3. <enclosure url="..." type="image/...">
+  const enclosure = itemContent.match(/<enclosure[^>]+type=["']image\/[^"']*["'][^>]+url=["']([^"']+)["'][^>]*\/?>|<enclosure[^>]+url=["']([^"']+)["'][^>]+type=["']image\/[^"']*["'][^>]*\/?>/i)
+  if (enclosure?.[1]) return enclosure[1]
+  if (enclosure?.[2]) return enclosure[2]
+
+  // 4. <image><url>...</url></image>
+  const imageTag = itemContent.match(/<image[^>]*>[\s\S]*?<url[^>]*>(https?:\/\/[^<]+)<\/url>/i)
+  if (imageTag?.[1]) return imageTag[1]
+
+  // 5. First <img src="..."> in description/content
+  const descContent =
+    itemContent.match(/<content:encoded>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/content:encoded>/i)?.[1] ||
+    itemContent.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i)?.[1] ||
+    ''
+  const imgSrc = descContent.match(/<img[^>]+src=["'](https?:\/\/[^"']+)["']/i)
+  if (imgSrc?.[1]) return imgSrc[1]
+
+  return ''
+}
+
 async function fetchRssSource(key: SourceKey, limit: number): Promise<RssItem[]> {
   const config = sourceConfig[key]
   try {
     const res = await fetch(config.url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TLSTT-RSS/1.0)' },
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
+        'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+      },
       next: { revalidate: 3600 },
     })
     if (!res.ok) return []
@@ -65,8 +102,8 @@ async function fetchRssSource(key: SourceKey, limit: number): Promise<RssItem[]>
       const c = match[1]
       const get = (tag: string) => {
         return (
-          c.match(new RegExp(`<${tag}><![CDATA[(.*?)]]><\/${tag}>`, 's'))?.[1] ||
-          c.match(new RegExp(`<${tag}>([^<]*)<\/${tag}>`))?.[1] ||
+          c.match(new RegExp(`<${tag}><![CDATA[(.*?)]]><\\/${tag}>`, 's'))?.[1] ||
+          c.match(new RegExp(`<${tag}>([^<]*)<\\/${tag}>`))?.[1] ||
           ''
         )
       }
@@ -78,6 +115,7 @@ async function fetchRssSource(key: SourceKey, limit: number): Promise<RssItem[]>
         .trim()
         .substring(0, 180)
       const pubDate = get('pubDate').trim()
+      const imageUrl = extractImage(c)
 
       if (title) {
         items.push({
@@ -85,6 +123,7 @@ async function fetchRssSource(key: SourceKey, limit: number): Promise<RssItem[]>
           link,
           description,
           pubDate,
+          imageUrl,
           sourceLabel: config.label,
           sourceColor: config.color,
           sourceIcon: config.icon,
@@ -155,39 +194,51 @@ export default async function ExternalNewsWidget({ sources, limit = 9 }: Props) 
             href={item.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-[#1a1a1a] border border-[#333] rounded-xl p-5 hover:border-[#3b9fd8]/50 transition-all hover:-translate-y-0.5 group block"
+            className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden hover:border-[#3b9fd8]/50 transition-all hover:-translate-y-0.5 group block"
           >
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <span
-                className="text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1"
-                style={{
-                  backgroundColor: `${item.sourceColor}18`,
-                  color: item.sourceColor,
-                  border: `1px solid ${item.sourceColor}30`,
-                }}
-              >
-                <i className={`fas ${item.sourceIcon} text-[10px]`}></i>
-                {item.sourceLabel}
-              </span>
-              <i className="fas fa-external-link-alt text-gray-600 text-xs mt-0.5 group-hover:text-[#3b9fd8] transition-colors flex-shrink-0"></i>
+            {item.imageUrl && (
+              <div className="h-40 overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={item.imageUrl}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            )}
+            <div className="p-4">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1"
+                  style={{
+                    backgroundColor: `${item.sourceColor}18`,
+                    color: item.sourceColor,
+                    border: `1px solid ${item.sourceColor}30`,
+                  }}
+                >
+                  <i className={`fas ${item.sourceIcon} text-[10px]`}></i>
+                  {item.sourceLabel}
+                </span>
+                <i className="fas fa-external-link-alt text-gray-600 text-xs mt-0.5 group-hover:text-[#3b9fd8] transition-colors flex-shrink-0"></i>
+              </div>
+
+              <h3 className="text-white font-semibold text-sm leading-snug mb-2 group-hover:text-[#3b9fd8] transition-colors line-clamp-3">
+                {item.title}
+              </h3>
+
+              {item.description && (
+                <p className="text-gray-500 text-xs line-clamp-2 mb-3">
+                  {item.description}
+                </p>
+              )}
+
+              {item.pubDate && (
+                <p className="text-gray-600 text-xs flex items-center gap-1">
+                  <i className="far fa-calendar"></i>
+                  {formatDate(item.pubDate)}
+                </p>
+              )}
             </div>
-
-            <h3 className="text-white font-semibold text-sm leading-snug mb-2 group-hover:text-[#3b9fd8] transition-colors line-clamp-3">
-              {item.title}
-            </h3>
-
-            {item.description && (
-              <p className="text-gray-500 text-xs line-clamp-2 mb-3">
-                {item.description}
-              </p>
-            )}
-
-            {item.pubDate && (
-              <p className="text-gray-600 text-xs flex items-center gap-1">
-                <i className="far fa-calendar"></i>
-                {formatDate(item.pubDate)}
-              </p>
-            )}
           </a>
         ))}
       </div>
