@@ -23,11 +23,13 @@ export default async function ContactPage() {
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Header */}
       <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
-        <div className="max-w-7xl mx-auto px-5">
+        <div className="container-custom">
           <Breadcrumbs className="text-gray-500 mb-6" />
-          
+
           <div className="flex items-center gap-4">
-            <i className="fas fa-envelope text-4xl text-[#3b9fd8]"></i>
+            <div className="w-14 h-14 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
+              <i className="fas fa-envelope text-2xl text-white"></i>
+            </div>
             <div>
               <h1 className="text-3xl font-bold text-white">Contactez-nous</h1>
               <p className="text-gray-400">Une question ? Une demande d&apos;information ? Nous sommes là pour vous répondre !</p>
@@ -37,7 +39,7 @@ export default async function ContactPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-5 py-8">
+      <div className="container-custom py-8">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Formulaire */}
           <div className="lg:col-span-2">

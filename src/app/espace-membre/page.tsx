@@ -55,7 +55,7 @@ export default function EspaceMembrePage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
-      <div className="py-12 bg-[#0a0a0a]">
+      <div className="py-12 bg-[#0a0a0a] border-b border-[#222]">
         <div className="container-custom">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div>

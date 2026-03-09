@@ -16,6 +16,8 @@ export const metadata: Metadata = {
   keywords: ['galerie', 'photos', 'TLSTT', 'tennis de table', 'événements', 'Toulon', 'La Seyne'],
 }
 
+export const revalidate = 3600
+
 export default async function GaleriePage() {
   const supabase = await createClient()
 
@@ -32,11 +34,13 @@ export default async function GaleriePage() {
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Header */}
       <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
-        <div className="max-w-7xl mx-auto px-5">
+        <div className="container-custom">
           <Breadcrumbs className="text-gray-500 mb-6" />
           
           <div className="flex items-center gap-4">
-            <i className="fas fa-images text-4xl text-[#3b9fd8]"></i>
+            <div className="w-14 h-14 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
+              <i className="fas fa-images text-2xl text-white"></i>
+            </div>
             <div>
               <h1 className="text-3xl font-bold text-white">Galerie Photo</h1>
               <p className="text-gray-400">Découvrez les meilleurs moments du club TLSTT en images</p>
@@ -46,7 +50,7 @@ export default async function GaleriePage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-5 py-8">
+      <div className="container-custom py-8">
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-4 text-center">

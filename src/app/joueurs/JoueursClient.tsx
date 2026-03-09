@@ -150,7 +150,7 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
       <div className="py-12 bg-[#0a0a0a] border-b border-[#222]">
-        <div className="max-w-7xl mx-auto px-5">
+        <div className="container-custom">
           <Breadcrumbs className="text-gray-500 mb-6" />
           
           <div className="text-center">
@@ -168,7 +168,7 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
       </div>
 
       {/* Stats */}
-      <div className="max-w-7xl mx-auto px-5 py-8">
+      <div className="container-custom py-8">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
           <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-4 text-center hover:border-[#3b9fd8]/50 transition-colors">
             <div className="w-10 h-10 bg-[#3b9fd8] rounded-full mx-auto mb-2 flex items-center justify-center">

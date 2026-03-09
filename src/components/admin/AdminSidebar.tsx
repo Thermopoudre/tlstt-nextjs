@@ -48,6 +48,7 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
       title: 'Contenu',
       items: [
         { title: 'Actualités', icon: 'fa-newspaper', path: '/admin/actualites' },
+        { title: 'Alertes', icon: 'fa-bell', path: '/admin/alertes' },
         { title: 'Carousel', icon: 'fa-images', path: '/admin/carousel' },
         { title: 'Galerie', icon: 'fa-photo-film', path: '/admin/galerie' },
         { title: 'Newsletter', icon: 'fa-envelope-open-text', path: '/admin/newsletter' },
@@ -60,6 +61,7 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
         { title: 'Joueurs', icon: 'fa-user-group', path: '/admin/joueurs' },
         { title: 'Équipes', icon: 'fa-people-group', path: '/admin/equipes' },
         { title: 'Compétitions', icon: 'fa-trophy', path: '/admin/competitions' },
+        { title: 'Palmarès', icon: 'fa-medal', path: '/admin/palmares' },
         { title: 'Planning', icon: 'fa-calendar-alt', path: '/admin/planning' },
         { title: 'À propos', icon: 'fa-info-circle', path: '/admin/club' },
         { title: 'Labels FFTT', icon: 'fa-award', path: '/admin/labels' },
@@ -84,11 +86,24 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
       ]
     },
     {
+      title: 'Infos pratiques',
+      items: [
+        { title: 'Tarifs', icon: 'fa-euro-sign', path: '/admin/tarifs' },
+        { title: 'FAQ', icon: 'fa-circle-question', path: '/admin/faq' },
+      ]
+    },
+    {
       title: 'Pages',
       items: [
         { title: 'Mentions légales', icon: 'fa-scale-balanced', path: '/admin/pages/mentions-legales' },
         { title: 'Confidentialité', icon: 'fa-shield', path: '/admin/pages/confidentialite' },
         { title: 'Cookies', icon: 'fa-cookie', path: '/admin/pages/cookies' },
+      ]
+    },
+    {
+      title: 'Administration',
+      items: [
+        { title: 'Administrateurs', icon: 'fa-user-shield', path: '/admin/admins' },
       ]
     },
   ]

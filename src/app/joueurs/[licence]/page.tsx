@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import PlayerProfileClient from '@/components/player/PlayerProfileClient'
 
+export const revalidate = 3600
+
 interface PlayerPageProps {
   params: Promise<{
     licence: string

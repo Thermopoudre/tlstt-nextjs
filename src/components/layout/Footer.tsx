@@ -43,6 +43,11 @@ export default async function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/palmares" className="text-gray-400 hover:text-[#3b9fd8] transition-colors flex items-center gap-2">
+                  <i className="fas fa-trophy w-4"></i> Palmarès
+                </Link>
+              </li>
+              <li>
                 <Link href="/planning" className="text-gray-400 hover:text-[#3b9fd8] transition-colors flex items-center gap-2">
                   <i className="fas fa-calendar w-4"></i> Planning
                 </Link>
@@ -55,31 +60,36 @@ export default async function Footer() {
             </ul>
           </div>
 
-          {/* Colonne 3 - Légal */}
+          {/* Colonne 3 - Infos pratiques */}
           <div>
             <h4 className="font-bold text-[#3b9fd8] mb-4 flex items-center gap-2">
               <i className="fas fa-shield-alt"></i>
-              Informations
+              Infos pratiques
             </h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/mentions-legales" className="text-gray-400 hover:text-[#3b9fd8] transition-colors">
-                  Mentions Légales
+                <Link href="/tarifs" className="text-gray-400 hover:text-[#3b9fd8] transition-colors flex items-center gap-2">
+                  <i className="fas fa-euro-sign w-4"></i> Tarifs d&apos;adhésion
                 </Link>
               </li>
               <li>
-                <Link href="/politique-confidentialite" className="text-gray-400 hover:text-[#3b9fd8] transition-colors">
-                  Confidentialité
+                <Link href="/faq" className="text-gray-400 hover:text-[#3b9fd8] transition-colors flex items-center gap-2">
+                  <i className="fas fa-circle-question w-4"></i> FAQ
                 </Link>
               </li>
               <li>
-                <Link href="/politique-cookies" className="text-gray-400 hover:text-[#3b9fd8] transition-colors">
-                  Politique cookies
+                <Link href="/mentions-legales" className="text-gray-400 hover:text-[#3b9fd8] transition-colors flex items-center gap-2">
+                  <i className="fas fa-scale-balanced w-4"></i> Mentions légales
                 </Link>
               </li>
               <li>
-                <Link href="/admin" className="text-gray-400 hover:text-[#3b9fd8] transition-colors">
-                  Administration
+                <Link href="/politique-confidentialite" className="text-gray-400 hover:text-[#3b9fd8] transition-colors flex items-center gap-2">
+                  <i className="fas fa-lock w-4"></i> Confidentialité
+                </Link>
+              </li>
+              <li>
+                <Link href="/admin" className="text-gray-400 hover:text-[#3b9fd8] transition-colors flex items-center gap-2">
+                  <i className="fas fa-cog w-4"></i> Administration
                 </Link>
               </li>
             </ul>

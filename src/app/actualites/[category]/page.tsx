@@ -5,6 +5,9 @@ import Image from 'next/image'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd, generatePageMeta } from '@/lib/seo'
+import ExternalNewsWidget from '@/components/news/ExternalNewsWidget'
+
+export const revalidate = 3600
 
 const categoryLabels: Record<string, string> = {
   club: 'Actualités du Club',
@@ -61,17 +64,19 @@ export default async function ActualitesPage({
       ])} />
       {/* Header */}
       <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
-        <div className="max-w-7xl mx-auto px-5">
+        <div className="container-custom">
           <Breadcrumbs className="text-gray-500 mb-6" />
-          
+
           <div className="flex items-center gap-4">
-            <i className="fas fa-newspaper text-4xl text-[#3b9fd8]"></i>
+            <div className="w-14 h-14 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
+              <i className="fas fa-newspaper text-2xl text-white"></i>
+            </div>
             <div>
               <h1 className="text-3xl font-bold text-white">
-                {categoryLabels[category] || 'Actualites'}
+                {categoryLabels[category] || 'Actualités'}
               </h1>
               <p className="text-gray-400">
-                {categoryDescriptions[category] || 'Toutes les actualites'}
+                {categoryDescriptions[category] || 'Toutes les actualités'}
               </p>
             </div>
           </div>
@@ -79,7 +84,7 @@ export default async function ActualitesPage({
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-5 py-8">
+      <div className="container-custom py-8">
         {/* Categories tabs */}
         <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
           {Object.entries(categoryLabels).map(([key, label]) => (
@@ -139,10 +144,14 @@ export default async function ActualitesPage({
         ) : (
           <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-12 text-center">
             <i className="fas fa-newspaper text-6xl text-gray-600 mb-4"></i>
-            <h3 className="text-xl font-bold text-white mb-2">Aucune actualite</h3>
-            <p className="text-gray-500">Aucun article dans cette categorie pour le moment.</p>
+            <h3 className="text-xl font-bold text-white mb-2">Aucune actualité</h3>
+            <p className="text-gray-500">Aucun article dans cette catégorie pour le moment.</p>
           </div>
         )}
+
+        {/* Flux RSS externe — FFTT pour tt, Handisport pour handi */}
+        {category === 'tt' && <ExternalNewsWidget source="fftt" limit={6} />}
+        {category === 'handi' && <ExternalNewsWidget source="handisport" limit={6} />}
       </div>
     </div>
   )

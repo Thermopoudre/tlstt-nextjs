@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 
 export default function NewsletterPage() {
   const [email, setEmail] = useState('')
@@ -67,15 +68,20 @@ export default function NewsletterPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero Section */}
-      <div className="bg-[#0a0a0a] py-16 border-b border-[#222]">
-        <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            <i className="fas fa-envelope-open-text mr-3 text-[#3b9fd8]"></i>
-            Newsletter TLSTT
-          </h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Restez informé des actualités du club, des événements, des résultats et bien plus encore !
-          </p>
+      <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
+        <div className="container-custom">
+          <Breadcrumbs className="text-gray-500 mb-6" />
+          <div className="text-center">
+            <div className="w-16 h-16 bg-[#3b9fd8] rounded-full flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-envelope-open-text text-3xl text-white"></i>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Newsletter <span className="text-[#3b9fd8]">TLSTT</span>
+            </h1>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Restez informé des actualités du club, des événements, des résultats et bien plus encore !
+            </p>
+          </div>
         </div>
       </div>
 

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 
 interface Competition {
   id: number
@@ -94,20 +95,14 @@ export default function CompetitionsContent({ competitions }: { competitions: Co
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
-      <div className="py-12 bg-[#0a0a0a]">
-        <div className="max-w-7xl mx-auto px-5">
-          <nav className="mb-6 text-sm">
-            <ol className="flex items-center space-x-2 text-gray-500">
-              <li><Link href="/" className="hover:text-[#3b9fd8]">Accueil</Link></li>
-              <li>/</li>
-              <li className="text-white font-semibold">Competitions</li>
-            </ol>
-          </nav>
+      <div className="py-12 bg-[#0a0a0a] border-b border-[#222]">
+        <div className="container-custom">
+          <Breadcrumbs className="text-gray-500 mb-6" />
 
           <div className="text-center mb-8">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
               <i className="fas fa-calendar-alt mr-3 text-[#3b9fd8]"></i>
-              <span className="text-[#3b9fd8]">Calendrier</span> des Competitions
+              <span className="text-[#3b9fd8]">Calendrier</span> des Compétitions
             </h1>
             <p className="text-gray-400 text-lg">
               Toutes les rencontres officielles du TLSTT — Saison 2025/2026
@@ -213,13 +208,13 @@ export default function CompetitionsContent({ competitions }: { competitions: Co
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-5 pb-12">
+      <div className="container-custom pb-12">
         {/* Prochaines rencontres */}
         {aVenir.length > 0 && (
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
               <i className="fas fa-calendar-alt text-[#3b9fd8]"></i>
-              A venir ({aVenir.length})
+              À venir ({aVenir.length})
             </h2>
 
             <div className="space-y-3">

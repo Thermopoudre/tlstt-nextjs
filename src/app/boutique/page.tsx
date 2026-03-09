@@ -75,10 +75,12 @@ export default function BoutiquePage() {
     return (
       <div className="min-h-screen bg-[#0a0a0a]">
         <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
-          <div className="max-w-7xl mx-auto px-5">
+          <div className="container-custom">
             <Breadcrumbs className="text-gray-500 mb-6" />
             <div className="flex items-center gap-4">
-              <i className="fas fa-store text-4xl text-[#3b9fd8]"></i>
+              <div className="w-14 h-14 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
+                <i className="fas fa-store text-2xl text-white"></i>
+              </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">Boutique du Club</h1>
                 <p className="text-gray-400">Articles officiels TLSTT</p>
@@ -146,10 +148,12 @@ export default function BoutiquePage() {
     return (
       <div className="min-h-screen bg-[#0a0a0a]">
         <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
-          <div className="max-w-7xl mx-auto px-5">
+          <div className="container-custom">
             <Breadcrumbs className="text-gray-500 mb-6" />
             <div className="flex items-center gap-4">
-              <i className="fas fa-store text-4xl text-[#3b9fd8]"></i>
+              <div className="w-14 h-14 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
+                <i className="fas fa-store text-2xl text-white"></i>
+              </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">Boutique du Club</h1>
                 <p className="text-gray-400">Articles officiels TLSTT</p>
@@ -278,8 +282,8 @@ export default function BoutiquePage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
-      <div className="py-12 bg-[#0a0a0a]">
-        <div className="max-w-7xl mx-auto px-5">
+      <div className="py-12 bg-[#0a0a0a] border-b border-[#222]">
+        <div className="container-custom">
           <Breadcrumbs className="text-gray-500 mb-6" />
 
           <div className="flex justify-between items-start">
@@ -327,7 +331,7 @@ export default function BoutiquePage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-5 pb-12 -mt-4">
+      <div className="container-custom pb-12 -mt-4">
         {/* Section Cotisation HelloAsso */}
         {helloassoCotisationUrl && (
           <div className="mb-8 bg-gradient-to-r from-[#4c40cf]/10 to-[#3b9fd8]/10 border border-[#4c40cf]/30 rounded-2xl p-6">

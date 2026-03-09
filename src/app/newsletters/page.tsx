@@ -1,9 +1,20 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import Image from 'next/image'
 import Link from 'next/link'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 
-export const metadata = {
-  title: 'Newsletters | TLSTT',
-  description: 'Retrouvez toutes les newsletters du club Toulon La Seyne Tennis de Table',
+export const revalidate = 3600
+
+export const metadata: Metadata = {
+  title: 'Newsletters - Archives | TLSTT Tennis de Table',
+  description: 'Retrouvez toutes les newsletters du club TLSTT Toulon La Seyne Tennis de Table. Actualités, résultats et informations du club.',
+  alternates: { canonical: '/newsletters' },
+  openGraph: {
+    title: 'Newsletters TLSTT',
+    description: 'Archives des newsletters du club de tennis de table TLSTT.',
+    url: '/newsletters',
+  },
 }
 
 export default async function NewslettersPage() {
@@ -16,92 +27,109 @@ export default async function NewslettersPage() {
     .order('published_at', { ascending: false })
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
-      <div className="bg-[#0f3057] py-16">
-        <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            <i className="fas fa-envelope-open-text mr-3 text-[#5bc0de]"></i>
-            Newsletters
-          </h1>
-          <p className="text-xl text-white/80">
-            Retrouvez toutes les actualités du club dans nos newsletters mensuelles
-          </p>
+      <section className="py-12 bg-[#0a0a0a] border-b border-[#222]">
+        <div className="container-custom">
+          <Breadcrumbs className="text-gray-500 mb-6" />
+          <div className="text-center">
+            <div className="w-16 h-16 bg-[#3b9fd8] rounded-full flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-envelope-open-text text-3xl text-white"></i>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Nos <span className="text-[#3b9fd8]">Newsletters</span>
+            </h1>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Retrouvez toutes les actualités du club dans nos newsletters mensuelles
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* Liste des newsletters */}
-      <div className="container-custom py-12">
-        {newsletters && newsletters.length > 0 ? (
-          <div className="grid gap-8">
-            {newsletters.map((newsletter) => (
-              <article
-                key={newsletter.id}
-                className="card flex flex-col md:flex-row gap-6 hover:border-[#5bc0de] transition-colors"
-              >
-                {newsletter.cover_image_url && (
-                  <div className="md:w-1/3">
-                    <img
-                      src={newsletter.cover_image_url}
-                      alt={newsletter.title}
-                      className="w-full h-48 object-cover rounded-lg"
-                    />
-                  </div>
-                )}
-                <div className="flex-1">
-                  <div className="flex items-center gap-4 text-sm text-gray-500 mb-2">
-                    <span>
-                      <i className="fas fa-calendar mr-1 text-[#5bc0de]"></i>
-                      {new Date(newsletter.published_at).toLocaleDateString('fr-FR', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })}
-                    </span>
-                  </div>
-                  <h2 className="text-2xl font-bold text-[#0f3057] mb-3">
-                    {newsletter.title}
-                  </h2>
-                  {newsletter.excerpt && (
-                    <p className="text-gray-600 mb-4">{newsletter.excerpt}</p>
+      <section className="py-16">
+        <div className="container-custom">
+          {newsletters && newsletters.length > 0 ? (
+            <div className="grid gap-6">
+              {newsletters.map((newsletter) => (
+                <article
+                  key={newsletter.id}
+                  className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 flex flex-col md:flex-row gap-6 hover:border-[#3b9fd8]/60 transition-all"
+                >
+                  {newsletter.cover_image_url && (
+                    <div className="md:w-1/4 flex-shrink-0">
+                      <div className="relative h-48 md:h-full min-h-[140px] rounded-xl overflow-hidden">
+                        <Image
+                          src={newsletter.cover_image_url}
+                          alt={newsletter.title}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    </div>
                   )}
-                  <Link
-                    href={`/newsletters/${newsletter.id}`}
-                    className="inline-block bg-[#5bc0de] text-white px-6 py-2 rounded-full font-semibold hover:bg-[#4ab0ce] transition-colors"
-                  >
-                    <i className="fas fa-book-open mr-2"></i>
-                    Lire la newsletter
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <i className="fas fa-envelope-open text-6xl text-gray-300 mb-4"></i>
-            <h2 className="text-2xl font-bold text-gray-600">Aucune newsletter</h2>
-            <p className="text-gray-500">Les newsletters seront bientôt disponibles</p>
-          </div>
-        )}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                      <span>
+                        <i className="fas fa-calendar mr-1 text-[#3b9fd8]"></i>
+                        {new Date(newsletter.published_at).toLocaleDateString('fr-FR', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                    <h2 className="text-xl font-bold text-white mb-3">
+                      {newsletter.title}
+                    </h2>
+                    {newsletter.excerpt && (
+                      <p className="text-gray-400 mb-4 text-sm leading-relaxed">{newsletter.excerpt}</p>
+                    )}
+                    <Link
+                      href={`/newsletters/${newsletter.id}`}
+                      className="inline-flex items-center gap-2 bg-[#3b9fd8] text-white px-5 py-2 rounded-full font-semibold hover:bg-[#2d8bc9] transition-colors text-sm"
+                    >
+                      <i className="fas fa-book-open"></i>
+                      Lire la newsletter
+                    </Link>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 text-gray-500">
+              <i className="fas fa-envelope-open text-4xl mb-4 text-[#3b9fd8]"></i>
+              <h2 className="text-xl font-bold text-white mb-2">Aucune newsletter</h2>
+              <p>Les newsletters seront bientôt disponibles</p>
+            </div>
+          )}
 
-        {/* Inscription newsletter */}
-        <div className="mt-12 bg-[#0f3057] text-white p-8 rounded-xl">
-          <div className="max-w-2xl mx-auto text-center">
-            <h3 className="text-2xl font-bold mb-4">
-              <i className="fas fa-bell mr-2 text-[#5bc0de]"></i>
-              Restez informé !
-            </h3>
-            <p className="text-white/80 mb-6">
-              Inscrivez-vous à notre newsletter pour recevoir les actualités du club
-              directement dans votre boîte mail.
+          {/* CTA inscription newsletter */}
+          <div className="mt-12 bg-gradient-to-r from-[#3b9fd8]/20 to-[#3b9fd8]/5 border border-[#3b9fd8]/30 rounded-2xl p-8 text-center">
+            <i className="fas fa-bell text-3xl text-[#3b9fd8] mb-4"></i>
+            <h2 className="text-2xl font-bold text-white mb-2">Restez informé !</h2>
+            <p className="text-gray-400 mb-6">
+              Inscrivez-vous à notre newsletter pour recevoir les actualités du club directement dans votre boîte mail.
             </p>
-            <Link href="/newsletter" className="inline-block bg-[#5bc0de] text-white px-8 py-3 rounded-full font-bold hover:bg-[#4ab0ce] transition-colors">
-              <i className="fas fa-envelope mr-2"></i>
-              S'inscrire à la newsletter
-            </Link>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Link
+                href="/newsletter"
+                className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-[#3b9fd8] text-white rounded-full font-bold hover:bg-[#2d8bc9] transition-colors"
+              >
+                <i className="fas fa-envelope"></i>
+                S&apos;inscrire à la newsletter
+              </Link>
+              <Link
+                href="/actualites"
+                className="inline-flex items-center justify-center gap-2 px-8 py-3 border border-[#3b9fd8]/50 text-[#3b9fd8] rounded-full font-semibold hover:bg-[#3b9fd8]/10 transition-colors"
+              >
+                <i className="fas fa-newspaper"></i>
+                Voir les actualités
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   )
 }

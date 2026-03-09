@@ -2,8 +2,12 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import JsonLd from '@/components/seo/JsonLd'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { articleJsonLd, breadcrumbJsonLd, autoDescription, generatePageMeta } from '@/lib/seo'
+
+export const revalidate = 3600
 
 interface NewsletterPageProps {
   params: Promise<{ id: string }>
@@ -41,34 +45,39 @@ export default async function NewsletterDetailPage({ params }: NewsletterPagePro
   ]
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#0a0a0a]">
       <JsonLd data={jsonLdData} />
+
       {/* Hero */}
-      <div
-        className="relative h-[40vh] bg-cover bg-center"
-        style={{
-          backgroundImage: newsletter.cover_image_url
-            ? `url(${newsletter.cover_image_url})`
-            : 'linear-gradient(to right, #10325F, #1a4a7a)',
-        }}
-      >
-        <div className="absolute inset-0 bg-primary/70"></div>
-        <div className="absolute inset-0 flex items-center">
-          <div className="container-custom text-white">
-            <Link href="/newsletters" className="text-gray-300 hover:text-white mb-4 inline-block">
-              ← Retour aux newsletters
-            </Link>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{newsletter.title}</h1>
-            <div className="flex items-center gap-4 text-gray-200">
-              <span>
-                <i className="fas fa-calendar mr-2"></i>
-                {new Date(newsletter.published_at).toLocaleDateString('fr-FR', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </span>
+      <div className="py-12 bg-[#0a0a0a] border-b border-[#222]">
+        <div className="container-custom">
+          <Breadcrumbs className="text-gray-500 mb-6" />
+          <div className="flex items-start justify-between flex-wrap gap-4">
+            <div className="flex items-start gap-4 flex-1">
+              <div className="w-14 h-14 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <i className="fas fa-envelope-open-text text-2xl text-white"></i>
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">{newsletter.title}</h1>
+                <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                  <span>
+                    <i className="fas fa-calendar mr-1 text-[#3b9fd8]"></i>
+                    {new Date(newsletter.published_at).toLocaleDateString('fr-FR', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </span>
+                </div>
+              </div>
             </div>
+            <Link
+              href="/newsletters"
+              className="bg-[#1a1a1a] border border-[#333] text-white px-5 py-2.5 rounded-xl font-semibold hover:border-[#3b9fd8]/50 transition-colors"
+            >
+              <i className="fas fa-arrow-left mr-2"></i>
+              Retour aux newsletters
+            </Link>
           </div>
         </div>
       </div>
@@ -76,23 +85,42 @@ export default async function NewsletterDetailPage({ params }: NewsletterPagePro
       {/* Contenu */}
       <div className="container-custom py-12">
         <article className="max-w-3xl mx-auto">
-          <div
-            className="prose prose-lg max-w-none prose-headings:text-primary prose-a:text-secondary"
-            dangerouslySetInnerHTML={{ __html: newsletter.content }}
-          />
-        </article>
+          {newsletter.cover_image_url && (
+            <div className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden mb-8">
+              <Image
+                src={newsletter.cover_image_url}
+                alt={newsletter.title}
+                fill
+                className="object-cover"
+              />
+            </div>
+          )}
 
-        {/* Navigation */}
-        <div className="max-w-3xl mx-auto mt-12 pt-8 border-t">
-          <div className="flex items-center justify-between">
-            <Link href="/newsletters" className="text-primary hover:underline">
-              ← Toutes les newsletters
+          <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-8">
+            <div
+              className="prose prose-lg max-w-none prose-invert prose-headings:text-white prose-a:text-[#3b9fd8] prose-strong:text-white prose-p:text-gray-300 prose-li:text-gray-300"
+              dangerouslySetInnerHTML={{ __html: newsletter.content }}
+            />
+          </div>
+
+          {/* Navigation */}
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <Link
+              href="/newsletters"
+              className="inline-flex items-center gap-2 bg-[#1a1a1a] border border-[#333] text-white px-6 py-3 rounded-xl font-semibold hover:border-[#3b9fd8]/50 transition-colors"
+            >
+              <i className="fas fa-arrow-left"></i>
+              Toutes les newsletters
             </Link>
-            <Link href="/newsletter" className="btn-primary">
-              S'inscrire à la newsletter
+            <Link
+              href="/newsletter"
+              className="inline-flex items-center gap-2 bg-[#3b9fd8] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#2d8bc9] transition-colors"
+            >
+              <i className="fas fa-envelope"></i>
+              S&apos;inscrire à la newsletter
             </Link>
           </div>
-        </div>
+        </article>
       </div>
     </div>
   )

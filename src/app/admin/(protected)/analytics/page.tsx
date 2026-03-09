@@ -51,8 +51,8 @@ export default function AdminAnalyticsPage() {
       { data: recentMembers },
       { data: newsCategories },
     ] = await Promise.all([
-      supabase.from('profiles').select('*', { count: 'exact', head: true }),
-      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_validated', false),
+      supabase.from('member_profiles').select('*', { count: 'exact', head: true }),
+      supabase.from('member_profiles').select('*', { count: 'exact', head: true }).eq('is_validated', false),
       supabase.from('news').select('*', { count: 'exact', head: true }),
       supabase.from('news').select('*', { count: 'exact', head: true }).eq('status', 'published'),
       supabase.from('newsletters').select('*', { count: 'exact', head: true }),
@@ -65,7 +65,7 @@ export default function AdminAnalyticsPage() {
       supabase.from('shop_products').select('*', { count: 'exact', head: true }).eq('is_active', true),
       supabase.from('shop_orders').select('*', { count: 'exact', head: true }),
       supabase.from('news').select('id, title, category, status, published_at').order('published_at', { ascending: false }).limit(5),
-      supabase.from('profiles').select('id, first_name, last_name, created_at, is_validated').order('created_at', { ascending: false }).limit(5),
+      supabase.from('member_profiles').select('id, first_name, last_name, created_at, is_validated').order('created_at', { ascending: false }).limit(5),
       supabase.from('news').select('category').eq('status', 'published'),
     ])
 

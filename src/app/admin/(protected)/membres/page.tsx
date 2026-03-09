@@ -73,6 +73,29 @@ export default function AdminMembresPage() {
 
   const pendingCount = members.filter(m => m.role === 'member' && !m.is_validated).length
 
+  const handleExportCSV = () => {
+    const rows = [
+      ['Prénom', 'Nom', 'Téléphone', 'Licence FFTT', 'Rôle', 'Statut', 'Inscription'],
+      ...filteredMembers.map(m => [
+        m.first_name ?? '',
+        m.last_name ?? '',
+        m.phone ?? '',
+        m.licence_fftt ?? '',
+        m.role === 'admin' ? 'Admin' : m.role === 'member' ? 'Membre' : 'Visiteur',
+        m.is_validated ? 'Validé' : 'En attente',
+        new Date(m.created_at).toLocaleDateString('fr-FR'),
+      ])
+    ]
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\n')
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `membres_${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -80,11 +103,20 @@ export default function AdminMembresPage() {
           <h1 className="text-2xl lg:text-3xl font-bold text-primary">Gestion des membres</h1>
           <p className="text-gray-600 mt-1">Validez les inscriptions et gerez les roles</p>
         </div>
-        {pendingCount > 0 && (
-          <span className="bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-semibold text-sm">
-            <i className="fas fa-bell mr-2"></i>{pendingCount} en attente de validation
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {pendingCount > 0 && (
+            <span className="bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-semibold text-sm">
+              <i className="fas fa-bell mr-2"></i>{pendingCount} en attente de validation
+            </span>
+          )}
+          <button
+            onClick={handleExportCSV}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 flex items-center gap-2"
+          >
+            <i className="fas fa-file-csv"></i>
+            Exporter CSV
+          </button>
+        </div>
       </div>
 
       {/* Stats */}

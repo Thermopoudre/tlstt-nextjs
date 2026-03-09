@@ -8,6 +8,7 @@ import CookieBanner from '@/components/ui/CookieBanner'
 import BackToTop from '@/components/ui/BackToTop'
 import JsonLd from '@/components/seo/JsonLd'
 import { organizationJsonLd } from '@/lib/seo'
+import AlertBanner from '@/components/ui/AlertBanner'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
@@ -41,6 +42,9 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: SITE_URL,
+    types: {
+      'application/rss+xml': `${SITE_URL}/feed.xml`,
+    },
   },
   openGraph: {
     type: 'website',
@@ -94,6 +98,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="TLSTT" />
         <link rel="apple-touch-icon" href="/logo.jpeg" />
+        <link rel="alternate" type="application/rss+xml" title="TLSTT — Actualités" href="/feed.xml" />
       </head>
       <body className="flex flex-col min-h-screen bg-[#0a0a0a]">
         <script dangerouslySetInnerHTML={{ __html: `
@@ -105,6 +110,7 @@ export default function RootLayout({
         `}} />
         <JsonLd data={organizationJsonLd()} />
         <AuthProvider>
+          <AlertBanner />
           <Header />
           <main className="flex-1 py-0">
             {children}

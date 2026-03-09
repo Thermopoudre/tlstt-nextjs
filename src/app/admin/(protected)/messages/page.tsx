@@ -9,6 +9,9 @@ export default function AdminMessagesPage() {
   const [loading, setLoading] = useState(true)
   const [selectedMessage, setSelectedMessage] = useState<any | null>(null)
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
+  const [replyText, setReplyText] = useState('')
+  const [replySending, setReplySending] = useState(false)
+  const [replySent, setReplySent] = useState(false)
 
   useEffect(() => {
     loadMessages()
@@ -27,12 +30,31 @@ export default function AdminMessagesPage() {
 
   const handleMarkAsRead = async (id: number) => {
     const supabase = createClient()
-    await supabase
-      .from('contact_messages')
-      .update({ status: 'read' })
-      .eq('id', id)
-
+    await supabase.from('contact_messages').update({ status: 'read' }).eq('id', id)
     await loadMessages()
+  }
+
+  const handleMarkAllAsRead = async () => {
+    const supabase = createClient()
+    await supabase.from('contact_messages').update({ status: 'read' }).eq('status', 'new')
+    await loadMessages()
+  }
+
+  const handleSendReply = async () => {
+    if (!selectedMessage || !replyText.trim()) return
+    setReplySending(true)
+    try {
+      await fetch('/api/admin/reply-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId: selectedMessage.id, to: selectedMessage.email, name: selectedMessage.name, replyText }),
+      })
+      setReplySent(true)
+      setReplyText('')
+      if (selectedMessage.status === 'new') await handleMarkAsRead(selectedMessage.id)
+    } finally {
+      setReplySending(false)
+    }
   }
 
   const handleDelete = async (id: number) => {
@@ -64,9 +86,20 @@ export default function AdminMessagesPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Messages</h1>
-        <p className="text-gray-600 mt-1">Messages reçus via le formulaire de contact</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Messages</h1>
+          <p className="text-gray-600 mt-1">Messages reçus via le formulaire de contact</p>
+        </div>
+        {stats.new > 0 && (
+          <button
+            onClick={handleMarkAllAsRead}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 flex items-center gap-2"
+          >
+            <i className="fas fa-check-double"></i>
+            Tout marquer comme lu ({stats.new})
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-3 gap-6 mb-6">
@@ -90,7 +123,7 @@ export default function AdminMessagesPage() {
           {messages.map((msg) => (
             <div
               key={msg.id}
-              onClick={() => setSelectedMessage(msg)}
+              onClick={() => { setSelectedMessage(msg); setReplyText(''); setReplySent(false) }}
               className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${
                 selectedMessage?.id === msg.id ? 'bg-blue-50' : ''
               } ${msg.status === 'new' ? 'bg-green-50' : ''}`}
@@ -175,21 +208,46 @@ export default function AdminMessagesPage() {
                 </div>
               </div>
 
-              <div className="mt-6 flex gap-3">
-                <a
-                  href={`mailto:${selectedMessage.email}?subject=Re: ${selectedMessage.name}&body=Bonjour ${selectedMessage.name},%0D%0A%0D%0A`}
-                  className="bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-light inline-flex items-center gap-2"
-                >
-                  <i className="fas fa-reply"></i>
-                  Répondre par email
-                </a>
-                <button
-                  onClick={() => handleDelete(selectedMessage.id)}
-                  className="bg-red-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-red-700 inline-flex items-center gap-2"
-                >
-                  <i className="fas fa-trash"></i>
-                  Supprimer
-                </button>
+              {/* Formulaire de réponse intégré */}
+              <div className="mt-6 border-t pt-6">
+                <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <i className="fas fa-reply text-primary"></i>
+                  Répondre à {selectedMessage.name}
+                </h3>
+                {replySent && (
+                  <div className="mb-3 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm flex items-center gap-2">
+                    <i className="fas fa-check-circle"></i> Réponse envoyée avec succès !
+                  </div>
+                )}
+                <textarea
+                  className="w-full border rounded-lg px-3 py-2 text-sm h-28 resize-none focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  placeholder={`Écrivez votre réponse à ${selectedMessage.name}...`}
+                  value={replyText}
+                  onChange={e => { setReplyText(e.target.value); setReplySent(false) }}
+                />
+                <div className="flex gap-3 mt-3">
+                  <button
+                    onClick={handleSendReply}
+                    disabled={!replyText.trim() || replySending}
+                    className="bg-primary text-white px-5 py-2 rounded-lg font-semibold hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2 text-sm"
+                  >
+                    {replySending ? <><i className="fas fa-spinner fa-spin"></i> Envoi...</> : <><i className="fas fa-paper-plane"></i> Envoyer</>}
+                  </button>
+                  <a
+                    href={`mailto:${selectedMessage.email}?subject=Re: ${selectedMessage.name}&body=Bonjour ${selectedMessage.name},%0D%0A%0D%0A`}
+                    className="border border-gray-300 text-gray-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-50 inline-flex items-center gap-2 text-sm"
+                  >
+                    <i className="fas fa-external-link"></i>
+                    Client mail
+                  </a>
+                  <button
+                    onClick={() => handleDelete(selectedMessage.id)}
+                    className="ml-auto bg-red-50 text-red-600 px-4 py-2 rounded-lg font-semibold hover:bg-red-100 inline-flex items-center gap-2 text-sm"
+                  >
+                    <i className="fas fa-trash"></i>
+                    Supprimer
+                  </button>
+                </div>
               </div>
             </div>
           ) : (

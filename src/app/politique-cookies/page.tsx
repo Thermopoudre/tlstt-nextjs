@@ -1,10 +1,17 @@
 import Link from 'next/link'
 import { getPageContent } from '@/lib/settings'
 import { Metadata } from 'next'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 
 export const metadata: Metadata = {
   title: 'Politique de Cookies | TLSTT',
-  description: 'Informations sur les cookies utilisés par le site du club TLSTT',
+  description: 'Informations sur les cookies utilisés par le site du club TLSTT.',
+  alternates: { canonical: '/politique-cookies' },
+  openGraph: {
+    title: 'Politique de Cookies - TLSTT',
+    description: 'Informations sur les cookies utilisés par notre site web.',
+    url: '/politique-cookies',
+  },
 }
 
 export default async function PolitiqueCookiesPage() {
@@ -14,15 +21,20 @@ export default async function PolitiqueCookiesPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
-      <div className="bg-[#0a0a0a] py-16 border-b border-[#222]">
+      <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
         <div className="container-custom">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            <i className="fas fa-cookie-bite mr-3 text-[#3b9fd8]"></i>
-            Politique de Cookies
-          </h1>
-          <p className="text-xl text-gray-400">
-            Informations sur les cookies utilisés par notre site
-          </p>
+          <Breadcrumbs className="text-gray-500 mb-6" />
+          <div className="text-center">
+            <div className="w-16 h-16 bg-[#3b9fd8] rounded-full flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-cookie-bite text-3xl text-white"></i>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Politique de <span className="text-[#3b9fd8]">Cookies</span>
+            </h1>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Informations sur les cookies utilisés par notre site
+            </p>
+          </div>
         </div>
       </div>
 

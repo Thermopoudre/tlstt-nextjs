@@ -36,7 +36,7 @@ export default async function DynamicPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
-      <div className="max-w-5xl mx-auto px-5 py-12">
+      <div className="container-custom py-12">
         <Breadcrumbs className="text-gray-500 mb-8" />
         {(blocks || []).map((block: any) => (
           <div key={block.id} className="mb-8">

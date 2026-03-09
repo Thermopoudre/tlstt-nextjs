@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getPageContent } from '@/lib/settings'
 import { Metadata } from 'next'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 
 export const metadata: Metadata = {
   title: 'Mentions Légales',
@@ -16,15 +17,20 @@ export default async function MentionsLegalesPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
-      <div className="bg-[#0a0a0a] py-16 border-b border-[#222]">
+      <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
         <div className="container-custom">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            <i className="fas fa-gavel mr-3 text-[#3b9fd8]"></i>
-            Mentions Légales
-          </h1>
-          <p className="text-xl text-gray-400">
-            Informations légales relatives au site TLSTT
-          </p>
+          <Breadcrumbs className="text-gray-500 mb-6" />
+          <div className="text-center">
+            <div className="w-16 h-16 bg-[#3b9fd8] rounded-full flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-gavel text-3xl text-white"></i>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Mentions <span className="text-[#3b9fd8]">Légales</span>
+            </h1>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Informations légales relatives au site TLSTT
+            </p>
+          </div>
         </div>
       </div>
 

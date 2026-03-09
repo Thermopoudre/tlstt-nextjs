@@ -1,8 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import DashboardCharts from '@/components/admin/DashboardCharts'
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
+
+  const now = new Date()
+  const sevenDaysAgo = new Date(now); sevenDaysAgo.setDate(now.getDate() - 6); sevenDaysAgo.setHours(0,0,0,0)
+  const sevenWeeksAgo = new Date(now); sevenWeeksAgo.setDate(now.getDate() - 48); sevenWeeksAgo.setHours(0,0,0,0)
 
   // Récupérer les statistiques
   const [
@@ -12,6 +17,8 @@ export default async function AdminDashboard() {
     { count: totalAlbums },
     { data: recentNews },
     { data: recentMessages },
+    { data: rawMessages },
+    { data: rawMembres },
   ] = await Promise.all([
     supabase.from('news').select('*', { count: 'exact', head: true }),
     supabase.from('players').select('*', { count: 'exact', head: true }).eq('admin_notes', 'TLSTT'),
@@ -19,7 +26,30 @@ export default async function AdminDashboard() {
     supabase.from('albums').select('*', { count: 'exact', head: true }),
     supabase.from('news').select('*').order('created_at', { ascending: false }).limit(5),
     supabase.from('contact_messages').select('*').eq('status', 'new').order('created_at', { ascending: false }).limit(5),
+    supabase.from('contact_messages').select('created_at').gte('created_at', sevenDaysAgo.toISOString()),
+    supabase.from('member_profiles').select('created_at').gte('created_at', sevenWeeksAgo.toISOString()),
   ])
+
+  // Agréger messages par jour (7 derniers jours)
+  const messagesData = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(sevenDaysAgo); d.setDate(sevenDaysAgo.getDate() + i)
+    const label = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
+    const dayStr = d.toISOString().slice(0, 10)
+    const count = (rawMessages ?? []).filter(m => m.created_at.slice(0, 10) === dayStr).length
+    return { label, count }
+  })
+
+  // Agréger inscriptions par semaine (7 dernières semaines)
+  const membresData = Array.from({ length: 7 }, (_, i) => {
+    const start = new Date(sevenWeeksAgo); start.setDate(sevenWeeksAgo.getDate() + i * 7)
+    const end = new Date(start); end.setDate(start.getDate() + 6)
+    const label = `S${start.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}`
+    const count = (rawMembres ?? []).filter(m => {
+      const d = m.created_at.slice(0, 10)
+      return d >= start.toISOString().slice(0, 10) && d <= end.toISOString().slice(0, 10)
+    }).length
+    return { label, count }
+  })
 
   return (
     <div className="space-y-6">
@@ -91,6 +121,9 @@ export default async function AdminDashboard() {
           </Link>
         </div>
       </div>
+
+      {/* Graphiques */}
+      <DashboardCharts messagesData={messagesData} membresData={membresData} />
 
       {/* Dernières actualités et messages */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

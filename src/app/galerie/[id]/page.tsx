@@ -2,9 +2,12 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import JsonLd from '@/components/seo/JsonLd'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { breadcrumbJsonLd, generatePageMeta } from '@/lib/seo'
+import PhotoGalleryClient from './PhotoGalleryClient'
+
+export const revalidate = 3600
 
 interface AlbumPageProps {
   params: Promise<{ id: string }>
@@ -37,7 +40,6 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
   const { id } = await params
   const supabase = await createClient()
 
-  // Récupérer l'album
   const { data: album, error } = await supabase
     .from('albums')
     .select('*')
@@ -48,7 +50,6 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
     notFound()
   }
 
-  // Récupérer les photos de l'album
   const { data: photos } = await supabase
     .from('photos')
     .select('*')
@@ -56,127 +57,77 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
     .order('display_order')
 
   return (
-    <div className="container-custom">
+    <div className="min-h-screen bg-[#0a0a0a]">
       <JsonLd data={breadcrumbJsonLd([
         { name: 'Accueil', url: '/' },
         { name: 'Galerie', url: '/galerie' },
         { name: album.title, url: `/galerie/${id}` },
       ])} />
-      {/* Breadcrumb */}
-      <nav className="mb-6 text-sm">
-        <ol className="flex items-center space-x-2">
-          <li>
-            <Link href="/" className="text-gray-600 hover:text-primary">
-              Accueil
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link href="/galerie" className="text-gray-600 hover:text-primary">
-              Galerie
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li className="text-gray-900 font-semibold">{album.title}</li>
-        </ol>
-      </nav>
 
-      {/* Header de l'album */}
-      <div className="card mb-8 bg-gradient-to-r from-primary to-blue-700 text-white">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex-1">
-            <h1 className="text-4xl font-bold mb-3">
-              <i className="fas fa-images mr-3"></i>
-              {album.title}
-            </h1>
-            {album.description && (
-              <p className="text-blue-100 text-lg mb-4">{album.description}</p>
-            )}
-            <div className="flex items-center gap-4 text-sm">
-              <span className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full">
-                <i className="fas fa-calendar"></i>
-                {new Date(album.event_date || album.created_at).toLocaleDateString('fr-FR')}
-              </span>
-              <span className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full">
-                <i className="fas fa-camera"></i>
-                {photos?.length || 0} photos
-              </span>
-              {album.season && (
-                <span className="flex items-center gap-2 bg-secondary px-3 py-1 rounded-full">
-                  <i className="fas fa-tag"></i>
-                  {album.season}
-                </span>
-              )}
+      {/* Hero */}
+      <div className="py-12 bg-[#0a0a0a] border-b border-[#222]">
+        <div className="container-custom">
+          <Breadcrumbs className="text-gray-500 mb-6" />
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
+                <i className="fas fa-images text-2xl text-white"></i>
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-white">{album.title}</h1>
+                {album.description && (
+                  <p className="text-gray-400 mt-1">{album.description}</p>
+                )}
+                <div className="flex flex-wrap items-center gap-3 mt-2">
+                  <span className="text-gray-500 text-sm">
+                    <i className="fas fa-calendar mr-1"></i>
+                    {new Date(album.event_date || album.created_at).toLocaleDateString('fr-FR')}
+                  </span>
+                  <span className="text-gray-500 text-sm">
+                    <i className="fas fa-camera mr-1"></i>
+                    {photos?.length || 0} photo{(photos?.length || 0) > 1 ? 's' : ''}
+                  </span>
+                  {album.season && (
+                    <span className="bg-[#3b9fd8]/10 text-[#3b9fd8] text-xs px-3 py-1 rounded-full border border-[#3b9fd8]/30">
+                      <i className="fas fa-tag mr-1"></i>
+                      {album.season}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
+            <Link
+              href="/galerie"
+              className="bg-[#1a1a1a] border border-[#333] text-white px-5 py-2.5 rounded-xl font-semibold hover:border-[#3b9fd8]/50 transition-colors"
+            >
+              <i className="fas fa-arrow-left mr-2"></i>
+              Retour à la galerie
+            </Link>
           </div>
-          
+        </div>
+      </div>
+
+      {/* Grille de photos */}
+      <div className="container-custom py-8">
+        {photos && photos.length > 0 ? (
+          <PhotoGalleryClient photos={photos} />
+        ) : (
+          <div className="text-center py-16 bg-[#1a1a1a] border border-[#333] rounded-2xl">
+            <i className="fas fa-images text-6xl text-gray-600 mb-4"></i>
+            <h3 className="text-xl font-semibold text-white mb-2">Aucune photo dans cet album</h3>
+            <p className="text-gray-500">Les photos seront bientôt ajoutées</p>
+          </div>
+        )}
+
+        <div className="mt-8 text-center">
           <Link
             href="/galerie"
-            className="btn-primary bg-white text-primary hover:bg-gray-100"
+            className="inline-flex items-center bg-[#3b9fd8] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#2d8bc9] transition-colors"
           >
             <i className="fas fa-arrow-left mr-2"></i>
             Retour à la galerie
           </Link>
         </div>
-      </div>
-
-      {/* Grille de photos */}
-      {photos && photos.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {photos.map((photo) => (
-            <div
-              key={photo.id}
-              className="group relative aspect-square bg-gray-200 rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 cursor-pointer"
-            >
-              <Image
-                src={photo.url}
-                alt={photo.title || `Photo ${photo.id}`}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                loading="lazy"
-                className="object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-              
-              {/* Overlay au survol */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                  {photo.title && (
-                    <h3 className="font-bold text-lg mb-1">{photo.title}</h3>
-                  )}
-                  {photo.description && (
-                    <p className="text-sm text-gray-200 line-clamp-2">{photo.description}</p>
-                  )}
-                  <div className="flex items-center gap-4 mt-3 text-sm">
-                    {photo.likes > 0 && (
-                      <span className="flex items-center gap-1">
-                        <i className="fas fa-heart"></i>
-                        {photo.likes}
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1">
-                      <i className="fas fa-eye"></i>
-                      Voir
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-16">
-          <i className="fas fa-images text-6xl text-gray-300 mb-4"></i>
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">Aucune photo dans cet album</h3>
-          <p className="text-gray-500">Les photos seront bientôt ajoutées</p>
-        </div>
-      )}
-
-      {/* Bouton de retour en bas */}
-      <div className="mt-8 text-center">
-        <Link href="/galerie" className="btn-primary">
-          <i className="fas fa-arrow-left mr-2"></i>
-          Retour à la galerie
-        </Link>
       </div>
     </div>
   )

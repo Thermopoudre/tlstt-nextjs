@@ -1,10 +1,17 @@
 import Link from 'next/link'
 import { getPageContent } from '@/lib/settings'
 import { Metadata } from 'next'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 
 export const metadata: Metadata = {
   title: 'Politique de Confidentialité | TLSTT',
-  description: 'Politique de confidentialité et protection des données personnelles du club TLSTT',
+  description: 'Politique de confidentialité et protection des données personnelles du club TLSTT.',
+  alternates: { canonical: '/politique-confidentialite' },
+  openGraph: {
+    title: 'Politique de Confidentialité - TLSTT',
+    description: 'Protection de vos données personnelles (RGPD) — club TLSTT.',
+    url: '/politique-confidentialite',
+  },
 }
 
 export default async function PolitiqueConfidentialitePage() {
@@ -14,15 +21,20 @@ export default async function PolitiqueConfidentialitePage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
-      <div className="bg-[#0a0a0a] py-16 border-b border-[#222]">
+      <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
         <div className="container-custom">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            <i className="fas fa-shield-alt mr-3 text-[#3b9fd8]"></i>
-            Politique de Confidentialité
-          </h1>
-          <p className="text-xl text-gray-400">
-            Protection de vos données personnelles (RGPD)
-          </p>
+          <Breadcrumbs className="text-gray-500 mb-6" />
+          <div className="text-center">
+            <div className="w-16 h-16 bg-[#3b9fd8] rounded-full flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-shield-alt text-3xl text-white"></i>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Politique de <span className="text-[#3b9fd8]">Confidentialité</span>
+            </h1>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Protection de vos données personnelles (RGPD)
+            </p>
+          </div>
         </div>
       </div>
 

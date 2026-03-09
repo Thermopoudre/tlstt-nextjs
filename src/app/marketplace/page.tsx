@@ -51,10 +51,12 @@ export default function MarketplacePage() {
     return (
       <div className="min-h-screen bg-[#0a0a0a]">
         <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
-          <div className="max-w-7xl mx-auto px-5">
+          <div className="container-custom">
             <Breadcrumbs className="text-gray-500 mb-6" />
             <div className="flex items-center gap-4">
-              <i className="fas fa-handshake text-4xl text-[#3b9fd8]"></i>
+              <div className="w-14 h-14 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
+                <i className="fas fa-handshake text-2xl text-white"></i>
+              </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">Marketplace</h1>
                 <p className="text-gray-400">Achetez, vendez, échangez entre membres</p>
@@ -129,10 +131,12 @@ export default function MarketplacePage() {
     return (
       <div className="min-h-screen bg-[#0a0a0a]">
         <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
-          <div className="max-w-7xl mx-auto px-5">
+          <div className="container-custom">
             <Breadcrumbs className="text-gray-500 mb-6" />
             <div className="flex items-center gap-4">
-              <i className="fas fa-handshake text-4xl text-[#3b9fd8]"></i>
+              <div className="w-14 h-14 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
+                <i className="fas fa-handshake text-2xl text-white"></i>
+              </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">Marketplace</h1>
                 <p className="text-gray-400">Achetez, vendez, echangez entre membres</p>
@@ -189,8 +193,8 @@ export default function MarketplacePage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
-      <div className="bg-[#0a0a0a] py-12">
-        <div className="max-w-7xl mx-auto px-5">
+      <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
+        <div className="container-custom">
           <Breadcrumbs className="text-gray-500 mb-6" />
           <div className="flex justify-between items-start flex-wrap gap-4">
             <div>
@@ -230,7 +234,7 @@ export default function MarketplacePage() {
       </div>
 
       {/* Listings */}
-      <div className="max-w-7xl mx-auto px-5 py-8">
+      <div className="container-custom py-8">
         {isLoading ? (
           <div className="text-center py-12">
             <i className="fas fa-spinner fa-spin text-4xl text-[#3b9fd8] mb-4"></i>

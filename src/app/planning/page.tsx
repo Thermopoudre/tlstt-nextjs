@@ -4,6 +4,8 @@ import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { Metadata } from 'next'
 import { getPlanningSettings, getGlobalSettings } from '@/lib/settings'
 
+export const revalidate = 3600
+
 export const metadata: Metadata = {
   title: 'Planning - Horaires des Entraînements',
   description: 'Consultez le planning hebdomadaire des entraînements du club TLSTT Toulon La Seyne. École de ping, entraînement dirigé, jeu libre. Tarifs et informations pratiques.',
@@ -64,11 +66,13 @@ export default async function PlanningPage() {
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Header */}
       <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
-        <div className="max-w-7xl mx-auto px-5">
+        <div className="container-custom">
           <Breadcrumbs className="text-gray-500 mb-6" />
-          
+
           <div className="flex items-center gap-4">
-            <i className="fas fa-calendar-alt text-4xl text-[#3b9fd8]"></i>
+            <div className="w-14 h-14 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
+              <i className="fas fa-calendar-alt text-2xl text-white"></i>
+            </div>
             <div>
               <h1 className="text-3xl font-bold text-white">Planning des Entraînements</h1>
               <p className="text-gray-400">Retrouvez tous nos créneaux hebdomadaires</p>
@@ -78,7 +82,7 @@ export default async function PlanningPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-5 py-8">
+      <div className="container-custom py-8">
         {/* Légende */}
         <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 mb-8">
           <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
@@ -198,14 +202,25 @@ export default async function PlanningPage() {
         </div>
 
         {/* CTA */}
-        <div className="mt-8 text-center">
-          <Link
-            href="/contact"
-            className="inline-block bg-[#3b9fd8] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#2d8bc9] transition-colors"
-          >
-            <i className="fas fa-user-plus mr-2"></i>
-            S'inscrire au club
-          </Link>
+        <div className="mt-8 bg-gradient-to-r from-[#3b9fd8]/20 to-[#3b9fd8]/5 border border-[#3b9fd8]/30 rounded-2xl p-8 text-center">
+          <h2 className="text-2xl font-bold text-white mb-2">Prêt à nous rejoindre ?</h2>
+          <p className="text-gray-400 mb-6">Première séance d&apos;essai gratuite, tous niveaux acceptés !</p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link
+              href="/rejoindre"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-[#3b9fd8] text-white rounded-full font-bold hover:bg-[#2d8bc9] transition-colors"
+            >
+              <i className="fas fa-table-tennis-paddle-ball"></i>
+              Rejoindre le club
+            </Link>
+            <Link
+              href="/tarifs"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3 border border-[#3b9fd8]/50 text-[#3b9fd8] rounded-full font-semibold hover:bg-[#3b9fd8]/10 transition-colors"
+            >
+              <i className="fas fa-euro-sign"></i>
+              Voir les tarifs
+            </Link>
+          </div>
         </div>
       </div>
     </div>

@@ -228,14 +228,19 @@ export default async function HomePage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold mb-3">Nous Rejoindre</h3>
-                  <p className="text-white/80 mb-6">
+                  <p className="text-white/80 mb-4">
                     Que vous soyez débutant ou confirmé, le TLSTT vous accueille toute l&apos;année.
-                    Première séance d&apos;essai gratuite !
+                    Première séance d&apos;essai <strong>gratuite</strong> !
                   </p>
-                  <Link href="/contact" className="inline-block bg-white text-[#3b9fd8] px-6 py-3 rounded-full font-bold hover:bg-white/90 transition-colors">
-                    <i className="fas fa-envelope mr-2"></i>
-                    S&apos;inscrire
-                  </Link>
+                  <div className="flex flex-wrap gap-3">
+                    <Link href="/rejoindre" className="inline-block bg-white text-[#3b9fd8] px-6 py-3 rounded-full font-bold hover:bg-white/90 transition-colors">
+                      <i className="fas fa-table-tennis-paddle-ball mr-2"></i>
+                      Nous rejoindre
+                    </Link>
+                    <Link href="/tarifs" className="inline-block border border-white/60 text-white px-6 py-3 rounded-full font-semibold hover:bg-white/10 transition-colors">
+                      Voir les tarifs
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>

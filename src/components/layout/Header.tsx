@@ -26,35 +26,34 @@ export default function Header() {
 
   const menuItems = [
     { label: 'Accueil', href: '/' },
-    { label: 'Actu', href: '/actualites/club', hasSubmenu: true },
-    { label: 'Équipes', href: '/equipes' },
-    { label: 'Joueurs', href: '/joueurs', hasSubmenu: true },
-    { label: 'Compét.', href: '/competitions', hasSubmenu: true },
+    { label: 'Actualités', href: '/actualites/club', hasSubmenu: true },
+    { label: 'Sport', href: '/equipes', hasSubmenu: true },
     { label: 'Club', href: '/club/a-propos', hasSubmenu: true },
+    { label: 'Rejoindre', href: '/rejoindre', isCta: true },
     { label: 'Contact', href: '/contact' },
-    ...(user ? [{ label: 'Boutique', href: '/boutique' }] : []),
   ]
 
-  const submenus: Record<string, { label: string; href: string }[]> = {
-    'Actu': [
-      { label: 'Actualités Club', href: '/actualites/club' },
-      { label: 'Actualités Ping', href: '/actualites/tt' },
-      { label: 'Handisport', href: '/actualites/handi' },
+  const submenus: Record<string, { label: string; href: string; icon?: string }[]> = {
+    'Actualités': [
+      { label: 'Vie du Club', href: '/actualites/club', icon: 'fa-newspaper' },
+      { label: 'Tennis de Table', href: '/actualites/tt', icon: 'fa-table-tennis-paddle-ball' },
+      { label: 'Handisport', href: '/actualites/handi', icon: 'fa-wheelchair' },
     ],
-    'Joueurs': [
-      { label: 'Liste Joueurs', href: '/joueurs' },
-      { label: 'Progressions', href: '/progressions' },
-    ],
-    'Compét.': [
-      { label: 'Calendrier', href: '/competitions' },
-      { label: 'Classements', href: '/equipes' },
-      { label: 'Planning', href: '/planning' },
+    'Sport': [
+      { label: 'Équipes & Classements', href: '/equipes', icon: 'fa-users' },
+      { label: 'Joueurs', href: '/joueurs', icon: 'fa-user' },
+      { label: 'Compétitions', href: '/competitions', icon: 'fa-trophy' },
+      { label: 'Planning', href: '/planning', icon: 'fa-calendar' },
+      { label: 'Progressions', href: '/progressions', icon: 'fa-chart-line' },
     ],
     'Club': [
-      { label: 'À Propos', href: '/club/a-propos' },
-      { label: 'Clubs PACA', href: '/clubs-paca' },
-      { label: 'Galerie', href: '/galerie' },
-      { label: 'Partenaires', href: '/partenaires' },
+      { label: 'À Propos', href: '/club/a-propos', icon: 'fa-info-circle' },
+      { label: 'Palmarès', href: '/palmares', icon: 'fa-medal' },
+      { label: 'Galerie', href: '/galerie', icon: 'fa-images' },
+      { label: 'Partenaires', href: '/partenaires', icon: 'fa-handshake' },
+      { label: 'FAQ', href: '/faq', icon: 'fa-question-circle' },
+      { label: 'Clubs PACA', href: '/clubs-paca', icon: 'fa-map-marker-alt' },
+      ...(user ? [{ label: 'Boutique', href: '/boutique', icon: 'fa-shopping-cart' }] : []),
     ],
   }
 
@@ -89,37 +88,50 @@ export default function Header() {
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center">
-              <ul className="flex">
+              <ul className="flex items-center">
                 {menuItems.map((item, index) => (
                   <li key={index} className="relative group">
-                    <Link
-                      href={item.href}
-                      className={`block px-2.5 py-1.5 text-xs font-semibold transition-colors ${
-                        isActive(item.href)
-                          ? 'text-[#3b9fd8]'
-                          : 'text-gray-300 hover:text-[#3b9fd8]'
-                      }`}
-                    >
-                      {item.label}
-                      {item.hasSubmenu && (
-                        <i className="fas fa-chevron-down ml-1 text-[8px]"></i>
-                      )}
-                    </Link>
+                    {(item as any).isCta ? (
+                      <Link
+                        href={item.href}
+                        className="ml-1 mr-0.5 px-3 py-1.5 text-xs font-bold bg-[#3b9fd8] text-white rounded-full hover:bg-[#2d8bc9] transition-colors"
+                      >
+                        <i className="fas fa-table-tennis-paddle-ball mr-1.5"></i>
+                        {item.label}
+                      </Link>
+                    ) : (
+                      <>
+                        <Link
+                          href={item.href}
+                          className={`block px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                            isActive(item.href)
+                              ? 'text-[#3b9fd8]'
+                              : 'text-gray-300 hover:text-[#3b9fd8]'
+                          }`}
+                        >
+                          {item.label}
+                          {item.hasSubmenu && (
+                            <i className="fas fa-chevron-down ml-1 text-[8px]"></i>
+                          )}
+                        </Link>
 
-                    {/* Submenu */}
-                    {item.hasSubmenu && submenus[item.label] && (
-                      <ul className="absolute left-0 top-full bg-[#1a1a1a] border border-[#3b9fd8]/30 shadow-xl rounded-lg py-2 min-w-[160px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-50">
-                        {submenus[item.label].map((subItem, subIndex) => (
-                          <li key={subIndex}>
-                            <Link
-                              href={subItem.href}
-                              className="block px-4 py-1.5 text-xs text-gray-300 hover:bg-[#3b9fd8]/20 hover:text-[#3b9fd8] transition-colors"
-                            >
-                              {subItem.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
+                        {/* Submenu */}
+                        {item.hasSubmenu && submenus[item.label] && (
+                          <ul className="absolute left-0 top-full bg-[#1a1a1a] border border-[#3b9fd8]/30 shadow-xl rounded-lg py-2 min-w-[180px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-50">
+                            {submenus[item.label].map((subItem, subIndex) => (
+                              <li key={subIndex}>
+                                <Link
+                                  href={subItem.href}
+                                  className="flex items-center gap-2.5 px-4 py-2 text-xs text-gray-300 hover:bg-[#3b9fd8]/20 hover:text-[#3b9fd8] transition-colors"
+                                >
+                                  {subItem.icon && <i className={`fas ${subItem.icon} w-3.5 text-center opacity-60`}></i>}
+                                  {subItem.label}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </>
                     )}
                   </li>
                 ))}
@@ -164,7 +176,16 @@ export default function Header() {
               <ul className="flex flex-col gap-1">
                 {menuItems.map((item, index) => (
                   <li key={index}>
-                    {item.hasSubmenu && submenus[item.label] ? (
+                    {(item as any).isCta ? (
+                      <Link
+                        href={item.href}
+                        className="flex items-center justify-center gap-2 mx-4 py-2.5 bg-[#3b9fd8] text-white font-bold rounded-xl"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <i className="fas fa-table-tennis-paddle-ball"></i>
+                        {item.label}
+                      </Link>
+                    ) : item.hasSubmenu && submenus[item.label] ? (
                       <>
                         <button
                           className={`w-full flex items-center justify-between px-4 py-2 font-semibold rounded transition-colors ${
@@ -178,14 +199,15 @@ export default function Header() {
                           <i className={`fas fa-chevron-down text-xs transition-transform duration-200 ${openMobileSubmenu === item.label ? 'rotate-180' : ''}`}></i>
                         </button>
                         {openMobileSubmenu === item.label && (
-                          <ul className="pl-4 flex flex-col gap-1 mt-1">
+                          <ul className="pl-4 flex flex-col gap-0.5 mt-1">
                             {submenus[item.label].map((subItem, subIndex) => (
                               <li key={subIndex}>
                                 <Link
                                   href={subItem.href}
-                                  className="block px-4 py-1.5 text-sm text-gray-400 hover:bg-[#3b9fd8]/10 hover:text-[#3b9fd8] rounded transition-colors"
+                                  className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-400 hover:bg-[#3b9fd8]/10 hover:text-[#3b9fd8] rounded transition-colors"
                                   onClick={() => { setMobileMenuOpen(false); setOpenMobileSubmenu(null) }}
                                 >
+                                  {subItem.icon && <i className={`fas ${subItem.icon} w-4 text-center opacity-60`}></i>}
                                   {subItem.label}
                                 </Link>
                               </li>

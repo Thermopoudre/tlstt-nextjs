@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd, generatePageMeta } from '@/lib/seo'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 
 export const revalidate = 1800 // Revalider toutes les 30 minutes
 
@@ -247,56 +248,60 @@ export default async function EquipeDetailPage({ params }: PageProps) {
   )
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-[#0a0a0a]">
       <JsonLd data={breadcrumbJsonLd([
         { name: 'Accueil', url: '/' },
         { name: 'Équipes', url: '/equipes' },
         { name: teamName, url: `/equipes/${id}` },
       ])} />
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-6">
-          <Link
-            href="/equipes"
-            className="text-[#3b9fd8] hover:text-[#5bc0de] mb-4 inline-flex items-center gap-2 transition-colors"
-          >
-            <i className="fas fa-arrow-left"></i>
-            Retour aux équipes
-          </Link>
-        </div>
 
-        {/* Hero Section */}
-        <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 mb-8">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+      {/* Hero */}
+      <div className="py-12 bg-[#0a0a0a] border-b border-[#222]">
+        <div className="container-custom">
+          <Breadcrumbs className="text-gray-500 mb-6" />
+          <div className="flex items-start justify-between flex-wrap gap-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">
-                <i className="fas fa-users mr-2 text-[#3b9fd8]"></i>
-                {teamName}
-              </h1>
-              <p className="text-white/70 text-lg">
-                {teamDivision}
-                {teamPool && ` - Poule ${teamPool}`}
-              </p>
+              <Link
+                href="/equipes"
+                className="text-[#3b9fd8] hover:text-[#2d8bc9] mb-4 inline-flex items-center gap-2 transition-colors text-sm"
+              >
+                <i className="fas fa-arrow-left"></i>
+                Retour aux équipes
+              </Link>
+              <div className="flex items-center gap-4 mt-3">
+                <div className="w-14 h-14 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
+                  <i className="fas fa-users text-2xl text-white"></i>
+                </div>
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold text-white">{teamName}</h1>
+                  <p className="text-gray-400 text-lg">
+                    {teamDivision}
+                    {teamPool && ` - Poule ${teamPool}`}
+                  </p>
+                </div>
+              </div>
             </div>
             {equipeInfo && (
               <div className="flex items-center gap-6">
                 <div className="text-center">
                   <div className="text-4xl font-bold mb-1 text-[#3b9fd8]">{equipePosition}</div>
-                  <div className="text-sm text-white/60">Classement</div>
+                  <div className="text-sm text-gray-500">Classement</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl font-bold mb-1">{equipePoints}</div>
-                  <div className="text-sm text-white/60">Points</div>
+                  <div className="text-4xl font-bold mb-1 text-white">{equipePoints}</div>
+                  <div className="text-sm text-gray-500">Points</div>
                 </div>
                 <div className="text-center">
                   <div className="text-4xl font-bold mb-1 text-green-500">{equipeVic}</div>
-                  <div className="text-sm text-white/60">Victoires</div>
+                  <div className="text-sm text-gray-500">Victoires</div>
                 </div>
               </div>
             )}
           </div>
         </div>
+      </div>
 
+      <div className="container-custom py-8">
         {error && (
           <div className="bg-red-900/30 border border-red-700 p-4 mb-6 rounded-xl">
             <div className="flex">
@@ -323,13 +328,13 @@ export default async function EquipeDetailPage({ params }: PageProps) {
                   <table className="w-full">
                     <thead className="bg-[#111]">
                       <tr>
-                        <th className="px-4 py-3 text-left font-bold text-white/70">Pos</th>
-                        <th className="px-4 py-3 text-left font-bold text-white/70">Équipe</th>
-                        <th className="px-4 py-3 text-center font-bold text-white/70">Pts</th>
-                        <th className="px-4 py-3 text-center font-bold text-white/70">J</th>
-                        <th className="px-4 py-3 text-center font-bold text-white/70">V</th>
-                        <th className="px-4 py-3 text-center font-bold text-white/70">N</th>
-                        <th className="px-4 py-3 text-center font-bold text-white/70">D</th>
+                        <th className="px-4 py-3 text-left font-bold text-gray-400">Pos</th>
+                        <th className="px-4 py-3 text-left font-bold text-gray-400">Équipe</th>
+                        <th className="px-4 py-3 text-center font-bold text-gray-400">Pts</th>
+                        <th className="px-4 py-3 text-center font-bold text-gray-400">J</th>
+                        <th className="px-4 py-3 text-center font-bold text-gray-400">V</th>
+                        <th className="px-4 py-3 text-center font-bold text-gray-400">N</th>
+                        <th className="px-4 py-3 text-center font-bold text-gray-400">D</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#333]">
@@ -347,7 +352,7 @@ export default async function EquipeDetailPage({ params }: PageProps) {
                                 className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                                   isTLSTT
                                     ? 'bg-[#3b9fd8] text-white'
-                                    : 'bg-[#333] text-white/70'
+                                    : 'bg-[#333] text-gray-400'
                                 }`}
                               >
                                 {equipe.clt}
@@ -358,7 +363,7 @@ export default async function EquipeDetailPage({ params }: PageProps) {
                                 {isTLSTT && (
                                   <i className="fas fa-star text-yellow-500"></i>
                                 )}
-                                <span className={isTLSTT ? 'text-[#3b9fd8]' : ''}>
+                                <span className={isTLSTT ? 'text-[#3b9fd8]' : 'text-white'}>
                                   {equipe.equipe}
                                 </span>
                               </div>
@@ -366,11 +371,11 @@ export default async function EquipeDetailPage({ params }: PageProps) {
                             <td className="px-4 py-3 text-center font-bold text-[#3b9fd8]">
                               {equipe.pts}
                             </td>
-                            <td className="px-4 py-3 text-center text-white/70">{equipe.joue}</td>
+                            <td className="px-4 py-3 text-center text-gray-400">{equipe.joue}</td>
                             <td className="px-4 py-3 text-center text-green-500 font-semibold">
                               {equipe.vic}
                             </td>
-                            <td className="px-4 py-3 text-center text-white/60">{equipe.nul}</td>
+                            <td className="px-4 py-3 text-center text-gray-500">{equipe.nul}</td>
                             <td className="px-4 py-3 text-center text-red-500 font-semibold">
                               {equipe.def}
                             </td>
@@ -381,7 +386,7 @@ export default async function EquipeDetailPage({ params }: PageProps) {
                   </table>
                 </div>
               ) : (
-                <p className="text-white/50 text-center py-8">
+                <p className="text-gray-500 text-center py-8">
                   {error ? 'Impossible de charger le classement' : 'Aucun classement disponible'}
                 </p>
               )}
@@ -397,19 +402,19 @@ export default async function EquipeDetailPage({ params }: PageProps) {
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center py-2 border-b border-[#333]">
-                  <span className="text-white/70">Matchs joués</span>
+                  <span className="text-gray-400">Matchs joués</span>
                   <span className="font-bold text-[#3b9fd8]">{equipeJoue}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-[#333]">
-                  <span className="text-white/70">Victoires</span>
+                  <span className="text-gray-400">Victoires</span>
                   <span className="font-bold text-green-500">{equipeVic}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-[#333]">
-                  <span className="text-white/70">Nuls</span>
-                  <span className="font-bold text-white/60">{equipeNul}</span>
+                  <span className="text-gray-400">Nuls</span>
+                  <span className="font-bold text-gray-300">{equipeNul}</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-white/70">Défaites</span>
+                  <span className="text-gray-400">Défaites</span>
                   <span className="font-bold text-red-500">{equipeDef}</span>
                 </div>
               </div>
@@ -420,7 +425,7 @@ export default async function EquipeDetailPage({ params }: PageProps) {
                 <i className="fas fa-info-circle mr-2"></i>
                 Infos pratiques
               </h3>
-              <ul className="space-y-2 text-sm text-white/70">
+              <ul className="space-y-2 text-sm text-gray-400">
                 <li className="flex items-start gap-2">
                   <i className="fas fa-check text-[#3b9fd8] mt-1"></i>
                   <span>Données FFTT officielles en temps réel</span>
@@ -471,7 +476,7 @@ export default async function EquipeDetailPage({ params }: PageProps) {
                   >
                     <div className="flex items-center justify-between flex-wrap gap-4">
                       <div className="flex-1">
-                        <div className="text-sm text-white/50 mb-2">
+                        <div className="text-sm text-gray-500 mb-2">
                           <i className="fas fa-calendar mr-1"></i>
                           {match.libelle}
                           {match.dateprevue && ` - ${match.dateprevue}`}
@@ -479,15 +484,15 @@ export default async function EquipeDetailPage({ params }: PageProps) {
                         <div className="flex items-center gap-4">
                           <span
                             className={`font-semibold ${
-                              isTLSTTa ? 'text-[#3b9fd8]' : 'text-white/80'
+                              isTLSTTa ? 'text-[#3b9fd8]' : 'text-gray-200'
                             }`}
                           >
                             {match.equa}
                           </span>
-                          <span className="text-white/40">vs</span>
+                          <span className="text-gray-600">vs</span>
                           <span
                             className={`font-semibold ${
-                              !isTLSTTa ? 'text-[#3b9fd8]' : 'text-white/80'
+                              !isTLSTTa ? 'text-[#3b9fd8]' : 'text-gray-200'
                             }`}
                           >
                             {match.equb}
@@ -508,7 +513,7 @@ export default async function EquipeDetailPage({ params }: PageProps) {
                           >
                             {match.scorea}
                           </span>
-                          <span className="text-white/40 mx-2">-</span>
+                          <span className="text-gray-600 mx-2">-</span>
                           <span
                             className={
                               parseInt(match.scoreb) > parseInt(match.scorea)
@@ -550,15 +555,15 @@ export default async function EquipeDetailPage({ params }: PageProps) {
                     className="bg-[#222] border border-[#333] rounded-lg p-3 flex items-center justify-between"
                   >
                     <div>
-                      <div className="text-xs text-white/40 mb-1">{match.libelle} - {match.dateprevue}</div>
+                      <div className="text-xs text-gray-600 mb-1">{match.libelle} - {match.dateprevue}</div>
                       <div className="text-sm">
-                        <span className="text-white/80">{match.equa}</span>
-                        <span className="text-white/40 mx-2">vs</span>
-                        <span className="text-white/80">{match.equb}</span>
+                        <span className="text-gray-200">{match.equa}</span>
+                        <span className="text-gray-600 mx-2">vs</span>
+                        <span className="text-gray-200">{match.equb}</span>
                       </div>
                     </div>
                     {hasScore ? (
-                      <div className="font-bold">
+                      <div className="font-bold text-white">
                         {match.scorea} - {match.scoreb}
                       </div>
                     ) : (

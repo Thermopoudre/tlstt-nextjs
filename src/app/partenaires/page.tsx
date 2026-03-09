@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 
 export const metadata: Metadata = {
   title: 'Nos Partenaires - Sponsors et Soutiens du Club',
@@ -43,15 +44,20 @@ export default async function PartenairesPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero Section */}
-      <div className="bg-[#0a0a0a] py-16 border-b border-[#222]">
-        <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            <i className="fas fa-handshake mr-3 text-[#3b9fd8]"></i>
-            Nos Partenaires
-          </h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Le club TLSTT remercie chaleureusement ses partenaires qui contribuent à son développement
-          </p>
+      <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
+        <div className="container-custom">
+          <Breadcrumbs className="text-gray-500 mb-6" />
+          <div className="text-center">
+            <div className="w-16 h-16 bg-[#3b9fd8] rounded-full flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-handshake text-3xl text-white"></i>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Nos <span className="text-[#3b9fd8]">Partenaires</span>
+            </h1>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Le club TLSTT remercie chaleureusement ses partenaires qui contribuent à son développement
+            </p>
+          </div>
         </div>
       </div>
 

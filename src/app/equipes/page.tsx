@@ -180,7 +180,7 @@ export default function EquipesPage() {
       {/* HERO */}
       {/* ============================================ */}
       <div className="py-12 bg-[#0a0a0a] border-b border-[#222]">
-        <div className="max-w-7xl mx-auto px-5">
+        <div className="container-custom">
           <Breadcrumbs className="text-gray-500 mb-6" />
           
           <div className="text-center">
@@ -212,7 +212,7 @@ export default function EquipesPage() {
       {/* ============================================ */}
       {/* PHASE SELECTOR */}
       {/* ============================================ */}
-      <div className="max-w-7xl mx-auto px-5 py-6">
+      <div className="container-custom py-6">
         <div className="grid grid-cols-2 gap-3">
           {/* Phase 1 Tab */}
           <button
@@ -286,7 +286,7 @@ export default function EquipesPage() {
       {/* GLOBAL STATS */}
       {/* ============================================ */}
       {teams.length > 0 && (
-        <div className="max-w-7xl mx-auto px-5 pb-6">
+        <div className="container-custom pb-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-4 text-center">
               <p className="text-3xl font-bold text-[#3b9fd8]">{teamsWithData.length}<span className="text-gray-600 text-lg">/{teams.length}</span></p>
@@ -337,7 +337,7 @@ export default function EquipesPage() {
       {/* CLASSEMENT TABLE */}
       {/* ============================================ */}
       {rankedTeams.length > 0 && (
-        <div className="max-w-7xl mx-auto px-5 pb-8">
+        <div className="container-custom pb-8">
           <div className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden">
             <div className="px-5 py-4 border-b border-[#333] flex items-center justify-between">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -434,7 +434,7 @@ export default function EquipesPage() {
       {/* DIVISION FILTERS */}
       {/* ============================================ */}
       {teams.length > 0 && (
-        <div className="max-w-7xl mx-auto px-5 pb-4">
+        <div className="container-custom pb-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <i className="fas fa-th-large text-[#3b9fd8]"></i>
@@ -476,7 +476,7 @@ export default function EquipesPage() {
       {/* ============================================ */}
       {/* TEAM CARDS */}
       {/* ============================================ */}
-      <div className="max-w-7xl mx-auto px-5 py-4 pb-12">
+      <div className="container-custom py-4 pb-12">
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map(i => (
