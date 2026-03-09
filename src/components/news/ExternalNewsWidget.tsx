@@ -8,7 +8,7 @@ interface RssItem {
   sourceIcon: string
 }
 
-type SourceKey = 'fftt' | 'ettu' | 'handisport_tt' | 'handisport_general'
+type SourceKey = 'fftt' | 'ettu' | 'handisport_tt' | 'handisport_general' | 'ittf'
 
 interface Props {
   sources: SourceKey[]
@@ -39,6 +39,12 @@ const sourceConfig: Record<SourceKey, { url: string; label: string; icon: string
     label: 'Handisport',
     icon: 'fa-wheelchair',
     color: '#7c3aed',
+  },
+  ittf: {
+    url: 'https://www.ittf.com/feed/',
+    label: 'ITTF',
+    icon: 'fa-globe',
+    color: '#e8532a',
   },
 }
 
