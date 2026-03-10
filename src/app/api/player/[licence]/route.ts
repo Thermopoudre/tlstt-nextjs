@@ -1,6 +1,31 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
+
+// Rate limiting : 30 requêtes par minute par IP
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT = 30
+const RATE_WINDOW = 60 * 1000 // 1 minute
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(ip)
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW })
+    return true
+  }
+  if (entry.count >= RATE_LIMIT) return false
+  entry.count++
+  return true
+}
+
+// Cleanup toutes les 5 minutes
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, val] of rateLimitMap) {
+    if (now > val.resetAt) rateLimitMap.delete(key)
+  }
+}, 5 * 60 * 1000)
 
 interface RouteParams {
   params: Promise<{ licence: string }>
@@ -56,7 +81,12 @@ interface Historique {
 }
 
 // GET - Récupère les données fraîches depuis SmartPing
-export async function GET(request: Request, { params }: RouteParams) {
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json({ error: 'Trop de requêtes, réessayez dans une minute' }, { status: 429 })
+  }
+
   const { licence } = await params
   const supabase = await createClient()
 

@@ -24,6 +24,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
+    const { data: adminData } = await supabase
+      .from('admins')
+      .select('id')
+      .eq('id', user.id)
+      .single()
+
+    if (!adminData) {
+      return NextResponse.json({ error: 'Accès admin requis' }, { status: 403 })
+    }
+
     const body = await request.json()
     const { url, type } = body
 
