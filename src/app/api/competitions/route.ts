@@ -100,15 +100,20 @@ export async function GET() {
       passees: passees.slice(0, 20), // Limiter à 20 dernières
       total: allCompetitions.length,
       source: 'api'
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200',
+      }
     })
 
-  } catch (error: any) {
-    console.error('Erreur API competitions:', error)
-    return NextResponse.json({ 
-      aVenir: [], 
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    console.error('Erreur API competitions:', message)
+    return NextResponse.json({
+      aVenir: [],
       passees: [],
-      error: error.message 
-    })
+      error: message
+    }, { status: 500 })
   }
 }
 

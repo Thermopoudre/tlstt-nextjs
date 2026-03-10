@@ -7,16 +7,21 @@ import { breadcrumbJsonLd } from '@/lib/seo'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
+export const revalidate = 3600
+
 export const metadata: Metadata = {
-  title: 'Contact - Nous Contacter',
+  title: 'Contact - Nous Contacter | TLSTT Tennis de Table',
   description: 'Contactez le club de tennis de table TLSTT Toulon La Seyne-sur-Mer. Questions, inscriptions, partenariats. Formulaire de contact et coordonnées.',
+  keywords: ['contact', 'TLSTT', 'tennis de table', 'inscription', 'Toulon', 'La Seyne-sur-Mer', 'formulaire'],
   alternates: { canonical: `${SITE_URL}/contact` },
   openGraph: {
     title: 'Contact TLSTT',
     description: 'Contactez le club de tennis de table TLSTT à Toulon La Seyne-sur-Mer.',
     url: `${SITE_URL}/contact`,
+    siteName: 'TLSTT - Toulon La Seyne Tennis de Table',
+    locale: 'fr_FR',
+    type: 'website',
   },
-  keywords: ['contact', 'TLSTT', 'tennis de table', 'inscription', 'Toulon', 'La Seyne-sur-Mer', 'formulaire'],
 }
 
 export default async function ContactPage() {

@@ -158,17 +158,19 @@ async function fetchPhaseData(
   try {
     const classementXml = await api.getClassementPoule(D1, cx_poule)
     classement = parseClassementXml(classementXml)
-  } catch (e: any) {
-    console.error('Erreur classement:', e.message)
-    error = e.message
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Erreur classement'
+    console.error('Erreur classement:', msg)
+    error = msg
   }
 
   try {
     const rencontresXml = await api.getResultatsPoule(D1, cx_poule)
     rencontres = parseRencontresXml(rencontresXml)
-  } catch (e: any) {
-    console.error('Erreur rencontres:', e.message)
-    if (!error) error = e.message
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Erreur rencontres'
+    console.error('Erreur rencontres:', msg)
+    if (!error) error = msg
   }
 
   return { classement, rencontres, error }
@@ -246,15 +248,16 @@ export default async function EquipeDetailPage({ params }: PageProps) {
       hasPhase2 = true
       const p2Params = new URLSearchParams(teamFromDb.link_fftt_phase2)
       const D1p2 = p2Params.get('D1') || ''
-      const cx_pouléP2 = p2Params.get('cx_poule') || ''
-      if (D1p2 && cx_pouléP2) {
-        phase2Data = await fetchPhaseData(api, D1p2, cx_pouléP2)
+      const cx_pouleP2 = p2Params.get('cx_poule') || ''
+      if (D1p2 && cx_pouleP2) {
+        phase2Data = await fetchPhaseData(api, D1p2, cx_pouleP2)
       } else {
         phase2Data.error = 'Paramètres Phase 2 invalides (D1 ou cx_poule manquant).'
       }
     }
-  } catch (e: any) {
-    phase1Data.error = e.message
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Erreur API équipe'
+    phase1Data.error = msg
     console.error('Erreur API équipe:', e)
   }
 

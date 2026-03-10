@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
+import { notFound } from 'next/navigation'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd, generatePageMeta } from '@/lib/seo'
@@ -47,6 +48,12 @@ export default async function ActualitesPage({
   params: Promise<{ category: string }>
 }) {
   const { category } = await params
+
+  // Valider la catégorie — évite de rendre une page vide/cassée pour des URLs inconnues
+  if (!categoryLabels[category]) {
+    notFound()
+  }
+
   const supabase = await createClient()
 
   const { data: news } = await supabase

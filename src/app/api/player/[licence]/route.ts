@@ -189,11 +189,16 @@ export async function GET(request: Request, { params }: RouteParams) {
       stats,
       source: 'api',
       lastSync: new Date().toISOString()
+    }, {
+      headers: {
+        'Cache-Control': 'private, no-store',
+      }
     })
 
-  } catch (error: any) {
-    console.error('Erreur API player:', error)
-    
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    console.error('Erreur API player:', message)
+
     const { data: player } = await supabase
       .from('players')
       .select('*')
@@ -206,8 +211,8 @@ export async function GET(request: Request, { params }: RouteParams) {
       historique: [],
       stats: null,
       source: 'cache',
-      error: error.message
-    })
+      error: message
+    }, { status: 500 })
   }
 }
 

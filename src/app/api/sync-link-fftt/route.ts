@@ -35,8 +35,9 @@ export async function GET() {
     let equipesXml: string
     try {
       equipesXml = await api.getEquipes(TLSTT_CLUB_NUMBER)
-    } catch (e: any) {
-      return NextResponse.json({ error: `Erreur FFTT xml_equipe.php: ${e.message}` }, { status: 500 })
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Erreur inconnue'
+      return NextResponse.json({ error: `Erreur FFTT xml_equipe.php: ${msg}` }, { status: 500 })
     }
 
     const equipesFFTT = parseEquipesXml(equipesXml)
@@ -112,7 +113,8 @@ export async function GET() {
       errors,
       ffttEquipes: equipesFFTT.map((e) => ({ libequipe: e.libequipe, libdivision: e.libdivision })),
     })
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 })
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Erreur inconnue'
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }

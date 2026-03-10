@@ -80,7 +80,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ sent, total: subscribers.length })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

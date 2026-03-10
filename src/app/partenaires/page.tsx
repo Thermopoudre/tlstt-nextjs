@@ -8,16 +8,21 @@ import { breadcrumbJsonLd } from '@/lib/seo'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
+export const revalidate = 3600
+
 export const metadata: Metadata = {
   title: 'Nos Partenaires - Sponsors et Soutiens du Club',
   description: 'Découvrez les partenaires et sponsors du TLSTT Toulon La Seyne Tennis de Table. Merci à nos soutiens pour le développement du tennis de table dans le Var.',
+  keywords: ['partenaires', 'sponsors', 'TLSTT', 'tennis de table', 'Toulon', 'La Seyne', 'soutien'],
   alternates: { canonical: `${SITE_URL}/partenaires` },
   openGraph: {
     title: 'Partenaires TLSTT',
     description: 'Les partenaires et sponsors du club de tennis de table TLSTT.',
     url: `${SITE_URL}/partenaires`,
+    siteName: 'TLSTT - Toulon La Seyne Tennis de Table',
+    locale: 'fr_FR',
+    type: 'website',
   },
-  keywords: ['partenaires', 'sponsors', 'TLSTT', 'tennis de table', 'Toulon', 'La Seyne', 'soutien'],
 }
 
 export default async function PartenairesPage() {

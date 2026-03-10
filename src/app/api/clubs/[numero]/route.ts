@@ -34,12 +34,13 @@ export async function GET(request: Request, { params }: RouteParams) {
       source: 'api'
     })
 
-  } catch (error: any) {
-    console.error('Erreur API club detail:', error)
-    return NextResponse.json({ 
-      club: null, 
-      error: error.message 
-    })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    console.error('Erreur API club detail:', message)
+    return NextResponse.json({
+      club: null,
+      error: message
+    }, { status: 500 })
   }
 }
 

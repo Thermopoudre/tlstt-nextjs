@@ -18,6 +18,9 @@ export const metadata: Metadata = {
     title: 'Planning & Horaires TLSTT',
     description: 'Horaires des entraînements de tennis de table au TLSTT - Tous niveaux, du débutant au compétiteur.',
     url: `${SITE_URL}/planning`,
+    siteName: 'TLSTT - Toulon La Seyne Tennis de Table',
+    locale: 'fr_FR',
+    type: 'website',
   },
   keywords: ['planning', 'horaires', 'entraînement', 'tennis de table', 'TLSTT', 'cours', 'tarifs', 'école de ping'],
 }

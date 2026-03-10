@@ -98,20 +98,20 @@ export default function AdminParametresPage() {
     setMessage(null)
 
     let page: string
-    let data: any
+    let data: Record<string, unknown>
 
     if (activeTab === 'general') {
       page = 'global'
-      data = settings
+      data = settings as unknown as Record<string, unknown>
     } else if (activeTab === 'contact') {
       page = 'contact'
-      data = contactSettings
+      data = contactSettings as unknown as Record<string, unknown>
     } else if (activeTab === 'club') {
       page = 'club'
-      data = clubSettings
+      data = clubSettings as unknown as Record<string, unknown>
     } else {
       page = 'planning'
-      data = planningSettings
+      data = planningSettings as unknown as Record<string, unknown>
     }
 
     const { error } = await supabase.from('site_settings').upsert(

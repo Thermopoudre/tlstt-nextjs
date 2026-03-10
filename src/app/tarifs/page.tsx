@@ -12,11 +12,15 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.verce
 export const metadata: Metadata = {
   title: 'Tarifs - TLSTT | Tennis de Table Toulon La Seyne',
   description: 'Découvrez les tarifs d\'adhésion au TLSTT pour la saison. Cotisations adultes, jeunes et formules loisir. 1ère séance d\'essai gratuite.',
+  keywords: ['tarifs', 'adhésion', 'cotisation', 'TLSTT', 'tennis de table', 'Toulon', 'La Seyne', 'licence FFTT', 'inscription'],
   alternates: { canonical: `${SITE_URL}/tarifs` },
   openGraph: {
     title: 'Tarifs d\'adhésion - TLSTT Tennis de Table',
     description: 'Cotisations adultes, jeunes et formules loisir. Licence FFTT incluse. 1ère séance gratuite.',
     url: `${SITE_URL}/tarifs`,
+    siteName: 'TLSTT - Toulon La Seyne Tennis de Table',
+    locale: 'fr_FR',
+    type: 'website',
   },
 }
 

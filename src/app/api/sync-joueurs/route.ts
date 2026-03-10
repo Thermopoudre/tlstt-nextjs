@@ -115,8 +115,9 @@ export async function GET() {
               classementOfficiel = clastXml
             }
           }
-        } catch (detailErr: any) {
-          console.warn(`⚠️ Impossible de recuperer details joueur ${joueur.licence}:`, detailErr.message)
+        } catch (detailErr: unknown) {
+          const detailMsg = detailErr instanceof Error ? detailErr.message : 'Erreur inconnue'
+          console.warn(`⚠️ Impossible de recuperer details joueur ${joueur.licence}:`, detailMsg)
         }
         
         // Fallback: utiliser clast * 100 si on n'a pas de points exacts
@@ -144,7 +145,7 @@ export async function GET() {
           .single()
 
         if (existing) {
-          const updateData: any = {
+          const updateData: Record<string, unknown> = {
             first_name: joueur.prenom,
             last_name: joueur.nom,
             fftt_points_exact: pointsExact,
@@ -175,7 +176,7 @@ export async function GET() {
           await supabase.from('players').update(updateData).eq('id', existing.id)
           updated++
         } else {
-          const playerData: any = {
+          const playerData: Record<string, unknown> = {
             first_name: joueur.prenom,
             last_name: joueur.nom,
             smartping_licence: joueur.licence,
@@ -191,8 +192,9 @@ export async function GET() {
           await supabase.from('players').insert(playerData)
           created++
         }
-      } catch (err: any) {
-        console.error(`Erreur joueur ${joueur.licence}:`, err.message)
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : 'Erreur inconnue'
+        console.error(`Erreur joueur ${joueur.licence}:`, errMsg)
         errors++
       }
     }
@@ -223,11 +225,12 @@ export async function GET() {
       timestamp: new Date().toISOString()
     })
 
-  } catch (error: any) {
-    console.error('Erreur sync:', error)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    console.error('Erreur sync:', message)
     return NextResponse.json({
       success: false,
-      error: error.message
+      error: message
     }, { status: 500 })
   }
 }

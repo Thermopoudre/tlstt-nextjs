@@ -85,8 +85,9 @@ export async function GET() {
               success: true, 
               points: pointsExact 
             }
-          } catch (err: any) {
-            return { id: player.id, success: false, error: err.message }
+          } catch (err: unknown) {
+            const errMsg = err instanceof Error ? err.message : 'Erreur inconnue'
+            return { id: player.id, success: false, error: errMsg }
           }
         })
       )
@@ -107,9 +108,10 @@ export async function GET() {
       results
     })
 
-  } catch (error: any) {
-    console.error('Erreur sync:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    console.error('Erreur sync:', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 

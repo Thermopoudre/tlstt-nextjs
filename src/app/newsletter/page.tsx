@@ -5,9 +5,12 @@ import { breadcrumbJsonLd } from '@/lib/seo'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
+export const revalidate = 3600
+
 export const metadata: Metadata = {
   title: 'Newsletter TLSTT | Restez informé des actualités du club',
   description: 'Inscrivez-vous à la newsletter du TLSTT (Toulon La Seyne Tennis de Table) et recevez les actualités, résultats des compétitions et événements du club.',
+  keywords: ['newsletter', 'actualités', 'TLSTT', 'tennis de table', 'Toulon', 'La Seyne', 'inscription', 'résultats'],
   alternates: {
     canonical: `${SITE_URL}/newsletter`,
   },

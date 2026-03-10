@@ -85,12 +85,13 @@ export async function GET() {
       source: 'api'
     })
 
-  } catch (error: any) {
-    console.error('Erreur API clubs PACA:', error)
-    return NextResponse.json({ 
-      clubs: [], 
-      error: error.message 
-    })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    console.error('Erreur API clubs PACA:', message)
+    return NextResponse.json({
+      clubs: [],
+      error: message
+    }, { status: 500 })
   }
 }
 

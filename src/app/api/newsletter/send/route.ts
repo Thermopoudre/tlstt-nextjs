@@ -145,9 +145,10 @@ export async function POST(request: NextRequest) {
             },
           })
           sent++
-        } catch (err: any) {
+        } catch (err: unknown) {
           failed++
-          errors.push(`${sub.email}: ${err.message}`)
+          const errMsg = err instanceof Error ? err.message : 'Erreur inconnue'
+          errors.push(`${sub.email}: ${errMsg}`)
         }
       }
 
@@ -173,8 +174,9 @@ export async function POST(request: NextRequest) {
       total: subscribers.length,
       errors: errors.length > 0 ? errors.slice(0, 10) : undefined,
     })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 

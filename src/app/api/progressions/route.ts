@@ -216,19 +216,24 @@ export async function GET() {
       lastUpdate: new Date().toISOString(),
       source,
       ffttStatus: ffttAvailable ? 'Disponible' : 'Données locales uniquement'
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200',
+      }
     })
 
-  } catch (error: any) {
-    console.error('Erreur API progressions:', error)
-    return NextResponse.json({ 
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    console.error('Erreur API progressions:', message)
+    return NextResponse.json({
       topMois: [],
       topSaison: [],
       tous: [],
       stats: { recordMois: null, enProgression: 0, enRegression: 0, stables: 0, total: 0, nouveauxPaliers: [] },
       lastUpdate: new Date().toISOString(),
       source: 'Erreur',
-      error: error.message 
-    })
+      error: message
+    }, { status: 500 })
   }
 }
 

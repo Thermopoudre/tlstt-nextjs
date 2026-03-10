@@ -202,7 +202,7 @@ export async function GET() {
       success: false,
       error: message,
       timestamp: new Date().toISOString(),
-    })
+    }, { status: 500 })
   }
 }
 

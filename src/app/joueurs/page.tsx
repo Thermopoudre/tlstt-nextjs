@@ -13,12 +13,22 @@ export const metadata: Metadata = {
   title: 'Joueurs - Classement des Licenciés',
   description: 'Découvrez tous les joueurs licenciés du club TLSTT Toulon La Seyne Tennis de Table, leurs classements FFTT et leurs points actuels. Données officielles en temps réel.',
   alternates: { canonical: `${SITE_URL}/joueurs` },
+  keywords: ['joueurs', 'classement', 'FFTT', 'licenciés', 'TLSTT', 'tennis de table', 'points', 'Toulon', 'La Seyne'],
   openGraph: {
     title: 'Joueurs TLSTT - Classement Officiel FFTT',
     description: 'Classement des joueurs du club de tennis de table TLSTT - Données FFTT en temps réel',
     url: `${SITE_URL}/joueurs`,
+    siteName: 'TLSTT - Toulon La Seyne Tennis de Table',
+    locale: 'fr_FR',
+    type: 'website',
+    images: [{ url: `${SITE_URL}/og-image.png`, width: 1200, height: 630, alt: 'Joueurs TLSTT - Classement FFTT' }],
   },
-  keywords: ['joueurs', 'classement', 'FFTT', 'licenciés', 'TLSTT', 'tennis de table', 'points', 'Toulon', 'La Seyne'],
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Joueurs TLSTT - Classement Officiel FFTT',
+    description: 'Classement des joueurs du club de tennis de table TLSTT - Données FFTT en temps réel',
+    images: [`${SITE_URL}/og-image.png`],
+  },
 }
 
 export default async function JoueursPage() {
@@ -32,6 +42,15 @@ export default async function JoueursPage() {
 
   if (error) {
     console.error('Erreur chargement joueurs:', error)
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="bg-red-900/30 border border-red-700 rounded-xl p-8 text-center max-w-md">
+          <i className="fas fa-exclamation-triangle text-4xl text-red-400 mb-4"></i>
+          <h1 className="text-xl font-bold text-white mb-2">Erreur de chargement</h1>
+          <p className="text-red-400 text-sm">Impossible de récupérer la liste des joueurs. Réessayez ultérieurement.</p>
+        </div>
+      </div>
+    )
   }
 
   // Formater les données pour le composant client

@@ -46,6 +46,15 @@ export default function MarketplaceClient() {
     else setIsLoading(false)
   }, [user])
 
+  // Spinner global pendant le chargement auth (évite les flash de contenu)
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <i className="fas fa-spinner fa-spin text-4xl text-[#3b9fd8]"></i>
+      </div>
+    )
+  }
+
   // Page pour visiteurs non connectés
   if (!loading && !user) {
     return (
@@ -123,11 +132,12 @@ export default function MarketplaceClient() {
     )
   }
 
-  // Verifier si membre valide du club (pas visiteur simple)
+  // Vérifier si membre validé du club (pas visiteur simple)
+  // On attend que loading soit false ET que le profil soit résolu avant de trancher
   const isMemberValidated = profile?.role === 'admin' || profile?.role === 'member' || profile?.is_validated === true
 
-  // Membre connecte mais pas valide comme membre du club
-  if (!loading && user && !isMemberValidated) {
+  // Membre connecté mais non validé comme membre du club
+  if (!loading && user && profile !== null && !isMemberValidated) {
     return (
       <div className="min-h-screen bg-[#0a0a0a]">
         <div className="bg-[#0a0a0a] py-12 border-b border-[#222]">
@@ -139,7 +149,7 @@ export default function MarketplaceClient() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">Marketplace</h1>
-                <p className="text-gray-400">Achetez, vendez, echangez entre membres</p>
+                <p className="text-gray-400">Achetez, vendez, échangez entre membres</p>
               </div>
             </div>
           </div>
@@ -149,10 +159,10 @@ export default function MarketplaceClient() {
             <div className="w-20 h-20 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <i className="fas fa-id-badge text-4xl text-yellow-500"></i>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-4">Reserve aux membres du club</h2>
+            <h2 className="text-2xl font-bold text-white mb-4">Réservé aux membres du club</h2>
             <p className="text-gray-400 mb-6">
-              La marketplace est exclusivement reservee aux membres licencies du TLSTT.
-              Votre compte doit etre valide par le secretariat pour acceder a cet espace.
+              La marketplace est exclusivement réservée aux membres licenciés du TLSTT.
+              Votre compte doit être validé par le secrétariat pour accéder à cet espace.
             </p>
             <Link
               href="/espace-membre"

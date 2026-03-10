@@ -16,6 +16,9 @@ export const metadata: Metadata = {
     title: 'Galerie Photo TLSTT',
     description: 'Les meilleurs moments du club de tennis de table TLSTT en images.',
     url: `${SITE_URL}/galerie`,
+    siteName: 'TLSTT - Toulon La Seyne Tennis de Table',
+    locale: 'fr_FR',
+    type: 'website',
   },
   keywords: ['galerie', 'photos', 'TLSTT', 'tennis de table', 'événements', 'Toulon', 'La Seyne'],
 }

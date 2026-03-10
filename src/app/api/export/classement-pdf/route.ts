@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 export async function GET() {
+  try {
   const supabase = await createClient()
 
   const { data: teams } = await supabase
@@ -112,4 +113,9 @@ export async function GET() {
       'Content-Disposition': `inline; filename="classements-tlstt-${new Date().toISOString().split('T')[0]}.html"`,
     },
   })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    console.error('Erreur export classement-pdf:', message)
+    return NextResponse.json({ error: 'Erreur lors de la génération du document' }, { status: 500 })
+  }
 }

@@ -18,11 +18,22 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.verce
 export const metadata: Metadata = {
   title: 'TLSTT - Toulon La Seyne Tennis de Table | Club de Ping-Pong Var 83',
   description: 'Club de tennis de table à Toulon et La Seyne-sur-Mer. Entraînements, compétitions FFTT, handisport, école de ping pour tous niveaux. Plus de 70 ans d\'histoire sportive dans le Var.',
+  keywords: ['TLSTT', 'tennis de table', 'ping-pong', 'Toulon', 'La Seyne-sur-Mer', 'Var', 'club sportif', 'FFTT', 'handisport'],
   alternates: { canonical: SITE_URL },
   openGraph: {
     title: 'TLSTT - Toulon La Seyne Tennis de Table',
     description: 'Club de tennis de table dans le Var. Rejoignez-nous pour des cours, des compétitions et du sport pour tous !',
     url: SITE_URL,
+    siteName: 'TLSTT - Toulon La Seyne Tennis de Table',
+    locale: 'fr_FR',
+    type: 'website',
+    images: [{ url: `${SITE_URL}/og-image.png`, width: 1200, height: 630, alt: 'TLSTT - Toulon La Seyne Tennis de Table' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'TLSTT - Toulon La Seyne Tennis de Table',
+    description: 'Club de tennis de table dans le Var. Rejoignez-nous pour des cours, des compétitions et du sport pour tous !',
+    images: [`${SITE_URL}/og-image.png`],
   },
 }
 
@@ -76,8 +87,8 @@ export default async function HomePage() {
     .order('position')
 
   // Transformer les données du carrousel pour le composant
-  const carouselImages = carouselSlides && carouselSlides.length > 0 
-    ? carouselSlides.map((slide: any) => ({
+  const carouselImages = carouselSlides && carouselSlides.length > 0
+    ? carouselSlides.map((slide) => ({
         url: slide.image_url || 'https://images.unsplash.com/photo-1534158914592-062992fbe900?auto=format&fit=crop&w=1920&q=80',
         title: slide.title,
         subtitle: slide.subtitle || slide.description,
@@ -170,7 +181,7 @@ export default async function HomePage() {
 
           {latestNews && latestNews.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {latestNews.map((article: any) => (
+              {latestNews.map((article) => (
                 <NewsCard key={article.id} article={article} />
               ))}
             </div>
@@ -192,7 +203,7 @@ export default async function HomePage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {nextTrainings && nextTrainings.length > 0 ? (
-              nextTrainings.map((training: any) => {
+              nextTrainings.map((training) => {
                 const days = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
                 return (
                   <div key={training.id} className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 hover:border-[#3b9fd8] transition-colors">
@@ -294,7 +305,7 @@ export default async function HomePage() {
           </div>
           <div className="flex flex-wrap justify-center items-center gap-6">
             {partners && partners.length > 0 ? (
-              partners.map((partner: any) => (
+              partners.map((partner) => (
                 <PartnerCard key={partner.id} partner={partner} />
               ))
             ) : (

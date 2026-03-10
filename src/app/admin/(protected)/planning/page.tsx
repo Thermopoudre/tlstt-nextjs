@@ -25,17 +25,24 @@ export default function AdminPlanningPage() {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Training | null>(null)
   const [saving, setSaving] = useState(false)
+  const [actionMsg, setActionMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [form, setForm] = useState({
     day_of_week: 1, start_time: '17:30', end_time: '19:00',
     activity_name: '', activity_type: 'libre', description: '',
     level: '', is_active: true,
   })
 
-  useEffect(() => { fetchTrainings() }, [])
+  useEffect(() => { fetchTrainings() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const showMsg = (type: 'success' | 'error', text: string) => {
+    setActionMsg({ type, text })
+    setTimeout(() => setActionMsg(null), 3500)
+  }
 
   const fetchTrainings = async () => {
-    const { data } = await supabase.from('trainings').select('*').order('day_of_week').order('start_time')
-    if (data) setTrainings(data)
+    const { data, error } = await supabase.from('trainings').select('*').order('day_of_week').order('start_time')
+    if (error) showMsg('error', 'Erreur lors du chargement')
+    else if (data) setTrainings(data)
     setLoading(false)
   }
 
@@ -59,25 +66,27 @@ export default function AdminPlanningPage() {
     e.preventDefault()
     setSaving(true)
     const payload = { ...form, description: form.description || null, level: form.level || null }
-    if (editing) {
-      await supabase.from('trainings').update(payload).eq('id', editing.id)
-    } else {
-      await supabase.from('trainings').insert(payload)
-    }
+    const { error } = editing
+      ? await supabase.from('trainings').update(payload).eq('id', editing.id)
+      : await supabase.from('trainings').insert(payload)
     setSaving(false)
+    if (error) { showMsg('error', 'Erreur lors de l\'enregistrement'); return }
+    showMsg('success', editing ? 'Créneau modifié' : 'Créneau ajouté')
     setShowForm(false)
     fetchTrainings()
   }
 
   const deleteTraining = async (id: string) => {
     if (!confirm('Supprimer ce creneau ?')) return
-    await supabase.from('trainings').delete().eq('id', id)
-    fetchTrainings()
+    const { error } = await supabase.from('trainings').delete().eq('id', id)
+    if (error) showMsg('error', 'Erreur lors de la suppression')
+    else fetchTrainings()
   }
 
   const toggleActive = async (t: Training) => {
-    await supabase.from('trainings').update({ is_active: !t.is_active }).eq('id', t.id)
-    fetchTrainings()
+    const { error } = await supabase.from('trainings').update({ is_active: !t.is_active }).eq('id', t.id)
+    if (error) showMsg('error', 'Erreur lors de la mise à jour')
+    else fetchTrainings()
   }
 
   const getTypeColor = (type: string) => {
@@ -91,6 +100,12 @@ export default function AdminPlanningPage() {
 
   return (
     <div className="space-y-6">
+      {actionMsg && (
+        <div className={`p-3 rounded-lg text-sm flex items-center gap-2 ${actionMsg.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+          <i className={`fas ${actionMsg.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
+          {actionMsg.text}
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-primary">Planning</h1>

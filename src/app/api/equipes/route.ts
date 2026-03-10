@@ -36,7 +36,7 @@ export async function GET() {
         equipes: [],
         error: 'Erreur lecture base de donnees',
         timestamp: new Date().toISOString()
-      })
+      }, { status: 500 })
     }
 
     if (!teamsFromDb || teamsFromDb.length === 0) {
@@ -107,6 +107,6 @@ export async function GET() {
     return NextResponse.json({
       equipes: [],
       error: message
-    })
+    }, { status: 500 })
   }
 }

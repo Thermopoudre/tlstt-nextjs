@@ -12,6 +12,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.verce
 export const metadata: Metadata = {
   title: 'Stages Tennis de Table - TLSTT | Toulon La Seyne',
   description: 'Stages de tennis de table au TLSTT : stages vacances, stages de perfectionnement, stages jeunes. Encadrement par des entraîneurs diplômés d\'État.',
+  keywords: ['stages', 'tennis de table', 'TLSTT', 'Toulon', 'La Seyne', 'vacances', 'perfectionnement', 'jeunes', 'handisport'],
   alternates: { canonical: `${SITE_URL}/stages` },
   openGraph: {
     title: 'Stages Tennis de Table - TLSTT',

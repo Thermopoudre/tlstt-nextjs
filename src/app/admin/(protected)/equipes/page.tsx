@@ -45,15 +45,22 @@ export default function AdminEquipesPage() {
 
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState<string | null>(null)
+  const [actionMsg, setActionMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
-  useEffect(() => { fetchTeams() }, [])
+  useEffect(() => { fetchTeams() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const showMsg = (type: 'success' | 'error', text: string) => {
+    setActionMsg({ type, text })
+    setTimeout(() => setActionMsg(null), 3500)
+  }
 
   const fetchTeams = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('teams')
       .select('*')
       .order('name')
-    if (data) setTeams(data)
+    if (error) showMsg('error', 'Erreur lors du chargement des équipes')
+    else if (data) setTeams(data)
     setLoading(false)
   }
 
@@ -122,13 +129,13 @@ export default function AdminEquipesPage() {
       is_active: form.is_active,
     }
 
-    if (editingTeam) {
-      await supabase.from('teams').update(payload).eq('id', editingTeam.id)
-    } else {
-      await supabase.from('teams').insert(payload)
-    }
+    const { error } = editingTeam
+      ? await supabase.from('teams').update(payload).eq('id', editingTeam.id)
+      : await supabase.from('teams').insert(payload)
 
     setSaving(false)
+    if (error) { showMsg('error', 'Erreur lors de l\'enregistrement'); return }
+    showMsg('success', editingTeam ? 'Équipe modifiée' : 'Équipe ajoutée')
     setShowForm(false)
     setEditingTeam(null)
     fetchTeams()
@@ -136,13 +143,15 @@ export default function AdminEquipesPage() {
 
   const deleteTeam = async (id: string) => {
     if (!confirm('Supprimer cette equipe ?')) return
-    await supabase.from('teams').delete().eq('id', id)
-    fetchTeams()
+    const { error } = await supabase.from('teams').delete().eq('id', id)
+    if (error) showMsg('error', 'Erreur lors de la suppression')
+    else fetchTeams()
   }
 
   const toggleActive = async (team: Team) => {
-    await supabase.from('teams').update({ is_active: !team.is_active }).eq('id', team.id)
-    fetchTeams()
+    const { error } = await supabase.from('teams').update({ is_active: !team.is_active }).eq('id', team.id)
+    if (error) showMsg('error', 'Erreur lors de la mise à jour')
+    else fetchTeams()
   }
 
   const totalMatchs = teams.filter(t => t.is_active).reduce((s, t) => s + t.joue, 0)
@@ -150,6 +159,12 @@ export default function AdminEquipesPage() {
 
   return (
     <div className="space-y-6">
+      {actionMsg && (
+        <div className={`p-3 rounded-lg text-sm flex items-center gap-2 ${actionMsg.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+          <i className={`fas ${actionMsg.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
+          {actionMsg.text}
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-primary">Equipes</h1>

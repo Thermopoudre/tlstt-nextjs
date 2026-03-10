@@ -21,26 +21,30 @@ export default function AdminActualitesPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [deleteTarget, setDeleteTarget] = useState<{ id: string, title: string } | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
-  useEffect(() => { fetchNews() }, [])
+  useEffect(() => { fetchNews() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchNews = async () => {
-    const { data } = await supabase.from('news').select('*').order('created_at', { ascending: false })
-    if (data) setNews(data)
+    const { data, error } = await supabase.from('news').select('*').order('created_at', { ascending: false })
+    if (error) setActionError('Erreur lors du chargement des articles')
+    else if (data) setNews(data)
     setLoading(false)
   }
 
   const confirmDelete = async () => {
     if (!deleteTarget) return
-    await supabase.from('news').delete().eq('id', deleteTarget.id)
+    const { error } = await supabase.from('news').delete().eq('id', deleteTarget.id)
+    if (error) setActionError('Erreur lors de la suppression')
     setDeleteTarget(null)
     fetchNews()
   }
 
   const toggleStatus = async (article: Article) => {
     const newStatus = article.status === 'published' ? 'draft' : 'published'
-    await supabase.from('news').update({ status: newStatus }).eq('id', article.id)
-    fetchNews()
+    const { error } = await supabase.from('news').update({ status: newStatus }).eq('id', article.id)
+    if (error) setActionError('Erreur lors du changement de statut')
+    else fetchNews()
   }
 
   const filteredNews = news.filter(n => {
@@ -69,6 +73,12 @@ export default function AdminActualitesPage() {
 
   return (
     <div className="space-y-6">
+      {actionError && (
+        <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm flex items-center gap-2">
+          <i className="fas fa-exclamation-circle"></i>{actionError}
+          <button onClick={() => setActionError(null)} className="ml-auto"><i className="fas fa-times"></i></button>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-primary">Actualites</h1>

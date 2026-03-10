@@ -28,16 +28,23 @@ export default function AdminPartenairesPage() {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Partner | null>(null)
   const [saving, setSaving] = useState(false)
+  const [actionMsg, setActionMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [form, setForm] = useState({
     name: '', description: '', logo_url: '', website_url: '',
     category: 'standard', position: 0, is_active: true,
   })
 
-  useEffect(() => { fetchPartners() }, [])
+  useEffect(() => { fetchPartners() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const showMsg = (type: 'success' | 'error', text: string) => {
+    setActionMsg({ type, text })
+    setTimeout(() => setActionMsg(null), 3500)
+  }
 
   const fetchPartners = async () => {
-    const { data } = await supabase.from('partners').select('*').order('position')
-    if (data) setPartners(data)
+    const { data, error } = await supabase.from('partners').select('*').order('position')
+    if (error) showMsg('error', 'Erreur lors du chargement')
+    else if (data) setPartners(data)
     setLoading(false)
   }
 
@@ -57,29 +64,37 @@ export default function AdminPartenairesPage() {
     e.preventDefault()
     setSaving(true)
     const payload = { name: form.name, description: form.description || null, logo_url: form.logo_url || null, website_url: form.website_url || null, category: form.category, position: form.position, is_active: form.is_active }
-    if (editing) {
-      await supabase.from('partners').update(payload).eq('id', editing.id)
-    } else {
-      await supabase.from('partners').insert(payload)
-    }
+    const { error } = editing
+      ? await supabase.from('partners').update(payload).eq('id', editing.id)
+      : await supabase.from('partners').insert(payload)
     setSaving(false)
+    if (error) { showMsg('error', 'Erreur lors de l\'enregistrement'); return }
+    showMsg('success', editing ? 'Partenaire modifié' : 'Partenaire ajouté')
     setShowForm(false)
     fetchPartners()
   }
 
   const deletePartner = async (id: string) => {
     if (!confirm('Supprimer ce partenaire ?')) return
-    await supabase.from('partners').delete().eq('id', id)
-    fetchPartners()
+    const { error } = await supabase.from('partners').delete().eq('id', id)
+    if (error) showMsg('error', 'Erreur lors de la suppression')
+    else fetchPartners()
   }
 
   const toggleActive = async (p: Partner) => {
-    await supabase.from('partners').update({ is_active: !p.is_active }).eq('id', p.id)
-    fetchPartners()
+    const { error } = await supabase.from('partners').update({ is_active: !p.is_active }).eq('id', p.id)
+    if (error) showMsg('error', 'Erreur lors de la mise à jour')
+    else fetchPartners()
   }
 
   return (
     <div className="space-y-6">
+      {actionMsg && (
+        <div className={`p-3 rounded-lg text-sm flex items-center gap-2 ${actionMsg.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+          <i className={`fas ${actionMsg.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
+          {actionMsg.text}
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-primary">Partenaires</h1>

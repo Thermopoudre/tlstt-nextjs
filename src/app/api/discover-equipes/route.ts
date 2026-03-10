@@ -121,8 +121,8 @@ export async function GET() {
         // Lister toutes les ligues pour diagnostic
         logs.push(`Ligues disponibles: ${ligues.map(l => `${l.libelle} (${l.code})`).join(', ')}`)
       }
-    } catch (e: any) {
-      errors.push(`Erreur ligues: ${e.message}`)
+    } catch (e: unknown) {
+      errors.push(`Erreur ligues: ${e instanceof Error ? e.message : 'Erreur inconnue'}`)
     }
 
     // Chercher le département Var (type D)
@@ -141,8 +141,8 @@ export async function GET() {
       } else {
         logs.push(`Departements: ${depts.slice(0, 20).map(d => `${d.libelle} (${d.code})`).join(', ')}`)
       }
-    } catch (e: any) {
-      errors.push(`Erreur departements: ${e.message}`)
+    } catch (e: unknown) {
+      errors.push(`Erreur departements: ${e instanceof Error ? e.message : 'Erreur inconnue'}`)
     }
 
     // ═══════════════════════════════════════
@@ -221,14 +221,14 @@ export async function GET() {
 
               await new Promise(r => setTimeout(r, 100))
             }
-          } catch (e: any) {
-            errors.push(`Erreur divisions epreuve ${epreuve.idepreuve}: ${e.message}`)
+          } catch (e: unknown) {
+            errors.push(`Erreur divisions epreuve ${epreuve.idepreuve}: ${e instanceof Error ? e.message : 'Erreur inconnue'}`)
           }
 
           await new Promise(r => setTimeout(r, 200))
         }
-      } catch (e: any) {
-        errors.push(`Erreur epreuves org ${orgId}: ${e.message}`)
+      } catch (e: unknown) {
+        errors.push(`Erreur epreuves org ${orgId}: ${e instanceof Error ? e.message : 'Erreur inconnue'}`)
       }
     }
 
@@ -274,8 +274,8 @@ export async function GET() {
             errors.push(`DB update ${tlsttName}: ${error.message}`)
           }
         }
-      } catch (e: any) {
-        errors.push(`Supabase error: ${e.message}`)
+      } catch (e: unknown) {
+        errors.push(`Supabase error: ${e instanceof Error ? e.message : 'Erreur inconnue'}`)
       }
     }
 
@@ -289,13 +289,14 @@ export async function GET() {
       errors: errors.length > 0 ? errors : undefined,
     })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
     return NextResponse.json({
       success: false,
-      error: error.message,
+      error: message,
       logs,
       errors,
       timestamp: new Date().toISOString(),
-    })
+    }, { status: 500 })
   }
 }

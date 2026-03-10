@@ -47,11 +47,11 @@ export async function POST(request: NextRequest) {
         success: googleResponse.ok,
         status: googleResponse.status,
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       results.push({
         service: 'Google',
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Erreur inconnue',
       })
     }
 
@@ -66,11 +66,11 @@ export async function POST(request: NextRequest) {
         success: bingResponse.ok,
         status: bingResponse.status,
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       results.push({
         service: 'Bing',
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Erreur inconnue',
       })
     }
 
@@ -94,11 +94,11 @@ export async function POST(request: NextRequest) {
           success: indexNowResponse.ok || indexNowResponse.status === 202,
           status: indexNowResponse.status,
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         results.push({
           service: 'IndexNow',
           success: false,
-          error: error.message,
+          error: error instanceof Error ? error.message : 'Erreur inconnue',
         })
       }
     }
@@ -113,9 +113,10 @@ export async function POST(request: NextRequest) {
       results,
       message: `Notification envoyée à ${results.filter(r => r.success).length}/${results.length} services`,
     })
-  } catch (error: any) {
-    console.error('[SEO Ping Error]', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    console.error('[SEO Ping Error]', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 

@@ -20,48 +20,58 @@ export default function AdminMembresPage() {
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'pending' | 'validated' | 'visitors'>('all')
+  const [actionMsg, setActionMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
-  useEffect(() => { fetchMembers() }, [])
+  useEffect(() => { fetchMembers() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const showMsg = (type: 'success' | 'error', text: string) => {
+    setActionMsg({ type, text })
+    setTimeout(() => setActionMsg(null), 3500)
+  }
 
   const fetchMembers = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('member_profiles')
       .select('*')
       .order('created_at', { ascending: false })
-    if (data) setMembers(data)
+    if (error) showMsg('error', 'Erreur lors du chargement des membres')
+    else if (data) setMembers(data)
     setLoading(false)
   }
 
   const validateMember = async (id: string) => {
-    await supabase.from('member_profiles').update({
+    const { error } = await supabase.from('member_profiles').update({
       is_validated: true,
       role: 'member',
       membership_status: 'active',
       updated_at: new Date().toISOString()
     }).eq('id', id)
-    fetchMembers()
+    if (error) showMsg('error', 'Erreur lors de la validation')
+    else { showMsg('success', 'Membre validé avec succès'); fetchMembers() }
   }
 
   const rejectMember = async (id: string) => {
     if (!confirm('Refuser ce membre ? Il gardera un compte visiteur.')) return
-    await supabase.from('member_profiles').update({
+    const { error } = await supabase.from('member_profiles').update({
       is_validated: false,
       role: 'visitor',
       membership_status: 'pending',
       updated_at: new Date().toISOString()
     }).eq('id', id)
-    fetchMembers()
+    if (error) showMsg('error', 'Erreur lors du refus')
+    else { showMsg('success', 'Membre repassé en visiteur'); fetchMembers() }
   }
 
   const promoteToAdmin = async (id: string) => {
     if (!confirm('Promouvoir cet utilisateur en administrateur ?')) return
-    await supabase.from('member_profiles').update({
+    const { error } = await supabase.from('member_profiles').update({
       role: 'admin',
       is_validated: true,
       membership_status: 'active',
       updated_at: new Date().toISOString()
     }).eq('id', id)
-    fetchMembers()
+    if (error) showMsg('error', 'Erreur lors de la promotion')
+    else { showMsg('success', 'Utilisateur promu administrateur'); fetchMembers() }
   }
 
   const filteredMembers = members.filter(m => {
@@ -98,6 +108,12 @@ export default function AdminMembresPage() {
 
   return (
     <div className="space-y-6">
+      {actionMsg && (
+        <div className={`p-3 rounded-lg text-sm flex items-center gap-2 ${actionMsg.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+          <i className={`fas ${actionMsg.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
+          {actionMsg.text}
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-primary">Gestion des membres</h1>

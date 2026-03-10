@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { createClient } from '@/lib/supabase/client'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 
 interface Communication {
   id: string
@@ -57,6 +58,7 @@ export default function EspaceMembrePage() {
       {/* Hero */}
       <div className="py-12 bg-[#0a0a0a] border-b border-[#222]">
         <div className="container-custom">
+          <Breadcrumbs className="text-gray-500 mb-6" />
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div>
               <h1 className="text-4xl font-bold text-white mb-2">

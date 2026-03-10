@@ -12,11 +12,15 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.verce
 export const metadata: Metadata = {
   title: 'Rejoindre le TLSTT | Tennis de Table Toulon La Seyne',
   description: 'Rejoignez le TLSTT, club de tennis de table à Toulon et La Seyne-sur-Mer. 1ère séance gratuite, tous niveaux bienvenus, handisport. Découvrez nos tarifs et le processus d\'inscription.',
+  keywords: ['rejoindre', 'inscription', 'adhésion', 'TLSTT', 'tennis de table', 'Toulon', 'La Seyne', 'handisport', 'essai gratuit'],
   alternates: { canonical: `${SITE_URL}/rejoindre` },
   openGraph: {
     title: 'Rejoindre le TLSTT – Tennis de Table Toulon La Seyne',
     description: '1ère séance gratuite. Tous niveaux et âges bienvenus. Section handisport.',
     url: `${SITE_URL}/rejoindre`,
+    siteName: 'TLSTT - Toulon La Seyne Tennis de Table',
+    locale: 'fr_FR',
+    type: 'website',
   },
 }
 
@@ -124,6 +128,9 @@ export default async function RejoindreePage() {
         </div>
 
         <div className="container-custom relative text-center">
+          <div className="flex justify-center mb-6">
+            <Breadcrumbs className="text-gray-500" />
+          </div>
           <span className="inline-flex items-center gap-2 bg-[#3b9fd8]/10 border border-[#3b9fd8]/30 text-[#3b9fd8] text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
             <i className="fas fa-table-tennis-paddle-ball"></i>
             Saison 2024-2025 ouverte

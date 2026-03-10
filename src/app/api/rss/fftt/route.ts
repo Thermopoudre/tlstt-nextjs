@@ -46,14 +46,19 @@ export async function GET() {
       if (items.length >= 10) break // Limiter à 10
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       source: 'FFTT',
       items,
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200',
+      }
     })
-  } catch (error: any) {
-    return NextResponse.json({ 
-      error: error.message,
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    return NextResponse.json({
+      error: message,
       success: false,
       items: [],
     }, { status: 500 })

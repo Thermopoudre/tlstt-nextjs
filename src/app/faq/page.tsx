@@ -13,11 +13,15 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.verce
 export const metadata: Metadata = {
   title: 'FAQ - Questions Fréquentes | TLSTT Tennis de Table',
   description: 'Toutes les réponses à vos questions sur le club TLSTT : inscription, horaires, compétitions, tarifs, handisport...',
+  keywords: ['FAQ', 'questions', 'inscription', 'horaires', 'tarifs', 'TLSTT', 'tennis de table', 'handisport', 'Toulon'],
   alternates: { canonical: `${SITE_URL}/faq` },
   openGraph: {
     title: 'FAQ - Questions Fréquentes TLSTT',
     description: 'Inscription, horaires, compétitions, tarifs, handisport — toutes vos questions sur le TLSTT.',
     url: `${SITE_URL}/faq`,
+    siteName: 'TLSTT - Toulon La Seyne Tennis de Table',
+    locale: 'fr_FR',
+    type: 'website',
   },
 }
 

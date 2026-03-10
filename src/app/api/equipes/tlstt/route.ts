@@ -108,12 +108,13 @@ export async function GET() {
       source: 'api'
     })
 
-  } catch (error: any) {
-    console.error('Erreur API equipes TLSTT:', error)
-    return NextResponse.json({ 
-      equipes: [], 
-      error: error.message 
-    })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    console.error('Erreur API equipes TLSTT:', message)
+    return NextResponse.json({
+      equipes: [],
+      error: message
+    }, { status: 500 })
   }
 }
 

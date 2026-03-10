@@ -4,69 +4,80 @@ import { createClient } from '@/lib/supabase/server'
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get('q')?.trim()
   if (!q || q.length < 2) {
-    return NextResponse.json({ results: [], query: q })
+    return NextResponse.json({ results: [], query: q || '' })
   }
 
-  const supabase = await createClient()
-  const searchTerm = `%${q}%`
+  // Limiter la longueur du terme de recherche pour éviter les abus
+  if (q.length > 100) {
+    return NextResponse.json({ error: 'Terme de recherche trop long (max 100 caractères)' }, { status: 400 })
+  }
 
-  const [{ data: articles }, { data: players }, { data: newsletters }] = await Promise.all([
-    supabase
-      .from('news')
-      .select('id, title, category, excerpt, image_url, published_at')
-      .eq('status', 'published')
-      .or(`title.ilike.${searchTerm},content.ilike.${searchTerm},excerpt.ilike.${searchTerm}`)
-      .order('published_at', { ascending: false })
-      .limit(5),
-    supabase
-      .from('players')
-      .select('id, first_name, last_name, smartping_licence, fftt_points')
-      .or(`first_name.ilike.${searchTerm},last_name.ilike.${searchTerm},smartping_licence.ilike.${searchTerm}`)
-      .order('last_name')
-      .limit(5),
-    supabase
-      .from('newsletters')
-      .select('id, title, excerpt, published_at')
-      .eq('status', 'published')
-      .or(`title.ilike.${searchTerm},content.ilike.${searchTerm}`)
-      .order('published_at', { ascending: false })
-      .limit(3),
-  ])
+  try {
+    const supabase = await createClient()
+    const searchTerm = `%${q}%`
 
-  const results = [
-    ...(articles || []).map(a => ({
-      type: 'article' as const,
-      id: a.id,
-      title: a.title,
-      subtitle: a.excerpt?.substring(0, 100) || '',
-      url: `/actualites/${a.category}/${a.id}`,
-      image: a.image_url,
-    })),
-    ...(players || []).map(p => ({
-      type: 'player' as const,
-      id: p.id,
-      title: `${p.first_name} ${p.last_name}`,
-      subtitle: `${p.fftt_points || 500} pts${p.smartping_licence ? ` - Licence ${p.smartping_licence}` : ''}`,
-      url: `/joueurs/${p.smartping_licence || p.id}`,
-      image: null,
-    })),
-    ...(newsletters || []).map(n => ({
-      type: 'newsletter' as const,
-      id: n.id,
-      title: n.title,
-      subtitle: n.excerpt?.substring(0, 100) || '',
-      url: `/newsletters/${n.id}`,
-      image: null,
-    })),
-  ]
+    const [{ data: articles }, { data: players }, { data: newsletters }] = await Promise.all([
+      supabase
+        .from('news')
+        .select('id, title, category, excerpt, image_url, published_at')
+        .eq('status', 'published')
+        .or(`title.ilike.${searchTerm},content.ilike.${searchTerm},excerpt.ilike.${searchTerm}`)
+        .order('published_at', { ascending: false })
+        .limit(5),
+      supabase
+        .from('players')
+        .select('id, first_name, last_name, smartping_licence, fftt_points')
+        .or(`first_name.ilike.${searchTerm},last_name.ilike.${searchTerm},smartping_licence.ilike.${searchTerm}`)
+        .order('last_name')
+        .limit(5),
+      supabase
+        .from('newsletters')
+        .select('id, title, excerpt, published_at')
+        .eq('status', 'published')
+        .or(`title.ilike.${searchTerm},content.ilike.${searchTerm}`)
+        .order('published_at', { ascending: false })
+        .limit(3),
+    ])
 
-  return NextResponse.json({
-    results,
-    query: q,
-    counts: {
-      articles: articles?.length || 0,
-      players: players?.length || 0,
-      newsletters: newsletters?.length || 0,
-    },
-  })
+    const results = [
+      ...(articles || []).map(a => ({
+        type: 'article' as const,
+        id: a.id,
+        title: a.title,
+        subtitle: a.excerpt?.substring(0, 100) || '',
+        url: `/actualites/${a.category}/${a.id}`,
+        image: a.image_url,
+      })),
+      ...(players || []).map(p => ({
+        type: 'player' as const,
+        id: p.id,
+        title: `${p.first_name} ${p.last_name}`,
+        subtitle: `${p.fftt_points || 500} pts${p.smartping_licence ? ` - Licence ${p.smartping_licence}` : ''}`,
+        url: `/joueurs/${p.smartping_licence || p.id}`,
+        image: null,
+      })),
+      ...(newsletters || []).map(n => ({
+        type: 'newsletter' as const,
+        id: n.id,
+        title: n.title,
+        subtitle: n.excerpt?.substring(0, 100) || '',
+        url: `/newsletters/${n.id}`,
+        image: null,
+      })),
+    ]
+
+    return NextResponse.json({
+      results,
+      query: q,
+      counts: {
+        articles: articles?.length || 0,
+        players: players?.length || 0,
+        newsletters: newsletters?.length || 0,
+      },
+    })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    console.error('Erreur API search:', message)
+    return NextResponse.json({ error: 'Erreur lors de la recherche' }, { status: 500 })
+  }
 }
