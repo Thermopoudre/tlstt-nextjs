@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 // ============================================
@@ -52,7 +52,15 @@ interface MatchResult {
 // ============================================
 // MAIN SYNC HANDLER
 // ============================================
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const cronSecret = process.env.CRON_SECRET
+  if (cronSecret) {
+    const auth = req.headers.get('authorization')
+    if (auth !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+    }
+  }
+
   const supabase = await createClient()
   const results: { team: string; status: string; stats?: TeamStats; error?: string }[] = []
   const allMatches: MatchResult[] = []

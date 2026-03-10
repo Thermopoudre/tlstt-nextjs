@@ -5,14 +5,28 @@ import { getSmtpConfig } from '@/lib/email'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;')
+}
+
 export async function POST(request: NextRequest) {
   try {
+    // Vérification auth admin
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+    }
+    const { data: adminData } = await supabase.from('admins').select('id').eq('id', user.id).single()
+    if (!adminData) {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+    }
+
     const smtpConfig = await getSmtpConfig()
     if (!smtpConfig.configured) {
       return NextResponse.json({ skipped: true, reason: 'SMTP non configure' })
     }
 
-    const supabase = await createClient()
     const body = await request.json()
     const { type, title, url, excerpt } = body
 
@@ -38,6 +52,9 @@ export async function POST(request: NextRequest) {
     })
     const typeLabel = type === 'article' ? 'Nouvel article' : type === 'newsletter' ? 'Nouvelle newsletter' : 'Nouvelle publication'
     const fullUrl = url.startsWith('http') ? url : `${SITE_URL}${url}`
+    const safeTitle = escapeHtml(String(title))
+    const safeExcerpt = excerpt ? escapeHtml(String(excerpt).substring(0, 200)) + (String(excerpt).length > 200 ? '...' : '') : ''
+    const safeUrl = encodeURI(fullUrl)
     let sent = 0
 
     const html = `
@@ -50,10 +67,10 @@ export async function POST(request: NextRequest) {
   </div>
   <div style="padding:25px;">
     <p style="color:#666;font-size:14px;margin:0 0 8px;">${typeLabel}</p>
-    <h1 style="color:#1a1a2e;font-size:20px;margin:0 0 15px;">${title}</h1>
-    ${excerpt ? `<p style="color:#666;font-size:14px;line-height:1.5;">${excerpt.substring(0, 200)}${excerpt.length > 200 ? '...' : ''}</p>` : ''}
+    <h1 style="color:#1a1a2e;font-size:20px;margin:0 0 15px;">${safeTitle}</h1>
+    ${safeExcerpt ? `<p style="color:#666;font-size:14px;line-height:1.5;">${safeExcerpt}</p>` : ''}
     <div style="text-align:center;margin:25px 0;">
-      <a href="${fullUrl}" style="display:inline-block;background:#3b9fd8;color:#fff;padding:12px 30px;border-radius:8px;text-decoration:none;font-weight:bold;">Lire la suite</a>
+      <a href="${safeUrl}" style="display:inline-block;background:#3b9fd8;color:#fff;padding:12px 30px;border-radius:8px;text-decoration:none;font-weight:bold;">Lire la suite</a>
     </div>
   </div>
   <div style="background:#f8f8f8;padding:15px;text-align:center;">

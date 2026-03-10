@@ -1,10 +1,17 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
 
 // Route pour synchroniser les joueurs depuis l'API FFTT
 // Utilise xml_liste_joueur.php pour la liste, puis xml_joueur.php pour les points exacts
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const cronSecret = process.env.CRON_SECRET
+  if (cronSecret) {
+    const auth = req.headers.get('authorization')
+    if (auth !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+    }
+  }
   const supabase = await createClient()
 
   const appId = process.env.SMARTPING_APP_ID || ''

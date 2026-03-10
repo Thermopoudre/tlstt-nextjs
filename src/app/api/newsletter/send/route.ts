@@ -7,6 +7,10 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.verce
 const BATCH_SIZE = 50 // emails par lot
 const DELAY_BETWEEN_BATCHES = 2000 // ms
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;')
+}
+
 function buildEmailHtml(newsletter: any, unsubscribeUrl: string): string {
   return `
 <!DOCTYPE html>
@@ -38,8 +42,8 @@ function buildEmailHtml(newsletter: any, unsubscribeUrl: string): string {
       <p>Toulon La Seyne Tennis de Table</p>
     </div>
     <div class="content">
-      ${newsletter.cover_image_url ? `<img src="${newsletter.cover_image_url}" alt="${newsletter.title}" />` : ''}
-      <h2>${newsletter.title}</h2>
+      ${newsletter.cover_image_url ? `<img src="${encodeURI(String(newsletter.cover_image_url))}" alt="${escapeHtml(String(newsletter.title))}" />` : ''}
+      <h2>${escapeHtml(String(newsletter.title))}</h2>
       ${newsletter.content}
       <div style="text-align: center; margin-top: 25px;">
         <a href="${SITE_URL}/newsletters/${newsletter.id}" class="btn">Lire sur le site</a>

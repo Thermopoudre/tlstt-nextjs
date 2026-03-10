@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email'
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;')
+}
+
 export async function POST(req: NextRequest) {
   try {
     // Vérification auth admin
@@ -25,6 +29,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Paramètres manquants' }, { status: 400 })
     }
 
+    const safeName = escapeHtml(String(name))
+    const safeReplyHtml = escapeHtml(String(replyText)).replace(/\n/g, '<br>')
+
     const result = await sendEmail({
       to,
       subject: `Réponse du TLSTT`,
@@ -35,9 +42,9 @@ export async function POST(req: NextRequest) {
             <p style="margin: 5px 0 0; opacity: 0.8; font-size: 14px;">Toulon La Seyne Tennis de Table</p>
           </div>
           <div style="padding: 24px; background: white;">
-            <p style="font-size: 16px; color: #333;">Bonjour ${name},</p>
+            <p style="font-size: 16px; color: #333;">Bonjour ${safeName},</p>
             <div style="margin: 16px 0; padding: 16px; background: #f8f9fa; border-left: 4px solid #3b9fd8; border-radius: 4px;">
-              <p style="color: #333; white-space: pre-wrap; margin: 0;">${replyText.replace(/\n/g, '<br>')}</p>
+              <p style="color: #333; white-space: pre-wrap; margin: 0;">${safeReplyHtml}</p>
             </div>
             <p style="color: #999; font-size: 14px; margin-top: 24px;">Cordialement,<br>L'équipe TLSTT</p>
           </div>

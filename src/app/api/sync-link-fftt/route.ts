@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { SmartPingAPI } from '@/lib/smartping/api'
 import { createClient } from '@/lib/supabase/server'
 
@@ -26,7 +26,15 @@ function parseEquipesXml(xml: string): Array<{ libequipe: string; libdivision: s
   return equipes
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const cronSecret = process.env.CRON_SECRET
+  if (cronSecret) {
+    const auth = req.headers.get('authorization')
+    if (auth !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+    }
+  }
+
   try {
     const api = new SmartPingAPI()
     const supabase = await createClient()

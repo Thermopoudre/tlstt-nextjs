@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+function escapeHtml(s: string | null | undefined): string {
+  if (!s) return ''
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;')
+}
+
 export async function GET() {
   try {
   const supabase = await createClient()
@@ -66,9 +71,9 @@ export async function GET() {
     <tbody>
       ${(teams || []).map(t => `
       <tr>
-        <td><strong>${t.name}</strong></td>
-        <td>${t.division || '-'}</td>
-        <td>${t.pool || '-'}</td>
+        <td><strong>${escapeHtml(t.name)}</strong></td>
+        <td>${escapeHtml(t.division) || '-'}</td>
+        <td>${escapeHtml(t.pool) || '-'}</td>
         <td>${t.cla || '-'}</td>
         <td>${t.joue || 0}</td>
         <td><strong>${t.pts || 0}</strong></td>
@@ -93,9 +98,9 @@ export async function GET() {
       ${(players || []).map((p, i) => `
       <tr>
         <td>${i + 1}</td>
-        <td><strong>${p.first_name} ${p.last_name}</strong></td>
+        <td><strong>${escapeHtml(p.first_name)} ${escapeHtml(p.last_name)}</strong></td>
         <td><span class="stats">${p.fftt_points || 500} pts</span></td>
-        <td>${p.smartping_licence || '-'}</td>
+        <td>${escapeHtml(p.smartping_licence) || '-'}</td>
       </tr>`).join('')}
     </tbody>
   </table>
