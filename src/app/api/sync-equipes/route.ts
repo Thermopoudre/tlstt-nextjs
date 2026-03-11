@@ -100,7 +100,8 @@ export async function GET(req: NextRequest) {
             nul: data.stats.nul,
             division: data.stats.division || config.division,
             pool: data.stats.pool || undefined,
-            link_fftt: `Phase 1 Final: ${config.division} - ${data.stats.cla}e (${data.stats.vic}V ${data.stats.nul}N ${data.stats.def}D)`,
+            // Ne pas écraser link_fftt — contient les paramètres SmartPing D1=xxx&cx_poule=xxx
+            // mis à jour exclusivement par /api/discover-equipes
             updated_at: new Date().toISOString(),
           })
           .ilike('name', config.name)
