@@ -6,12 +6,37 @@ export class SmartPingAPI {
   private password: string
   private serie: string
   private baseUrl = 'https://www.fftt.com/mobile/pxml'
+  private initPromise: Promise<void> | null = null
 
   constructor() {
     this.appId = process.env.SMARTPING_APP_ID || ''
     this.password = process.env.SMARTPING_PASSWORD || ''
-    // Serie DOIT être fixe et initialisée une seule fois (via /api/smartping-init)
     this.serie = process.env.SMARTPING_SERIE || ''
+  }
+
+  // Initialise automatiquement la série via xml_initialise.php si non configurée
+  private async initialize(): Promise<void> {
+    if (this.serie) return
+    // Éviter les appels parallèles simultanés
+    if (!this.initPromise) {
+      this.initPromise = (async () => {
+        const tm = this.generateTimestamp()
+        const tmc = this.encryptTimestamp(tm)
+        const url = `${this.baseUrl}/xml_initialise.php?serie=0&tm=${tm}&tmc=${tmc}&id=${this.appId}`
+        const response = await fetch(url, { cache: 'no-store' })
+        if (!response.ok) {
+          throw new Error(`SmartPing init HTTP ${response.status}`)
+        }
+        const xml = await response.text()
+        const m = xml.match(/<serie>([^<]+)<\/serie>/)
+        if (!m) {
+          throw new Error('SmartPing init: impossible d\'extraire la série. Réponse: ' + xml.substring(0, 200))
+        }
+        this.serie = m[1]
+      })()
+    }
+    await this.initPromise
+    this.initPromise = null
   }
 
   // Générer le timestamp au format YYYYMMDDHHMMSSmmm
@@ -45,7 +70,7 @@ export class SmartPingAPI {
 
   private async request(endpoint: string, params: Record<string, string> = {}): Promise<any> {
     if (!this.serie) {
-      throw new Error('SMARTPING_SERIE non configuré. Appelez /api/smartping-init.')
+      await this.initialize()
     }
     
     const tm = this.generateTimestamp()
