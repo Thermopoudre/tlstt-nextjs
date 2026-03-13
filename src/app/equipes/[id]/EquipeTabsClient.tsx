@@ -53,7 +53,7 @@ export default function EquipeTabsClient({
   const data = activePhase === 1 ? phase1 : phase2
   const { classement, rencontres, error } = data
 
-  const equipeInfo = classement.find((e) => e.numero === TLSTT_CLUB_NUMBER) || null
+  const equipeInfo = classement.find((e) => e.numero === TLSTT_CLUB_NUMBER || e.equipe.toUpperCase().includes('SEYNE')) || null
   const equipePosition = equipeInfo?.clt || '-'
   const equipePoints = equipeInfo?.pts || '0'
   const equipeVic = equipeInfo?.vic || '0'
@@ -143,7 +143,7 @@ export default function EquipeTabsClient({
                   </thead>
                   <tbody className="divide-y divide-[#333]">
                     {classement.map((equipe, index) => {
-                      const isTLSTT = equipe.numero === TLSTT_CLUB_NUMBER
+                      const isTLSTT = equipe.numero === TLSTT_CLUB_NUMBER || equipe.equipe.toUpperCase().includes('SEYNE')
                       return (
                         <tr
                           key={index}

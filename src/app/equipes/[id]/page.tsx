@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { SmartPingAPI } from '@/lib/smartping/api'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -10,7 +9,7 @@ import EquipeTabsClient from './EquipeTabsClient'
 
 export const revalidate = 1800 // Revalider toutes les 30 minutes
 
-const TLSTT_CLUB_NUMBER = '13830083'
+const LIGUE_URL = 'https://www.tennisdetableregionsud.fr/index.php/competitions/equipes/:championnat_reg:'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -63,130 +62,210 @@ interface Rencontre {
   lien: string
 }
 
-function parseClassementXml(xml: string): ClassementEntry[] {
-  if (!xml || xml.includes('<erreur>')) return []
+/**
+ * Extrait le contenu HTML d'une div identifiée par son id.
+ * Gère correctement le nesting en comptant les balises <div> ouvrantes/fermantes.
+ */
+function extractDivContent(html: string, divId: string): string {
+  const marker = `id="${divId}"`
+  const startIdx = html.indexOf(marker)
+  if (startIdx === -1) return ''
 
-  const classements: ClassementEntry[] = []
-  const matches = xml.matchAll(/<classement>([\s\S]*?)<\/classement>/g)
+  const tagEnd = html.indexOf('>', startIdx)
+  if (tagEnd === -1) return ''
 
-  for (const match of matches) {
-    const clXml = match[1]
-    const getValue = (tag: string): string => {
-      const m = clXml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`))
-      return m ? m[1] : ''
+  const contentStart = tagEnd + 1
+  let depth = 1
+  let pos = contentStart
+
+  while (pos < html.length && depth > 0) {
+    const nextOpen = html.indexOf('<div', pos)
+    const nextClose = html.indexOf('</div>', pos)
+
+    if (nextClose === -1) break
+
+    if (nextOpen !== -1 && nextOpen < nextClose) {
+      depth++
+      pos = nextOpen + 4
+    } else {
+      depth--
+      if (depth === 0) {
+        return html.substring(contentStart, nextClose)
+      }
+      pos = nextClose + 6
     }
-
-    classements.push({
-      clt: getValue('clt'),
-      equipe: getValue('equipe'),
-      joue: getValue('joue'),
-      pts: getValue('pts'),
-      numero: getValue('numero'),
-      vic: getValue('vic'),
-      def: getValue('def'),
-      nul: getValue('nul'),
-      pf: getValue('pf'),
-      pg: getValue('pg'),
-      pp: getValue('pp'),
-    })
   }
 
-  return classements
+  return html.substring(contentStart, pos)
 }
 
-function parseRencontresXml(xml: string): Rencontre[] {
-  if (!xml || xml.includes('<erreur>')) return []
+function parseCellText(cell: string): string {
+  return cell.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ').trim()
+}
 
-  const rencontres: Rencontre[] = []
-  const matches = xml.matchAll(/<tour>([\s\S]*?)<\/tour>/g)
+function parseClassementHtml(divContent: string): { classement: ClassementEntry[]; divisionName: string } {
+  const classement: ClassementEntry[] = []
+  let divisionName = ''
 
-  for (const match of matches) {
-    const tourXml = match[1]
-    const getValue = (tag: string): string => {
-      const m = tourXml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`))
-      return m ? m[1] : ''
+  // Table CSS class "class_cheq" = tableau de classement
+  const tableMatch = divContent.match(/<table[^>]*class="[^"]*class_cheq[^"]*"[^>]*>([\s\S]*?)<\/table>/)
+  if (!tableMatch) return { classement, divisionName }
+
+  const tableContent = tableMatch[1]
+
+  // Extraire le nom de la division depuis la légende
+  const captionMatch = tableContent.match(/<caption[^>]*>([\s\S]*?)<\/caption>/)
+  if (captionMatch) {
+    divisionName = parseCellText(captionMatch[1])
+  }
+
+  // Colonnes : #, Equipe, Joué, Pts, V, N, D, FF/P, PG, PP
+  const rowMatches = tableContent.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)
+  for (const rowMatch of rowMatches) {
+    const rowContent = rowMatch[1]
+    if (rowContent.includes('<th')) continue // Ignorer les en-têtes
+
+    const cells: string[] = []
+    const cellMatches = rowContent.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)
+    for (const cellMatch of cellMatches) {
+      cells.push(parseCellText(cellMatch[1]))
     }
 
-    rencontres.push({
-      libelle: getValue('libelle'),
-      equa: getValue('equa'),
-      equb: getValue('equb'),
-      scorea: getValue('scorea'),
-      scoreb: getValue('scoreb'),
-      dateprevue: getValue('dateprevue'),
-      datereelle: getValue('datereelle'),
-      lien: getValue('lien'),
-    })
+    if (cells.length >= 4) {
+      classement.push({
+        clt: cells[0] || '',
+        equipe: cells[1] || '',
+        joue: cells[2] || '',
+        pts: cells[3] || '',
+        vic: cells[4] || '',
+        nul: cells[5] || '',
+        def: cells[6] || '',
+        pf: cells[7] || '',
+        pg: cells[8] || '',
+        pp: cells[9] || '',
+        numero: '', // Le site ligue ne fournit pas le numéro de club
+      })
+    }
+  }
+
+  return { classement, divisionName }
+}
+
+function parseRencontresHtml(divContent: string): Rencontre[] {
+  const rencontres: Rencontre[] = []
+
+  // Chaque journée = une table CSS "journee_cheq"
+  const tableMatches = divContent.matchAll(/<table[^>]*class="[^"]*journee_cheq[^"]*"[^>]*>([\s\S]*?)<\/table>/g)
+
+  for (const tableMatch of tableMatches) {
+    const tableContent = tableMatch[1]
+
+    // Caption : "tour n°1 du 20/09/2025"
+    const captionMatch = tableContent.match(/<caption[^>]*>([\s\S]*?)<\/caption>/)
+    let libelle = ''
+    let dateprevue = ''
+    if (captionMatch) {
+      const captionText = parseCellText(captionMatch[1])
+      const tourMatch = captionText.match(/^(.*?)\s+du\s+(\d{2}\/\d{2}\/\d{4})/)
+      if (tourMatch) {
+        libelle = tourMatch[1].trim()
+        dateprevue = tourMatch[2]
+      } else {
+        libelle = captionText
+      }
+    }
+
+    // Lignes de match : equa | "scoreA - scoreB" | equb
+    const rowMatches = tableContent.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)
+    for (const rowMatch of rowMatches) {
+      const rowContent = rowMatch[1]
+      if (rowContent.includes('<th')) continue
+
+      const cells: string[] = []
+      const cellMatches = rowContent.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)
+      for (const cellMatch of cellMatches) {
+        cells.push(parseCellText(cellMatch[1]))
+      }
+
+      if (cells.length >= 3) {
+        const scoreStr = cells[1] || ''
+        const scoreMatch = scoreStr.match(/^(\d+)\s*-\s*(\d+)$/)
+        const scorea = scoreMatch ? scoreMatch[1] : ''
+        const scoreb = scoreMatch ? scoreMatch[2] : ''
+
+        rencontres.push({
+          libelle,
+          equa: cells[0] || '',
+          equb: cells[2] || '',
+          scorea,
+          scoreb,
+          dateprevue,
+          datereelle: scorea ? dateprevue : '',
+          lien: '',
+        })
+      }
+    }
   }
 
   return rencontres
 }
 
-function parseEquipesXml(xml: string): Array<{ libequipe: string; libdivision: string; liendivision: string }> {
-  if (!xml || xml.includes('<erreur>')) return []
+/**
+ * Scrape la page du site de la ligue pour récupérer classement + rencontres
+ * d'une poule identifiée par son id SPIP (ex: "R2_2_p1", "PN_p1").
+ */
+async function fetchFromLigueSite(spipId: string): Promise<{
+  classement: ClassementEntry[]
+  rencontres: Rencontre[]
+  divisionName: string
+  error: string | null
+}> {
+  try {
+    const response = await fetch(LIGUE_URL, {
+      next: { revalidate: 3600 }, // Cache Next.js : 1 heure
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TLSTT-Site/1.0)' },
+    })
 
-  const equipes: Array<{ libequipe: string; libdivision: string; liendivision: string }> = []
-  const matches = xml.matchAll(/<equipe>([\s\S]*?)<\/equipe>/g)
-
-  for (const match of matches) {
-    const equipeXml = match[1]
-    const getValue = (tag: string): string => {
-      const m = equipeXml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`))
-      return m ? m[1] : ''
+    if (!response.ok) {
+      return {
+        classement: [], rencontres: [], divisionName: '',
+        error: `Site ligue inaccessible (HTTP ${response.status})`,
+      }
     }
 
-    equipes.push({
-      libequipe: getValue('libequipe'),
-      libdivision: getValue('libdivision'),
-      liendivision: getValue('liendivision'),
-    })
-  }
+    const html = await response.text()
+    const divContent = extractDivContent(html, spipId)
 
-  return equipes
-}
+    if (!divContent) {
+      return {
+        classement: [], rencontres: [], divisionName: '',
+        error: `Poule "${spipId}" non trouvée sur le site de la ligue`,
+      }
+    }
 
-/** Récupère classement + rencontres pour un couple (D1, cx_poule) */
-async function fetchPhaseData(
-  api: SmartPingAPI,
-  D1: string,
-  cx_poule: string
-): Promise<{ classement: ClassementEntry[]; rencontres: Rencontre[]; error: string | null }> {
-  let classement: ClassementEntry[] = []
-  let rencontres: Rencontre[] = []
-  let error: string | null = null
+    const { classement, divisionName } = parseClassementHtml(divContent)
+    const rencontres = parseRencontresHtml(divContent)
 
-  try {
-    const classementXml = await api.getClassementPoule(D1, cx_poule)
-    classement = parseClassementXml(classementXml)
+    return {
+      classement,
+      rencontres,
+      divisionName,
+      error: classement.length === 0 ? 'Classement introuvable dans les données de la ligue' : null,
+    }
   } catch (e) {
-    const msg = e instanceof Error ? e.message : 'Erreur classement'
-    console.error('Erreur classement:', msg)
-    error = msg
+    const msg = e instanceof Error ? e.message : 'Erreur inconnue'
+    return { classement: [], rencontres: [], divisionName: '', error: `Erreur scraper: ${msg}` }
   }
-
-  try {
-    const rencontresXml = await api.getResultatsPoule(D1, cx_poule)
-    rencontres = parseRencontresXml(rencontresXml)
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : 'Erreur rencontres'
-    console.error('Erreur rencontres:', msg)
-    if (!error) error = msg
-  }
-
-  return { classement, rencontres, error }
 }
 
 export default async function EquipeDetailPage({ params }: PageProps) {
   const { id } = await params
-  const api = new SmartPingAPI()
 
   let teamName = ''
   let teamDivision = ''
   let teamPool = ''
 
-  // Données Phase 1
   let phase1Data = { classement: [] as ClassementEntry[], rencontres: [] as Rencontre[], error: null as string | null }
-  // Données Phase 2 (null si pas de link_fftt_phase2)
   let phase2Data = { classement: [] as ClassementEntry[], rencontres: [] as Rencontre[], error: null as string | null }
   let hasPhase2 = false
 
@@ -207,62 +286,36 @@ export default async function EquipeDetailPage({ params }: PageProps) {
     teamPool = teamFromDb.pool || ''
 
     // --- Phase 1 ---
-    let D1 = ''
-    let cx_poule = ''
-
-    if (teamFromDb.link_fftt && teamFromDb.link_fftt.includes('D1=')) {
-      const linkParams = new URLSearchParams(teamFromDb.link_fftt)
-      D1 = linkParams.get('D1') || ''
-      cx_poule = linkParams.get('cx_poule') || ''
-    }
-
-    if (!D1 || !cx_poule) {
-      // Fallback via xml_equipe.php
-      try {
-        const equipesXml = await api.getEquipes(TLSTT_CLUB_NUMBER)
-        const equipesFFTT = parseEquipesXml(equipesXml)
-        const teamNumber = teamName.replace(/TLSTT\s*/i, '').trim()
-        const matchingEquipe = equipesFFTT.find((eq) => {
-          const ffttNumber = eq.libequipe.replace(/.*?(\d+)\s*$/, '$1').trim()
-          return parseInt(ffttNumber, 10) === parseInt(teamNumber, 10)
-        })
-        if (matchingEquipe) {
-          const eqParams = new URLSearchParams(matchingEquipe.liendivision)
-          D1 = eqParams.get('D1') || ''
-          cx_poule = eqParams.get('cx_poule') || ''
-          teamDivision = matchingEquipe.libdivision || teamDivision
-        }
-      } catch {
-        // xml_equipe.php can return 401, ignore
+    const linkFftt: string = teamFromDb.link_fftt || ''
+    if (linkFftt.startsWith('SPIP:')) {
+      const spipId = linkFftt.replace(/^SPIP:/, '')
+      const result = await fetchFromLigueSite(spipId)
+      phase1Data = { classement: result.classement, rencontres: result.rencontres, error: result.error }
+      if (result.divisionName && !teamDivision) {
+        teamDivision = result.divisionName
       }
-    }
-
-    if (D1 && cx_poule) {
-      phase1Data = await fetchPhaseData(api, D1, cx_poule)
     } else {
-      phase1Data.error = `Données de poule non disponibles pour ${teamName}. Lancez la découverte via /api/discover-equipes pour synchroniser les paramètres FFTT.`
+      phase1Data.error = `Données non disponibles pour ${teamName}. Configurez le lien FFTT au format "SPIP:ID_POULE" (ex: SPIP:R2_2_p1) dans l'administration.`
     }
 
     // --- Phase 2 ---
-    if (teamFromDb.link_fftt_phase2 && teamFromDb.link_fftt_phase2.includes('D1=')) {
+    const linkFfttP2: string = teamFromDb.link_fftt_phase2 || ''
+    if (linkFfttP2.startsWith('SPIP:')) {
       hasPhase2 = true
-      const p2Params = new URLSearchParams(teamFromDb.link_fftt_phase2)
-      const D1p2 = p2Params.get('D1') || ''
-      const cx_pouleP2 = p2Params.get('cx_poule') || ''
-      if (D1p2 && cx_pouleP2) {
-        phase2Data = await fetchPhaseData(api, D1p2, cx_pouleP2)
-      } else {
-        phase2Data.error = 'Paramètres Phase 2 invalides (D1 ou cx_poule manquant).'
-      }
+      const spipId2 = linkFfttP2.replace(/^SPIP:/, '')
+      const result2 = await fetchFromLigueSite(spipId2)
+      phase2Data = { classement: result2.classement, rencontres: result2.rencontres, error: result2.error }
     }
   } catch (e) {
-    const msg = e instanceof Error ? e.message : 'Erreur API équipe'
+    const msg = e instanceof Error ? e.message : 'Erreur inconnue'
     phase1Data.error = msg
-    console.error('Erreur API équipe:', e)
+    console.error('Erreur page équipe:', e)
   }
 
-  // Stats Hero (Phase 1 par défaut)
-  const equipeInfo = phase1Data.classement.find((e) => e.numero === TLSTT_CLUB_NUMBER) || null
+  // Stats Hero (Phase 1 par défaut) — détection par nom car le site ligue n'a pas de numéro de club
+  const equipeInfo = phase1Data.classement.find(
+    (e) => e.equipe.toUpperCase().includes('SEYNE')
+  ) || null
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -324,7 +377,7 @@ export default async function EquipeDetailPage({ params }: PageProps) {
           phase1={phase1Data}
           phase2={phase2Data}
           teamName={teamName}
-          TLSTT_CLUB_NUMBER={TLSTT_CLUB_NUMBER}
+          TLSTT_CLUB_NUMBER=""
         />
       </div>
     </div>
