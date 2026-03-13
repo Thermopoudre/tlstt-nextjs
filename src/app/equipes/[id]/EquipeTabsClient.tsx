@@ -100,8 +100,35 @@ export default function EquipeTabsClient({
         </div>
       )}
 
-      {/* Erreur */}
-      {error && (
+      {/* Info Nationale (pas d'erreur, juste une info) */}
+      {error?.startsWith('NATIONALE:') && (
+        <div className="bg-[#3b9fd8]/10 border border-[#3b9fd8]/30 p-4 mb-6 rounded-xl">
+          <div className="flex">
+            <i className="fas fa-info-circle text-[#3b9fd8] mr-3 mt-1 flex-shrink-0"></i>
+            <div>
+              <p className="text-[#3b9fd8] font-semibold">Division Nationale</p>
+              <p className="text-gray-400 text-sm">
+                Les données pour{' '}
+                <span className="text-gray-300">{error.replace('NATIONALE:', '') || 'cette division nationale'}</span>{' '}
+                sont gérées au niveau fédéral et ne sont pas disponibles via le site de la ligue régionale.
+                Consultez le{' '}
+                <a
+                  href="https://www.fftt.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#3b9fd8] underline hover:text-white transition-colors"
+                >
+                  site officiel FFTT
+                </a>{' '}
+                pour le classement et les résultats.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Erreur technique */}
+      {error && !error.startsWith('NATIONALE:') && (
         <div className="bg-red-900/30 border border-red-700 p-4 mb-6 rounded-xl">
           <div className="flex">
             <i className="fas fa-exclamation-triangle text-red-400 mr-3 mt-1"></i>

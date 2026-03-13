@@ -289,10 +289,16 @@ export default async function EquipeDetailPage({ params }: PageProps) {
     const linkFftt: string = teamFromDb.link_fftt || ''
     if (linkFftt.startsWith('SPIP:')) {
       const spipId = linkFftt.replace(/^SPIP:/, '')
-      const result = await fetchFromLigueSite(spipId)
-      phase1Data = { classement: result.classement, rencontres: result.rencontres, error: result.error }
-      if (result.divisionName && !teamDivision) {
-        teamDivision = result.divisionName
+      // Les poules Nationales (N1, N2, N3, PN...) sont gérées au niveau fédéral,
+      // pas sur le site régional — on évite un appel inutile au scraper.
+      if (/^(N[1-9]|PN)/i.test(spipId)) {
+        phase1Data.error = `NATIONALE:${teamDivision || spipId}`
+      } else {
+        const result = await fetchFromLigueSite(spipId)
+        phase1Data = { classement: result.classement, rencontres: result.rencontres, error: result.error }
+        if (result.divisionName && !teamDivision) {
+          teamDivision = result.divisionName
+        }
       }
     } else {
       phase1Data.error = `Données non disponibles pour ${teamName}. Configurez le lien FFTT au format "SPIP:ID_POULE" (ex: SPIP:R2_2_p1) dans l'administration.`
