@@ -9,6 +9,8 @@ import StatCounter from '@/components/home/StatCounter'
 import { getGlobalSettings } from '@/lib/settings'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd, organizationJsonLd } from '@/lib/seo'
+import FadeInUp from '@/components/ui/FadeInUp'
+import { StaggerContainer, StaggerItem } from '@/components/ui/StaggerContainer'
 
 // Page d'accueil : revalider toutes les 30 min (actualités, carousel)
 export const revalidate = 1800
@@ -130,39 +132,47 @@ export default async function HomePage() {
       {/* Stats Section - Noir avec bordures bleu */}
       <section className="py-12 bg-[#0a0a0a]">
         <div className="container-custom">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">
-              <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
-                <i className="fas fa-users text-2xl text-white"></i>
+          <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <StaggerItem>
+              <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">
+                <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <i className="fas fa-users text-2xl text-white"></i>
+                </div>
+                <StatCounter value={totalPlayers} suffix="+" />
+                <div className="text-sm text-[#3b9fd8]">Licenciés</div>
               </div>
-              <StatCounter value={totalPlayers} suffix="+" />
-              <div className="text-sm text-[#3b9fd8]">Licenciés</div>
-            </div>
+            </StaggerItem>
 
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">
-              <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
-                <i className="fas fa-trophy text-2xl text-white"></i>
+            <StaggerItem>
+              <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">
+                <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <i className="fas fa-trophy text-2xl text-white"></i>
+                </div>
+                <StatCounter value={totalTeams} />
+                <div className="text-sm text-[#3b9fd8]">Équipes</div>
               </div>
-              <StatCounter value={totalTeams} />
-              <div className="text-sm text-[#3b9fd8]">Équipes</div>
-            </div>
+            </StaggerItem>
 
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">
-              <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
-                <i className="fas fa-calendar-alt text-2xl text-white"></i>
+            <StaggerItem>
+              <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">
+                <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <i className="fas fa-calendar-alt text-2xl text-white"></i>
+                </div>
+                <StatCounter value={yearsOfHistory} suffix="+" />
+                <div className="text-sm text-[#3b9fd8]">Ans d&apos;histoire</div>
               </div>
-              <StatCounter value={yearsOfHistory} suffix="+" />
-              <div className="text-sm text-[#3b9fd8]">Ans d&apos;histoire</div>
-            </div>
+            </StaggerItem>
 
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">
-              <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
-                <i className="fas fa-images text-2xl text-white"></i>
+            <StaggerItem>
+              <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">
+                <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <i className="fas fa-images text-2xl text-white"></i>
+                </div>
+                <StatCounter value={totalAlbums} />
+                <div className="text-sm text-[#3b9fd8]">Albums Photos</div>
               </div>
-              <StatCounter value={totalAlbums} />
-              <div className="text-sm text-[#3b9fd8]">Albums Photos</div>
-            </div>
-          </div>
+            </StaggerItem>
+          </StaggerContainer>
         </div>
       </section>
 
@@ -180,11 +190,13 @@ export default async function HomePage() {
           </div>
 
           {latestNews && latestNews.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {latestNews.map((article) => (
-                <NewsCard key={article.id} article={article} />
+                <StaggerItem key={article.id}>
+                  <NewsCard article={article} />
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
           ) : (
             <div className="text-center py-12 bg-[#1a1a1a] rounded-xl border border-[#333]">
               <i className="fas fa-newspaper text-4xl text-[#3b9fd8] mb-3"></i>
@@ -201,12 +213,13 @@ export default async function HomePage() {
             <i className="fas fa-calendar-check mr-3 text-[#3b9fd8]"></i>
             Prochains Entraînements
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {nextTrainings && nextTrainings.length > 0 ? (
               nextTrainings.map((training) => {
                 const days = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
                 return (
-                  <div key={training.id} className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 hover:border-[#3b9fd8] transition-colors">
+                  <StaggerItem key={training.id}>
+                  <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 hover:border-[#3b9fd8] transition-colors">
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
                         <i className="fas fa-table-tennis text-2xl text-white"></i>
@@ -223,6 +236,7 @@ export default async function HomePage() {
                       </div>
                     </div>
                   </div>
+                  </StaggerItem>
                 )
               })
             ) : (
@@ -234,7 +248,7 @@ export default async function HomePage() {
                 </Link>
               </div>
             )}
-          </div>
+          </StaggerContainer>
           <div className="text-center mt-8">
             <Link href="/planning" className="inline-block bg-[#3b9fd8] text-white px-8 py-3 rounded-full font-bold hover:bg-[#2d8bc9] transition-colors">
               <i className="fas fa-calendar-alt mr-2"></i>
@@ -248,6 +262,7 @@ export default async function HomePage() {
       <section className="py-16 bg-[#111111]">
         <div className="container-custom">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FadeInUp>
             <div className="bg-[#3b9fd8] rounded-2xl text-white p-8 hover:bg-[#2d8bc9] transition-all shadow-lg shadow-[#3b9fd8]/20">
               <div className="flex items-start gap-6">
                 <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
@@ -271,7 +286,9 @@ export default async function HomePage() {
                 </div>
               </div>
             </div>
+            </FadeInUp>
 
+            <FadeInUp delay={0.15}>
             <div className="bg-[#1a1a1a] border border-[#3b9fd8]/40 rounded-2xl text-white p-8 hover:border-[#3b9fd8] transition-all">
               <div className="flex items-start gap-6">
                 <div className="w-16 h-16 bg-[#3b9fd8]/20 rounded-full flex items-center justify-center flex-shrink-0">
@@ -289,6 +306,7 @@ export default async function HomePage() {
                 </div>
               </div>
             </div>
+            </FadeInUp>
           </div>
         </div>
       </section>
@@ -303,15 +321,17 @@ export default async function HomePage() {
             </h2>
             <p className="text-gray-500">Merci à nos partenaires pour leur soutien</p>
           </div>
-          <div className="flex flex-wrap justify-center items-center gap-6">
+          <StaggerContainer className="flex flex-wrap justify-center items-center gap-6">
             {partners && partners.length > 0 ? (
               partners.map((partner) => (
-                <PartnerCard key={partner.id} partner={partner} />
+                <StaggerItem key={partner.id}>
+                  <PartnerCard partner={partner} />
+                </StaggerItem>
               ))
             ) : (
               <p className="text-gray-500">Partenaires à venir...</p>
             )}
-          </div>
+          </StaggerContainer>
           <div className="text-center mt-8">
             <Link href="/partenaires" className="text-gray-400 hover:text-[#3b9fd8] font-semibold transition-colors">
               Voir tous nos partenaires →

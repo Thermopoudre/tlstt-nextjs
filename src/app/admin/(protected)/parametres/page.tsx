@@ -31,6 +31,7 @@ export default function AdminParametresPage() {
     nb_entraineurs: 4,
     president_name: '',
     maps_url: '',
+    tarifs_saison_label: 'Saison 2024-2025',
   })
 
   // Contact settings
@@ -251,6 +252,12 @@ export default function AdminParametresPage() {
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Lien Google Maps</label>
                 <input type="url" value={settings.maps_url} onChange={(e) => setSettings({...settings, maps_url: e.target.value})} className="input-field" placeholder="https://maps.google.com/..." />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <i className="fas fa-tags mr-1 text-blue-500"></i> Libellé saison tarifs
+                </label>
+                <input type="text" value={(settings as any).tarifs_saison_label || ''} onChange={(e) => setSettings({...settings, tarifs_saison_label: e.target.value} as any)} className="input-field" placeholder="ex: Saison 2024-2025" />
               </div>
             </div>
           </div>

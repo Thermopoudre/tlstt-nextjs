@@ -318,10 +318,39 @@ export default async function EquipeDetailPage({ params }: PageProps) {
     console.error('Erreur page équipe:', e)
   }
 
+  // Fallback Supabase si le scraper a échoué et que des données locales existent
+  if (phase1Data.error && phase1Data.classement.length === 0) {
+    const supabaseFallback = await createClient()
+    const { data: teamFallback } = await supabaseFallback
+      .from('teams')
+      .select('name, cla, pts, vic, def, nul, joue')
+      .eq('id', parseInt(id))
+      .single()
+
+    if (teamFallback && teamFallback.cla) {
+      const fallbackEntry: ClassementEntry = {
+        clt: String(teamFallback.cla),
+        equipe: teamFallback.name || teamName,
+        pts: String(teamFallback.pts || 0),
+        vic: String(teamFallback.vic || 0),
+        def: String(teamFallback.def || 0),
+        nul: String(teamFallback.nul || 0),
+        joue: String(teamFallback.joue || 0),
+        pf: '', pg: '', pp: '', numero: '',
+      }
+      phase1Data = {
+        classement: [fallbackEntry],
+        rencontres: [],
+        error: 'Site ligue temporairement inaccessible — données du dernier sync affichées',
+      }
+    }
+  }
+
   // Stats Hero (Phase 1 par défaut) — détection par nom car le site ligue n'a pas de numéro de club
-  const equipeInfo = phase1Data.classement.find(
-    (e) => e.equipe.toUpperCase().includes('SEYNE')
-  ) || null
+  const equipeInfo = phase1Data.classement.find((e) => {
+    const nom = e.equipe.toUpperCase()
+    return nom.includes('TLSTT') || nom.includes('SEYNE') || nom.includes('TOULON LA SEYNE')
+  }) || null
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">

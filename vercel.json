@@ -16,6 +16,6 @@
     {
       "path": "/api/sync-joueurs",
       "schedule": "0 2 * * *"
-    }
+    },
   ]
 }

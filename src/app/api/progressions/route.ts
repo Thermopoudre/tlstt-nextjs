@@ -56,9 +56,9 @@ export async function GET() {
       const anciensRaw = player.fftt_points_ancien
       const initRaw = player.fftt_points_initial
       
-      // Detecter les valeurs par defaut erronees (500 avec points actuels beaucoup plus hauts)
-      const anciensEstDefaut = anciensRaw === 500 && pointsActuels > 600
-      const initEstDefaut = initRaw === 500 && pointsActuels > 600
+      // Detecter les valeurs par defaut erronees (500 = valeur de seed initiale = pas de donnees)
+      const anciensEstDefaut = anciensRaw === 500 || anciensRaw === null || anciensRaw === undefined
+      const initEstDefaut = initRaw === 500 || initRaw === null || initRaw === undefined
       
       const pointsAnciens = (anciensEstDefaut || anciensRaw === null || anciensRaw === undefined) ? pointsActuels : anciensRaw
       const pointsInitiaux = (initEstDefaut || initRaw === null || initRaw === undefined) ? pointsActuels : initRaw

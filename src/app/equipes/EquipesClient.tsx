@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { TeamCardSkeleton } from '@/components/ui/Skeleton'
 import Link from 'next/link'
+import { StaggerContainer, StaggerItem } from '@/components/ui/StaggerContainer'
 
 // ============================================
 // TYPES
@@ -389,7 +390,7 @@ export default function EquipesClient() {
             <p className="text-gray-500 mb-6">Les donnees ne sont pas encore disponibles.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTeams.map((team) => {
               const stats = getPhaseStats(team, activePhase)
               const divColor = getDivisionColor(stats.division)
@@ -401,9 +402,9 @@ export default function EquipesClient() {
               const otherStats = getPhaseStats(team, otherPhase as PhaseFilter)
 
               return (
+                <StaggerItem key={team.id}>
                 <Link
                   href={`/equipes/${team.id}`}
-                  key={team.id}
                   className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden hover:border-[#3b9fd8]/50 transition-all hover:-translate-y-1 group block"
                 >
                   {/* Header avec gradient division */}
@@ -527,9 +528,10 @@ export default function EquipesClient() {
                     )}
                   </div>
                 </Link>
+                </StaggerItem>
               )
             })}
-          </div>
+          </StaggerContainer>
         )}
 
         {/* ============================================ */}

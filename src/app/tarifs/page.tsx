@@ -27,11 +27,20 @@ export const metadata: Metadata = {
 export default async function TarifsPage() {
   const supabase = await createClient()
 
-  const { data: tarifs } = await supabase
-    .from('tarifs')
-    .select('*, tarif_categories(name, position)')
-    .eq('is_active', true)
-    .order('position')
+  const [{ data: tarifs }, { data: globalSettings }] = await Promise.all([
+    supabase
+      .from('tarifs')
+      .select('*, tarif_categories(name, position)')
+      .eq('is_active', true)
+      .order('position'),
+    supabase
+      .from('site_settings')
+      .select('settings')
+      .eq('page', 'global')
+      .single(),
+  ])
+
+  const saisonLabel: string = (globalSettings as any)?.settings?.tarifs_saison_label || 'Saison 2024-2025'
 
   // Grouper par catégorie, triées par position de catégorie
   const groupedMap: Record<string, { category: string; position: number; items: any[] }> = {}
@@ -60,7 +69,7 @@ export default async function TarifsPage() {
               <i className="fas fa-tags text-3xl text-white"></i>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Tarifs <span className="text-[#3b9fd8]">Saison 2024-2025</span>
+              Tarifs <span className="text-[#3b9fd8]">{saisonLabel}</span>
             </h1>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
               Rejoignez le TLSTT ! La première séance d&apos;essai est gratuite pour tous.

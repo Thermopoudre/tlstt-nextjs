@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { AnimatePresence, motion } from 'framer-motion'
 
 type CarouselImage = {
   url: string
@@ -28,67 +29,86 @@ export default function HeroCarousel({ images }: { images: CarouselImage[] }) {
   return (
     <section className="relative h-[70vh] min-h-[500px] max-h-[700px] overflow-hidden">
       {/* Slides */}
-      {images.map((image, index) => (
-        <div
-          key={index}
-          className={`absolute inset-0 transition-opacity duration-1000 ${
-            index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
-          }`}
-        >
-          {/* Background Image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${image.url})` }}
-          />
-          {/* Overlay - Noir avec opacité */}
-          <div className="absolute inset-0 bg-[#0a0a0a]/90" />
-          
-          {/* Content */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center px-4 max-w-4xl">
-              <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fadeInUp">
-                {image.title.split(' ').map((word, i) => {
-                  const isBlue = word.toUpperCase() === 'TLSTT' || word.toLowerCase().includes('tennis') || word.toLowerCase().includes('table')
-                  return (
-                    <span key={i} className={isBlue ? 'text-[#3b9fd8]' : 'text-white'}>
-                      {word}{' '}
-                    </span>
-                  )
-                })}
-              </h1>
-              <p className="text-xl md:text-2xl text-white/90 mb-8 animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
-                {image.subtitle}
-              </p>
-              <div className="flex flex-wrap justify-center gap-4 animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
-                {image.buttonText && image.buttonLink ? (
-                  <Link
-                    href={image.buttonLink}
-                    className="bg-[#3b9fd8] text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-[#2d8bc9] transition-colors"
-                  >
-                    <i className="fas fa-arrow-right mr-2"></i>
-                    {image.buttonText}
-                  </Link>
-                ) : (
-                  <Link
-                    href="/club"
-                    className="bg-[#3b9fd8] text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-[#2d8bc9] transition-colors"
-                  >
-                    <i className="fas fa-arrow-right mr-2"></i>
-                    Découvrir
-                  </Link>
-                )}
-                <Link
-                  href="/contact"
-                  className="bg-white/10 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/20 transition-colors border border-white/30"
+      <AnimatePresence mode="wait">
+        {images.map((image, index) => index === currentIndex && (
+          <motion.div
+            key={index}
+            className="absolute inset-0 z-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8, ease: 'easeInOut' }}
+          >
+            {/* Background Image */}
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${image.url})` }}
+            />
+            {/* Overlay - Noir avec opacité */}
+            <div className="absolute inset-0 bg-[#0a0a0a]/90" />
+
+            {/* Content */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center px-4 max-w-4xl">
+                <motion.h1
+                  className="text-5xl md:text-7xl font-bold mb-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
                 >
-                  <i className="fas fa-envelope mr-2"></i>
-                  Nous contacter
-                </Link>
+                  {image.title.split(' ').map((word, i) => {
+                    const isBlue = word.toUpperCase() === 'TLSTT' || word.toLowerCase().includes('tennis') || word.toLowerCase().includes('table')
+                    return (
+                      <span key={i} className={isBlue ? 'text-[#3b9fd8]' : 'text-white'}>
+                        {word}{' '}
+                      </span>
+                    )
+                  })}
+                </motion.h1>
+                <motion.p
+                  className="text-xl md:text-2xl text-white/90 mb-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.25 }}
+                >
+                  {image.subtitle}
+                </motion.p>
+                <motion.div
+                  className="flex flex-wrap justify-center gap-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                >
+                  {image.buttonText && image.buttonLink ? (
+                    <Link
+                      href={image.buttonLink}
+                      className="bg-[#3b9fd8] text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-[#2d8bc9] transition-colors"
+                    >
+                      <i className="fas fa-arrow-right mr-2"></i>
+                      {image.buttonText}
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/club"
+                      className="bg-[#3b9fd8] text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-[#2d8bc9] transition-colors"
+                    >
+                      <i className="fas fa-arrow-right mr-2"></i>
+                      Découvrir
+                    </Link>
+                  )}
+                  <Link
+                    href="/contact"
+                    className="bg-white/10 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/20 transition-colors border border-white/30"
+                  >
+                    <i className="fas fa-envelope mr-2"></i>
+                    Nous contacter
+                  </Link>
+                </motion.div>
               </div>
             </div>
-          </div>
-        </div>
-      ))}
+          </motion.div>
+        ))}
+      </AnimatePresence>
 
       {/* Navigation Arrows */}
       <button

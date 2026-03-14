@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState, useMemo } from 'react'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
+import { StaggerContainer, StaggerItem } from '@/components/ui/StaggerContainer'
 
 type Player = {
   id: string
@@ -334,14 +335,14 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
         </div>
 
         {sortedPlayers.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedPlayers.map((player, index) => {
               const ranking = parseNationalRanking(player.category)
               const points = getPlayerPoints(player)
               const category = getPlayerCategory(player)
               return (
+                <StaggerItem key={player.id}>
                 <Link
-                  key={player.id}
                   href={`/joueurs/${player.smartping_licence}`}
                   className={`bg-[#1a1a1a] border rounded-2xl p-5 hover:-translate-y-1 hover:border-[#3b9fd8] transition-all group relative ${
                     ranking.isNational ? 'border-purple-500/50' : 'border-[#333]'
@@ -384,9 +385,10 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
                     )}
                   </div>
                 </Link>
+                </StaggerItem>
               )
             })}
-          </div>
+          </StaggerContainer>
         ) : (
           <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-12 text-center">
             <i className="fas fa-search text-6xl text-gray-600 mb-4"></i>
