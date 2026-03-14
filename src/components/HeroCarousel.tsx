@@ -28,10 +28,13 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
 
   return (
     <section className="relative h-[70vh] min-h-[500px] max-h-[700px] overflow-hidden">
-      {/* Fond vidéo YouTube (si youtubeId fourni) */}
+      {/* Fond vidéo YouTube — plein écran, centré */}
       {youtubeId && (
         <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[177.78vh] h-[100vh] min-w-full min-h-[56.25vw]">
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            style={{ width: 'max(100%, calc(100vh * 16 / 9))', height: 'max(100%, calc(100vw * 9 / 16))' }}
+          >
             <iframe
               src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1`}
               className="w-full h-full"
@@ -43,12 +46,15 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
         </div>
       )}
 
-      {/* Slides */}
+      {/* Overlay fixe — reste constant pendant les transitions du carousel */}
+      <div className="absolute inset-0 z-10 bg-[#0a0a0a]/75" />
+
+      {/* Slides — uniquement le contenu texte, pas d'overlay */}
       <AnimatePresence mode="wait">
         {images.map((image, index) => index === currentIndex && (
           <motion.div
             key={index}
-            className="absolute inset-0 z-10"
+            className="absolute inset-0 z-20"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -61,8 +67,6 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
                 style={{ backgroundImage: `url(${image.url})` }}
               />
             )}
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-[#0a0a0a]/75" />
 
             {/* Content */}
             <div className="absolute inset-0 flex items-center justify-center">
@@ -130,19 +134,19 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
       {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-[#3b9fd8] hover:border-[#3b9fd8] transition-colors"
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-[#3b9fd8] hover:border-[#3b9fd8] transition-colors"
       >
         <i className="fas fa-chevron-left text-xl"></i>
       </button>
       <button
         onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-[#3b9fd8] hover:border-[#3b9fd8] transition-colors"
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-[#3b9fd8] hover:border-[#3b9fd8] transition-colors"
       >
         <i className="fas fa-chevron-right text-xl"></i>
       </button>
 
       {/* Dots */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-3">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-3">
         {images.map((_, index) => (
           <button
             key={index}
