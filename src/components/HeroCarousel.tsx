@@ -33,7 +33,7 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
         <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-            style={{ width: 'max(120%, calc(120vh * 16 / 9))', aspectRatio: '16/9' }}
+            style={{ width: 'max(130%, calc(130vh * 16 / 9))', aspectRatio: '16/9' }}
           >
             <iframe
               src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1`}
