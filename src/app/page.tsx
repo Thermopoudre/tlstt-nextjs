@@ -11,7 +11,6 @@ import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd, organizationJsonLd } from '@/lib/seo'
 import FadeInUp from '@/components/ui/FadeInUp'
 import { StaggerContainer, StaggerItem } from '@/components/ui/StaggerContainer'
-import VideoParallax from '@/components/VideoParallax'
 
 // Page d'accueil : revalider toutes les 30 min (actualités, carousel)
 export const revalidate = 1800
@@ -128,7 +127,7 @@ export default async function HomePage() {
         ]),
       ]} />
       {/* Hero Carousel Section */}
-      <HeroCarousel images={carouselImages} />
+      <HeroCarousel images={carouselImages} youtubeId="bHvbGcTyuKE" />
 
       {/* Stats Section - Noir avec bordures bleu */}
       <section className="py-12 bg-[#0a0a0a]">
@@ -206,9 +205,6 @@ export default async function HomePage() {
           )}
         </div>
       </section>
-
-      {/* Vidéo parallax */}
-      <VideoParallax youtubeId="bHvbGcTyuKE" />
 
       {/* Prochains entraînements - Fond noir */}
       <section className="py-16 bg-[#0a0a0a]">

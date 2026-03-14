@@ -12,7 +12,7 @@ type CarouselImage = {
   buttonLink?: string
 }
 
-export default function HeroCarousel({ images }: { images: CarouselImage[] }) {
+export default function HeroCarousel({ images, youtubeId }: { images: CarouselImage[]; youtubeId?: string }) {
   const [currentIndex, setCurrentIndex] = useState(0)
 
   useEffect(() => {
@@ -28,6 +28,21 @@ export default function HeroCarousel({ images }: { images: CarouselImage[] }) {
 
   return (
     <section className="relative h-[70vh] min-h-[500px] max-h-[700px] overflow-hidden">
+      {/* Fond vidéo YouTube (si youtubeId fourni) */}
+      {youtubeId && (
+        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[177.78vh] h-[100vh] min-w-full min-h-[56.25vw]">
+            <iframe
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1`}
+              className="w-full h-full"
+              allow="autoplay; encrypted-media"
+              allowFullScreen={false}
+              tabIndex={-1}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Slides */}
       <AnimatePresence mode="wait">
         {images.map((image, index) => index === currentIndex && (
@@ -39,13 +54,15 @@ export default function HeroCarousel({ images }: { images: CarouselImage[] }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8, ease: 'easeInOut' }}
           >
-            {/* Background Image */}
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${image.url})` }}
-            />
-            {/* Overlay - Noir avec opacité */}
-            <div className="absolute inset-0 bg-[#0a0a0a]/90" />
+            {/* Background Image (fallback si pas de vidéo) */}
+            {!youtubeId && (
+              <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: `url(${image.url})` }}
+              />
+            )}
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-[#0a0a0a]/75" />
 
             {/* Content */}
             <div className="absolute inset-0 flex items-center justify-center">
