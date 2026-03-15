@@ -5,7 +5,7 @@ export class SmartPingAPI {
   private appId: string
   private password: string
   private serie: string
-  private baseUrl = 'https://www.fftt.com/mobile/pxml'
+  private baseUrl = 'https://apiv2.fftt.com/mobile/pxml'
   private initPromise: Promise<void> | null = null
 
   constructor() {
