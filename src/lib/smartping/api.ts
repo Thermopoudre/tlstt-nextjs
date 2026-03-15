@@ -72,36 +72,40 @@ export class SmartPingAPI {
     if (!this.serie) {
       await this.initialize()
     }
-    
-    const tm = this.generateTimestamp()
-    const tmc = this.encryptTimestamp(tm)
 
-    const searchParams = new URLSearchParams({
-      serie: this.serie,
-      tm,
-      tmc,
-      id: this.appId,
-      ...params
-    })
-
-    const url = `${this.baseUrl}/${endpoint}?${searchParams.toString()}`
-
-    try {
-      const response = await fetch(url, {
+    const doFetch = async (): Promise<Response> => {
+      const tm = this.generateTimestamp()
+      const tmc = this.encryptTimestamp(tm)
+      const searchParams = new URLSearchParams({
+        serie: this.serie,
+        tm,
+        tmc,
+        id: this.appId,
+        ...params
+      })
+      return fetch(`${this.baseUrl}/${endpoint}?${searchParams.toString()}`, {
         method: 'GET',
-        headers: {
-          'Accept': 'application/xml'
-        },
+        headers: { 'Accept': 'application/xml' },
         cache: 'no-store'
       })
+    }
+
+    try {
+      let response = await doFetch()
+
+      // Série expirée (env var périmée) — réinitialiser et réessayer une fois
+      if (response.status === 401) {
+        this.serie = ''
+        this.initPromise = null
+        await this.initialize()
+        response = await doFetch()
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
       const text = await response.text()
-      
-      // L'API SmartPing renvoie du XML, on doit le parser
       return this.parseXMLResponse(text)
     } catch (error) {
       console.error('SmartPing API Error:', error)
