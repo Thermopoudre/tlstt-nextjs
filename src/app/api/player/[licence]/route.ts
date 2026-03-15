@@ -110,11 +110,19 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Appels API en parallèle via smartPingAPI
-    const [joueurXml, partiesXml, histoXml] = await Promise.all([
+    // Note: xml_histo_classement.php retourne 401 pour ce compte (permission non accordée par FFTT)
+    // → séparé du Promise.all pour ne pas bloquer les parties (xml_partie_mysql.php ✅)
+    const [joueurXml, partiesXml] = await Promise.all([
       smartPingAPI.getJoueurClassement(licence),
-      smartPingAPI.getPartiesJoueur(licence),
-      smartPingAPI.getHistoriqueClassement(licence)
+      smartPingAPI.getPartiesJoueur(licence)
     ])
+
+    let histoXml = ''
+    try {
+      histoXml = await smartPingAPI.getHistoriqueClassement(licence)
+    } catch {
+      // xml_histo_classement.php non autorisé (HTTP 401) — endpoint bloqué côté FFTT
+    }
 
     // Tenter xml_licence_b séparément (peut retourner "Compte incorrect")
     let licenceBXml = ''
