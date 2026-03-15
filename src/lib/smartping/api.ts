@@ -1,55 +1,35 @@
 import crypto from 'crypto'
 
+// Génère une série locale aléatoire (15 chars hex) — conforme au SDK officiel SmartPing
+function generateLocalSerie(): string {
+  return crypto.randomBytes(8).toString('hex').slice(0, 15)
+}
+
 // Classe pour interagir avec l'API SmartPing / FFTT
 export class SmartPingAPI {
   private appId: string
   private password: string
   private serie: string
   private baseUrl = 'https://apiv2.fftt.com/mobile/pxml'
-  private initPromise: Promise<void> | null = null
 
   constructor() {
     this.appId = process.env.SMARTPING_APP_ID || ''
     this.password = process.env.SMARTPING_PASSWORD || ''
-    this.serie = process.env.SMARTPING_SERIE || ''
+    // Utiliser la série de l'env si définie, sinon générer localement (pas d'appel API nécessaire)
+    this.serie = process.env.SMARTPING_SERIE || generateLocalSerie()
   }
 
-  // Initialise automatiquement la série via xml_initialise.php si non configurée
-  private async initialize(): Promise<void> {
-    if (this.serie) return
-    // Éviter les appels parallèles simultanés
-    if (!this.initPromise) {
-      this.initPromise = (async () => {
-        const tm = this.generateTimestamp()
-        const tmc = this.encryptTimestamp(tm)
-        const url = `${this.baseUrl}/xml_initialise.php?serie=0&tm=${tm}&tmc=${tmc}&id=${this.appId}`
-        const response = await fetch(url, { cache: 'no-store' })
-        if (!response.ok) {
-          throw new Error(`SmartPing init HTTP ${response.status}`)
-        }
-        const xml = await response.text()
-        const m = xml.match(/<serie>([^<]+)<\/serie>/)
-        if (!m) {
-          throw new Error('SmartPing init: impossible d\'extraire la série. Réponse: ' + xml.substring(0, 200))
-        }
-        this.serie = m[1]
-      })()
-    }
-    await this.initPromise
-    this.initPromise = null
-  }
-
-  // Générer le timestamp au format YYYYMMDDHHMMSSmmm
+  // Générer le timestamp au format YYYYDDMMHHmmss (format attendu par l'API FFTT)
+  // ATTENTION : DD avant MM (jour avant mois), sans millisecondes — conforme au SDK officiel
   private generateTimestamp(): string {
     const now = new Date()
     const year = now.getFullYear().toString()
-    const month = (now.getMonth() + 1).toString().padStart(2, '0')
     const day = now.getDate().toString().padStart(2, '0')
+    const month = (now.getMonth() + 1).toString().padStart(2, '0')
     const hours = now.getHours().toString().padStart(2, '0')
     const minutes = now.getMinutes().toString().padStart(2, '0')
     const seconds = now.getSeconds().toString().padStart(2, '0')
-    const ms = now.getMilliseconds().toString().padStart(3, '0')
-    return `${year}${month}${day}${hours}${minutes}${seconds}${ms}`
+    return `${year}${day}${month}${hours}${minutes}${seconds}`
   }
 
   // Crypter le timestamp avec HMAC-SHA1
@@ -69,10 +49,6 @@ export class SmartPingAPI {
   }
 
   private async request(endpoint: string, params: Record<string, string> = {}): Promise<any> {
-    if (!this.serie) {
-      await this.initialize()
-    }
-
     const doFetch = async (): Promise<Response> => {
       const tm = this.generateTimestamp()
       const tmc = this.encryptTimestamp(tm)
@@ -93,11 +69,9 @@ export class SmartPingAPI {
     try {
       let response = await doFetch()
 
-      // Série expirée (env var périmée) — réinitialiser et réessayer une fois
+      // Série rejetée — en régénérer une nouvelle et réessayer une fois
       if (response.status === 401) {
-        this.serie = ''
-        this.initPromise = null
-        await this.initialize()
+        this.serie = generateLocalSerie()
         response = await doFetch()
       }
 
