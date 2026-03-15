@@ -11,6 +11,8 @@ interface Player {
   smartping_licence: string
   fftt_points: number
   fftt_points_exact: number | null
+  fftt_points_ancien?: number | null
+  fftt_points_initial?: number | null
   category: string | null
   last_sync: string | null
   // Données enrichies depuis API
@@ -107,6 +109,7 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
   const nationalRank = isNational ? parseInt(isNational[1]) : null
   const displayPoints = Math.round(player.pointsMensuels || player.fftt_points_exact || player.fftt_points || 0)
   const partiesToShow = showAllParties ? parties : parties.slice(0, 20)
+  const smartpingFailed = source === 'cache' && lastRefresh !== null
 
   const historiqueReversed = [...historique].reverse()
   const minPoints = historique.length > 0 ? Math.min(...historique.map(h => h.points)) - 50 : 500
@@ -406,10 +409,50 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
 
         {/* Message si pas de données */}
         {!isRefreshing && parties.length === 0 && historique.length === 0 && (
-          <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-12 text-center">
-            <i className="fas fa-info-circle text-6xl text-gray-600 mb-4"></i>
-            <h3 className="text-xl font-bold text-white mb-2">Données limitées</h3>
-            <p className="text-gray-500">Cliquez sur "Actualiser" pour charger les parties et l'historique depuis la FFTT.</p>
+          <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-8">
+            <div className="text-center mb-6">
+              <i className={`fas ${smartpingFailed ? 'fa-exclamation-triangle text-yellow-500' : 'fa-info-circle text-gray-600'} text-5xl mb-4`}></i>
+              <h3 className="text-xl font-bold text-white mb-2">
+                {smartpingFailed ? 'Service FFTT temporairement indisponible' : 'Données détaillées non chargées'}
+              </h3>
+              <p className="text-gray-500 text-sm max-w-md mx-auto">
+                {smartpingFailed
+                  ? "Impossible de récupérer les parties et l'historique. Les données ci-dessous proviennent de la dernière synchronisation."
+                  : 'Cliquez sur "Actualiser" pour charger les parties et l\'historique depuis la FFTT.'}
+              </p>
+            </div>
+            {smartpingFailed && (player.fftt_points_ancien != null || player.fftt_points_initial != null) && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-[#333]">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[#3b9fd8]">{displayPoints}</div>
+                  <div className="text-gray-500 text-xs mt-1">Points actuels</div>
+                </div>
+                {player.fftt_points_ancien != null && (
+                  <div className="text-center">
+                    <div className={`text-2xl font-bold ${displayPoints - player.fftt_points_ancien >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {displayPoints - player.fftt_points_ancien >= 0 ? '+' : ''}{displayPoints - player.fftt_points_ancien}
+                    </div>
+                    <div className="text-gray-500 text-xs mt-1">vs mois précédent</div>
+                  </div>
+                )}
+                {player.fftt_points_initial != null && (
+                  <div className="text-center">
+                    <div className={`text-2xl font-bold ${displayPoints - player.fftt_points_initial >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {displayPoints - player.fftt_points_initial >= 0 ? '+' : ''}{displayPoints - player.fftt_points_initial}
+                    </div>
+                    <div className="text-gray-500 text-xs mt-1">depuis début saison</div>
+                  </div>
+                )}
+              </div>
+            )}
+            {!smartpingFailed && (
+              <div className="text-center mt-4">
+                <button onClick={refreshData} disabled={isRefreshing}
+                  className="px-6 py-2 bg-[#3b9fd8] text-white rounded-full font-semibold hover:bg-[#2d8bc9] transition-all disabled:opacity-50">
+                  <i className="fas fa-sync mr-2"></i>Charger les données
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
