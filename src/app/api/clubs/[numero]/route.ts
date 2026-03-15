@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import crypto from 'crypto'
+import { smartPingAPI } from '@/lib/smartping/api'
 
 interface RouteParams {
   params: Promise<{ numero: string }>
@@ -9,38 +9,19 @@ export async function GET(request: Request, { params }: RouteParams) {
   const { numero } = await params
 
   try {
-    const appId = process.env.SMARTPING_APP_ID || ''
-    const password = process.env.SMARTPING_PASSWORD || ''
-    const serie = process.env.SMARTPING_SERIE || ''
-
-    if (!appId || !password || !serie) {
-      return NextResponse.json({ 
-        club: null, 
-        error: 'Credentials SmartPing manquants' 
-      })
-    }
-
-    const tm = generateTimestamp()
-    const tmc = encryptTimestamp(tm, password)
-
-    const url = `https://www.fftt.com/mobile/pxml/xml_club_detail.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&club=${numero}`
-    const response = await fetch(url, { cache: 'no-store' })
-    const xml = await response.text()
-
+    const xml = await smartPingAPI.getClubDetail(numero)
     const club = parseClubDetailXml(xml)
 
-    return NextResponse.json({
-      club,
-      source: 'api'
+    return NextResponse.json({ club, source: 'api' }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200',
+      }
     })
 
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue'
     console.error('Erreur API club detail:', message)
-    return NextResponse.json({
-      club: null,
-      error: message
-    }, { status: 500 })
+    return NextResponse.json({ club: null, error: message }, { status: 500 })
   }
 }
 
@@ -75,23 +56,4 @@ function parseClubDetailXml(xml: string) {
     latitude: getValue('latitude'),
     longitude: getValue('longitude')
   }
-}
-
-function generateTimestamp(): string {
-  const now = new Date()
-  const year = now.getFullYear().toString()
-  const month = (now.getMonth() + 1).toString().padStart(2, '0')
-  const day = now.getDate().toString().padStart(2, '0')
-  const hours = now.getHours().toString().padStart(2, '0')
-  const minutes = now.getMinutes().toString().padStart(2, '0')
-  const seconds = now.getSeconds().toString().padStart(2, '0')
-  const ms = now.getMilliseconds().toString().padStart(3, '0')
-  return `${year}${month}${day}${hours}${minutes}${seconds}${ms}`
-}
-
-function encryptTimestamp(timestamp: string, password: string): string {
-  const md5Key = crypto.createHash('md5').update(password).digest('hex')
-  const hmac = crypto.createHmac('sha1', md5Key)
-  hmac.update(timestamp)
-  return hmac.digest('hex')
 }

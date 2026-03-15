@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import crypto from 'crypto'
+import { smartPingAPI } from '@/lib/smartping/api'
 
 // Rate limiting : 30 requêtes par minute par IP
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
@@ -93,10 +93,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const appId = process.env.SMARTPING_APP_ID || ''
     const password = process.env.SMARTPING_PASSWORD || ''
-    const serie = process.env.SMARTPING_SERIE || ''
 
-    // Vérifier si on a les credentials
-    if (!appId || !password || !serie) {
+    // Vérifier si on a les credentials (serie est auto-initialisé par SmartPingAPI)
+    if (!appId || !password) {
       const { data: player } = await supabase
         .from('players')
         .select('*')
@@ -110,50 +109,22 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       })
     }
 
-    // Générer les paramètres d'authentification
-    const tm = generateTimestamp()
-    const tmc = encryptTimestamp(tm, password)
-
-    // Appels API en parallèle - tous les endpoints utilisent le même timestamp
-    const [joueurResponse, partiesResponse, histoResponse] = await Promise.all([
-      // 1. Détails joueur base classement (xml_joueur.php) - endpoint fonctionnel
-      fetch(`https://www.fftt.com/mobile/pxml/xml_joueur.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=${licence}`, { cache: 'no-store' }),
-      // 2. Parties jouées (xml_partie_mysql.php) - endpoint fonctionnel
-      fetch(`https://www.fftt.com/mobile/pxml/xml_partie_mysql.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=${licence}`, { cache: 'no-store' }),
-      // 3. Historique classement (xml_histo_classement.php)
-      fetch(`https://www.fftt.com/mobile/pxml/xml_histo_classement.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&numlic=${licence}`, { cache: 'no-store' })
+    // Appels API en parallèle via smartPingAPI
+    const [joueurXml, partiesXml, histoXml] = await Promise.all([
+      smartPingAPI.getJoueurClassement(licence),
+      smartPingAPI.getPartiesJoueur(licence),
+      smartPingAPI.getHistoriqueClassement(licence)
     ])
-    
-    // Tenter xml_licence_b.php séparément (peut retourner "Compte incorrect")
-    let licenceBResponse: Response | null = null
+
+    // Tenter xml_licence_b séparément (peut retourner "Compte incorrect")
+    let licenceBXml = ''
     try {
-      const tm2 = generateTimestamp()
-      const tmc2 = encryptTimestamp(tm2, password)
-      licenceBResponse = await fetch(
-        `https://www.fftt.com/mobile/pxml/xml_licence_b.php?serie=${serie}&tm=${tm2}&tmc=${tmc2}&id=${appId}&licence=${licence}`,
-        { cache: 'no-store' }
-      )
+      const raw = await smartPingAPI.getLicenceComplet(licence)
+      if (!raw.includes('<erreur>')) {
+        licenceBXml = raw
+      }
     } catch {
       // Ignorer les erreurs, xml_joueur.php servira de fallback
-    }
-
-    const [joueurXml, partiesXml, histoXml] = await Promise.all([
-      joueurResponse.text(),
-      partiesResponse.text(),
-      histoResponse.text()
-    ])
-    
-    // xml_licence_b si disponible
-    let licenceBXml = ''
-    if (licenceBResponse) {
-      try {
-        licenceBXml = await licenceBResponse.text()
-        if (licenceBXml.includes('<erreur>')) {
-          licenceBXml = '' // Ignorer si erreur
-        }
-      } catch {
-        licenceBXml = ''
-      }
     }
 
     // Parser les données
@@ -247,7 +218,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 }
 
 // Parser XML joueur (combine xml_joueur et xml_licence_b)
-// xml_joueur.php contient: licence, nom, prenom, club, nclub, natio, clglob, point (mensuel), 
+// xml_joueur.php contient: licence, nom, prenom, club, nclub, natio, clglob, point (mensuel),
 // apoint (anciens points), clast, categ, rangreg, rangdep, valcla, valinit, clpro
 function parseJoueurXml(joueurXml: string, licenceBXml: string): PlayerData | null {
   if (!joueurXml || joueurXml.includes('<erreur>')) {
@@ -317,7 +288,7 @@ function parseJoueurXml(joueurXml: string, licenceBXml: string): PlayerData | nu
 // Parser date française DD/MM/YYYY -> ISO string
 function parseFrenchDate(dateStr: string | null): string {
   if (!dateStr) return ''
-  
+
   // Format DD/MM/YYYY ou D/M/YYYY
   const parts = dateStr.split('/')
   if (parts.length === 3) {
@@ -326,24 +297,24 @@ function parseFrenchDate(dateStr: string | null): string {
     const year = parts[2]
     return `${year}-${month}-${day}`
   }
-  
+
   return dateStr
 }
 
 // Formater date pour affichage
 function formatDateForDisplay(dateStr: string | null): string {
   if (!dateStr) return '-'
-  
+
   // Si déjà au format DD/MM/YYYY, retourner tel quel
   if (dateStr.includes('/')) {
     return dateStr
   }
-  
+
   // Sinon convertir depuis ISO
   try {
     const date = new Date(dateStr)
     if (isNaN(date.getTime())) return '-'
-    
+
     return date.toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
@@ -448,25 +419,4 @@ function calculateStats(parties: Partie[]) {
     pointsPerdus: Math.round(pointsPerdus * 10) / 10,
     bilan: Math.round((pointsGagnes - pointsPerdus) * 10) / 10
   }
-}
-
-// Générer timestamp
-function generateTimestamp(): string {
-  const now = new Date()
-  const year = now.getFullYear().toString()
-  const month = (now.getMonth() + 1).toString().padStart(2, '0')
-  const day = now.getDate().toString().padStart(2, '0')
-  const hours = now.getHours().toString().padStart(2, '0')
-  const minutes = now.getMinutes().toString().padStart(2, '0')
-  const seconds = now.getSeconds().toString().padStart(2, '0')
-  const ms = now.getMilliseconds().toString().padStart(3, '0')
-  return `${year}${month}${day}${hours}${minutes}${seconds}${ms}`
-}
-
-// Crypter timestamp
-function encryptTimestamp(timestamp: string, password: string): string {
-  const md5Key = crypto.createHash('md5').update(password).digest('hex')
-  const hmac = crypto.createHmac('sha1', md5Key)
-  hmac.update(timestamp)
-  return hmac.digest('hex')
 }

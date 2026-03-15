@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import crypto from 'crypto'
+import { smartPingAPI } from '@/lib/smartping/api'
 
 interface PlayerProgression {
   id: string
@@ -41,7 +41,6 @@ export async function GET() {
     // Credentials SmartPing
     const appId = process.env.SMARTPING_APP_ID || ''
     const password = process.env.SMARTPING_PASSWORD || ''
-    const serie = process.env.SMARTPING_SERIE || ''
 
     let progressions: PlayerProgression[] = []
     let source = 'Données locales'
@@ -50,23 +49,21 @@ export async function GET() {
     // Utiliser d'abord les donnees locales (stockees par sync-joueurs)
     progressions = (players || []).map(player => {
       const pointsActuels = player.fftt_points_exact || player.fftt_points || 500
-      
-      // Si fftt_points_ancien est 500 et les points actuels sont bien plus hauts,
-      // c'est probablement une valeur par defaut erronee -> traiter comme "pas de donnees"
+
       const anciensRaw = player.fftt_points_ancien
       const initRaw = player.fftt_points_initial
-      
-      // Detecter les valeurs par defaut erronees (500 = valeur de seed initiale = pas de donnees)
-      const anciensEstDefaut = anciensRaw === 500 || anciensRaw === null || anciensRaw === undefined
-      const initEstDefaut = initRaw === 500 || initRaw === null || initRaw === undefined
-      
-      const pointsAnciens = (anciensEstDefaut || anciensRaw === null || anciensRaw === undefined) ? pointsActuels : anciensRaw
-      const pointsInitiaux = (initEstDefaut || initRaw === null || initRaw === undefined) ? pointsActuels : initRaw
+
+      // Utiliser null/undefined check uniquement (500 est une vraie valeur possible)
+      const anciensEstDefaut = anciensRaw === null || anciensRaw === undefined
+      const initEstDefaut = initRaw === null || initRaw === undefined
+
+      const pointsAnciens = anciensEstDefaut ? pointsActuels : anciensRaw
+      const pointsInitiaux = initEstDefaut ? pointsActuels : initRaw
 
       const progressionMois = Math.round(pointsActuels - pointsAnciens)
       const progressionSaison = Math.round(pointsActuels - pointsInitiaux)
-      const progressionPourcentage = pointsInitiaux > 0 
-        ? Math.round((progressionSaison / pointsInitiaux) * 1000) / 10 
+      const progressionPourcentage = pointsInitiaux > 0
+        ? Math.round((progressionSaison / pointsInitiaux) * 1000) / 10
         : 0
 
       return {
@@ -85,82 +82,61 @@ export async function GET() {
     })
 
     // Si FFTT disponible, enrichir avec données live pour les top 30
-    if (appId && password && serie) {
+    if (appId && password) {
       try {
-        // Test rapide si FFTT est disponible
-        const tm = generateTimestamp()
-        const tmc = encryptTimestamp(tm, password)
-        
-        const testResponse = await fetch(
-          `https://www.fftt.com/mobile/pxml/xml_liste_joueur.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&club=13830083`,
-          { cache: 'no-store' }
-        )
-        const testXml = await testResponse.text()
-        ffttAvailable = testResponse.status === 200 && !testXml.includes('<erreur>')
-        
-        if (ffttAvailable) {
-          source = 'FFTT + Données locales'
-          
-          // Enrichir les top 30 joueurs avec données live via xml_joueur.php
-          const top30 = progressions.slice(0, 30)
-          
-          for (let i = 0; i < top30.length; i++) {
-            const player = top30[i]
-            try {
-              const tm2 = generateTimestamp()
-              const tmc2 = encryptTimestamp(tm2, password)
-              
-              // Utiliser xml_joueur.php qui fonctionne (comme la version PHP)
-              const response = await fetch(
-                `https://www.fftt.com/mobile/pxml/xml_joueur.php?serie=${serie}&tm=${tm2}&tmc=${tmc2}&id=${appId}&licence=${player.licence}`,
-                { cache: 'no-store' }
-              )
-              const xml = await response.text()
-              
-              if (!xml.includes('<erreur>') && xml.includes('<joueur>')) {
-                // point = points mensuels actuels
-                // apoint = anciens points mensuels
-                // valinit = valeur initiale
-                const point = extractValue(xml, 'point')
-                const pointm = extractValue(xml, 'pointm') || point
-                const apoint = extractValue(xml, 'apoint')
-                const apointm = extractValue(xml, 'apointm') || apoint
-                const valinit = extractValue(xml, 'valinit')
-                
-                const pointsActuels = Math.round(parseFloat(point || pointm || '0'))
-                const pointsAnciens = Math.round(parseFloat(apointm || apoint || point || '0'))
-                // valinit est la valeur du début de saison
-                const pointsInitiaux = Math.round(parseFloat(valinit || '') || 0) || player.pointsInitiaux
-                
-                if (pointsActuels > 0) {
-                  progressions[i] = {
-                    ...player,
-                    pointsActuels,
-                    pointsAnciens,
-                    pointsInitiaux,
-                    progressionMois: Math.round(pointsActuels - pointsAnciens),
-                    progressionSaison: Math.round(pointsActuels - pointsInitiaux),
-                    progressionPourcentage: pointsInitiaux > 0 
-                      ? Math.round(((pointsActuels - pointsInitiaux) / pointsInitiaux) * 1000) / 10 
-                      : 0
-                  }
+        const top30 = progressions.slice(0, 30)
 
-                  // Mettre à jour en base
-                  await supabase
-                    .from('players')
-                    .update({
-                      fftt_points_exact: pointsActuels,
-                      fftt_points: pointsActuels,
-                      fftt_points_ancien: pointsAnciens,
-                      fftt_points_initial: pointsInitiaux || player.pointsInitiaux,
-                      last_sync: new Date().toISOString()
-                    })
-                    .eq('smartping_licence', player.licence)
-                }
+        for (let i = 0; i < top30.length; i++) {
+          const player = top30[i]
+          try {
+            const xml = await smartPingAPI.getJoueurClassement(player.licence)
+
+            if (!xml.includes('<erreur>') && xml.includes('<joueur>')) {
+              if (!ffttAvailable) {
+                ffttAvailable = true
+                source = 'FFTT + Données locales'
               }
-            } catch {
-              // Garder les données locales en cas d'erreur
+
+              // point = points mensuels actuels
+              const point = extractValue(xml, 'point')
+              const pointm = extractValue(xml, 'pointm') || point
+              const apoint = extractValue(xml, 'apoint')
+              const apointm = extractValue(xml, 'apointm') || apoint
+              const valinit = extractValue(xml, 'valinit')
+
+              const pointsActuels = Math.round(parseFloat(point || pointm || '0'))
+              const pointsAnciens = Math.round(parseFloat(apointm || apoint || point || '0'))
+              // valinit est la valeur du début de saison
+              const pointsInitiaux = Math.round(parseFloat(valinit || '') || 0) || player.pointsInitiaux
+
+              if (pointsActuels > 0) {
+                progressions[i] = {
+                  ...player,
+                  pointsActuels,
+                  pointsAnciens,
+                  pointsInitiaux,
+                  progressionMois: Math.round(pointsActuels - pointsAnciens),
+                  progressionSaison: Math.round(pointsActuels - pointsInitiaux),
+                  progressionPourcentage: pointsInitiaux > 0
+                    ? Math.round(((pointsActuels - pointsInitiaux) / pointsInitiaux) * 1000) / 10
+                    : 0
+                }
+
+                // Mettre à jour en base
+                await supabase
+                  .from('players')
+                  .update({
+                    fftt_points_exact: pointsActuels,
+                    fftt_points: pointsActuels,
+                    fftt_points_ancien: pointsAnciens,
+                    fftt_points_initial: pointsInitiaux || player.pointsInitiaux,
+                    last_sync: new Date().toISOString()
+                  })
+                  .eq('smartping_licence', player.licence)
+              }
             }
+          } catch {
+            // Garder les données locales en cas d'erreur
           }
         }
       } catch {
@@ -182,7 +158,7 @@ export async function GET() {
       .filter(p => p.progressionSaison !== 0)
       .sort((a, b) => b.progressionSaison - a.progressionSaison)
       .slice(0, 20)
-    
+
     // Stats
     const enProgression = progressions.filter(p => p.progressionMois > 0).length
     const enRegression = progressions.filter(p => p.progressionMois < 0).length
@@ -192,7 +168,7 @@ export async function GET() {
     // Nouveaux paliers atteints cette saison
     const paliers = [500, 1000, 1500, 2000, 2500, 3000]
     const nouveauxPaliers = progressions
-      .filter(p => p.pointsInitiaux > 0 && paliers.some(palier => 
+      .filter(p => p.pointsInitiaux > 0 && paliers.some(palier =>
         p.pointsActuels >= palier && p.pointsInitiaux < palier
       ))
       .map(p => ({
@@ -240,16 +216,4 @@ export async function GET() {
 function extractValue(xml: string, tag: string): string | null {
   const match = xml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`))
   return match ? match[1] : null
-}
-
-function generateTimestamp(): string {
-  const now = new Date()
-  return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}${String(now.getMilliseconds()).padStart(3, '0')}`
-}
-
-function encryptTimestamp(timestamp: string, password: string): string {
-  const md5Key = crypto.createHash('md5').update(password).digest('hex')
-  const hmac = crypto.createHmac('sha1', md5Key)
-  hmac.update(timestamp)
-  return hmac.digest('hex')
 }

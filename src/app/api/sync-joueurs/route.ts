@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import crypto from 'crypto'
+import { smartPingAPI } from '@/lib/smartping/api'
 
 // Route pour synchroniser les joueurs depuis l'API FFTT
 // Utilise xml_liste_joueur.php pour la liste, puis xml_joueur.php pour les points exacts
@@ -16,27 +16,20 @@ export async function GET(req: NextRequest) {
 
   const appId = process.env.SMARTPING_APP_ID || ''
   const password = process.env.SMARTPING_PASSWORD || ''
-  const serie = process.env.SMARTPING_SERIE || ''
   const clubId = '13830083'
 
-  if (!appId || !password || !serie) {
+  if (!appId || !password) {
     return NextResponse.json({
       success: false,
       error: 'Variables SmartPing manquantes',
-      config: { hasAppId: !!appId, hasPassword: !!password, hasSerie: !!serie }
+      config: { hasAppId: !!appId, hasPassword: !!password }
     }, { status: 400 })
   }
 
   try {
     // Récupérer la liste de tous les joueurs du club
-    const tm1 = generateTimestamp()
-    const tmc1 = encryptTimestamp(tm1, password)
-    
-    const listeUrl = `https://www.fftt.com/mobile/pxml/xml_liste_joueur.php?serie=${serie}&tm=${tm1}&tmc=${tmc1}&id=${appId}&club=${clubId}`
-    
     console.log('📋 Récupération liste joueurs FFTT...')
-    const listeResponse = await fetch(listeUrl, { cache: 'no-store' })
-    const listeXml = await listeResponse.text()
+    const listeXml = await smartPingAPI.getJoueurs(clubId)
 
     if (listeXml.includes('<erreur>')) {
       const error = listeXml.match(/<erreur>([^<]*)<\/erreur>/)?.[1]
@@ -45,11 +38,11 @@ export async function GET(req: NextRequest) {
 
     // Parser les joueurs
     const joueurMatches = listeXml.match(/<joueur>[\s\S]*?<\/joueur>/g) || []
-    
+
     const joueursFFTT = joueurMatches.map(xml => {
       const clastRaw = extractValue(xml, 'clast')
       const clast = clastRaw ? parseInt(clastRaw) : 5
-      
+
       return {
         licence: extractValue(xml, 'licence'),
         nom: extractValue(xml, 'nom'),
@@ -76,18 +69,13 @@ export async function GET(req: NextRequest) {
         let categorie: string | null = null
         let classementOfficiel: string | null = null
         let apiSuccess = false
-        
+
         try {
-          const tm = generateTimestamp()
-          const tmc = encryptTimestamp(tm, password)
-          const joueurUrl = `https://www.fftt.com/mobile/pxml/xml_joueur.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=${joueur.licence}`
-          
-          const joueurResponse = await fetch(joueurUrl, { cache: 'no-store' })
-          const joueurXml = await joueurResponse.text()
-          
+          const joueurXml = await smartPingAPI.getJoueurClassement(joueur.licence!)
+
           if (!joueurXml.includes('<erreur>') && joueurXml.includes('<joueur>')) {
             apiSuccess = true
-            
+
             // point = points mensuels actuels (ex: 1847)
             const point = extractValue(joueurXml, 'point')
             const apoint = extractValue(joueurXml, 'apoint')
@@ -95,26 +83,26 @@ export async function GET(req: NextRequest) {
             const cat = extractValue(joueurXml, 'cat')
             const claof = extractValue(joueurXml, 'claof')
             const clastXml = extractValue(joueurXml, 'clast')
-            
+
             // Points mensuels actuels (arrondi pour eviter les erreurs de precision float)
             if (point && !isNaN(parseFloat(point)) && parseFloat(point) > 0) {
               pointsExact = Math.round(parseFloat(point))
               pointsExactsRecuperes++
             }
-            
+
             // Anciens points mensuels (mois precedent)
             if (apoint && !isNaN(parseFloat(apoint)) && parseFloat(apoint) > 0) {
               anciensPoints = Math.round(parseFloat(apoint))
             }
-            
+
             // Valeur initiale de saison (debut de saison)
             if (valinit && !isNaN(parseFloat(valinit)) && parseFloat(valinit) > 0) {
               valeurInitiale = Math.round(parseFloat(valinit))
             }
-            
+
             // Categorie
             if (cat) categorie = cat
-            
+
             // Classement officiel
             if (claof) {
               classementOfficiel = claof
@@ -126,7 +114,7 @@ export async function GET(req: NextRequest) {
           const detailMsg = detailErr instanceof Error ? detailErr.message : 'Erreur inconnue'
           console.warn(`⚠️ Impossible de recuperer details joueur ${joueur.licence}:`, detailMsg)
         }
-        
+
         // Fallback: utiliser clast * 100 si on n'a pas de points exacts
         if (!pointsExact) {
           pointsExact = joueur.clast * 100
@@ -161,25 +149,21 @@ export async function GET(req: NextRequest) {
             category: displayCategory,
             last_sync: new Date().toISOString()
           }
-          
+
           // Toujours mettre a jour les anciens points si disponibles depuis l'API
           if (anciensPoints !== null) {
             updateData.fftt_points_ancien = anciensPoints
-          } else if (apiSuccess && existing.fftt_points_ancien === 500) {
-            // Si l'API n'a pas retourne d'anciens points mais la valeur en BDD est le defaut 500,
-            // utiliser les points actuels comme anciens points (pas de progression)
+          } else if (apiSuccess && (existing.fftt_points_ancien === null || existing.fftt_points_ancien === undefined)) {
             updateData.fftt_points_ancien = pointsExact
           }
-          
+
           // Mettre a jour les points initiaux de saison
           if (valeurInitiale !== null) {
-            // Si on a valinit depuis l'API, toujours l'utiliser
             updateData.fftt_points_initial = valeurInitiale
-          } else if (apiSuccess && (existing.fftt_points_initial === 500 || !existing.fftt_points_initial)) {
-            // Si la valeur initiale en BDD est le defaut 500, corriger avec les points actuels
+          } else if (apiSuccess && (existing.fftt_points_initial === null || !existing.fftt_points_initial)) {
             updateData.fftt_points_initial = pointsExact
           }
-          
+
           await supabase.from('players').update(updateData).eq('id', existing.id)
           updated++
         } else {
@@ -195,7 +179,7 @@ export async function GET(req: NextRequest) {
             fftt_points_initial: valeurInitiale || pointsExact,
             fftt_points_ancien: anciensPoints || pointsExact
           }
-          
+
           await supabase.from('players').insert(playerData)
           created++
         }
@@ -245,16 +229,4 @@ export async function GET(req: NextRequest) {
 function extractValue(xml: string, tag: string): string | null {
   const match = xml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`))
   return match ? match[1].trim() : null
-}
-
-function generateTimestamp(): string {
-  const now = new Date()
-  return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}${String(now.getMilliseconds()).padStart(3, '0')}`
-}
-
-function encryptTimestamp(timestamp: string, password: string): string {
-  const md5Key = crypto.createHash('md5').update(password).digest('hex')
-  const hmac = crypto.createHmac('sha1', md5Key)
-  hmac.update(timestamp)
-  return hmac.digest('hex')
 }
