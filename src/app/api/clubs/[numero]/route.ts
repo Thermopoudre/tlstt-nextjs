@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { smartPingAPI } from '@/lib/smartping/api'
+import { createClient } from '@/lib/supabase/server'
 
 interface RouteParams {
   params: Promise<{ numero: string }>
@@ -21,7 +22,39 @@ export async function GET(request: Request, { params }: RouteParams) {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue'
     console.error('Erreur API club detail:', message)
-    return NextResponse.json({ club: null, error: message }, { status: 500 })
+
+    // Fallback Supabase clubs_paca
+    try {
+      const supabase = await createClient()
+      const { data } = await supabase
+        .from('clubs_paca')
+        .select('*')
+        .eq('numero', numero)
+        .single()
+
+      if (data) {
+        return NextResponse.json({
+          club: {
+            idclub: data.numero || '',
+            numero: data.numero || '',
+            nomsalle: '',
+            adresse: '',
+            codePostal: data.code_postal || '',
+            ville: data.ville || '',
+            web: data.website || '',
+            nomCorrespondant: data.nom_contact || '',
+            prenomCorrespondant: '',
+            email: data.email || '',
+            telephone: data.telephone || '',
+            latitude: '',
+            longitude: '',
+          },
+          source: 'cache'
+        })
+      }
+    } catch { /* pas de cache disponible */ }
+
+    return NextResponse.json({ club: null, error: message })
   }
 }
 

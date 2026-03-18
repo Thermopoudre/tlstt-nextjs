@@ -88,8 +88,10 @@ export async function GET() {
     return NextResponse.json({
       aVenir: [],
       passees: [],
+      total: 0,
+      source: 'unavailable',
       error: message
-    }, { status: 500 })
+    })
   }
 }
 

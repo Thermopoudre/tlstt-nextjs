@@ -61,6 +61,6 @@ export async function GET() {
       error: message,
       success: false,
       items: [],
-    }, { status: 500 })
+    })
   }
 }

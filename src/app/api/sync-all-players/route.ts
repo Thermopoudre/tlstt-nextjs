@@ -16,9 +16,9 @@ export async function GET(req: NextRequest) {
   try {
     const appId = process.env.SMARTPING_APP_ID || ''
     const password = process.env.SMARTPING_PASSWORD || ''
-    const serie = process.env.SMARTPING_SERIE || ''
+    const serie = process.env.SMARTPING_SERIE || crypto.randomBytes(8).toString('hex').slice(0, 15)
 
-    if (!appId || !password || !serie) {
+    if (!appId || !password) {
       return NextResponse.json({ error: 'Credentials SmartPing manquants' }, { status: 500 })
     }
 
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
         batch.map(async (player) => {
           try {
             const response = await fetch(
-              `https://www.fftt.com/mobile/pxml/xml_licence_b.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=${player.smartping_licence}`,
+              `https://apiv2.fftt.com/mobile/pxml/xml_licence_b.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=${player.smartping_licence}`,
               { cache: 'no-store' }
             )
             const xml = await response.text()
@@ -129,7 +129,13 @@ function extractValue(xml: string, tag: string): string | null {
 
 function generateTimestamp(): string {
   const now = new Date()
-  return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}${String(now.getMilliseconds()).padStart(3, '0')}`
+  const year = now.getFullYear().toString()
+  const day = now.getDate().toString().padStart(2, '0')
+  const month = (now.getMonth() + 1).toString().padStart(2, '0')
+  const hours = now.getHours().toString().padStart(2, '0')
+  const minutes = now.getMinutes().toString().padStart(2, '0')
+  const seconds = now.getSeconds().toString().padStart(2, '0')
+  return `${year}${day}${month}${hours}${minutes}${seconds}`
 }
 
 function encryptTimestamp(timestamp: string, password: string): string {

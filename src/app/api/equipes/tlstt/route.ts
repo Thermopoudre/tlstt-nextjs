@@ -42,12 +42,12 @@ export async function GET() {
   try {
     const appId = process.env.SMARTPING_APP_ID || ''
     const password = process.env.SMARTPING_PASSWORD || ''
-    const serie = process.env.SMARTPING_SERIE || ''
+    const serie = process.env.SMARTPING_SERIE || crypto.randomBytes(8).toString('hex').slice(0, 15)
 
-    if (!appId || !password || !serie) {
-      return NextResponse.json({ 
-        equipes: [], 
-        error: 'Credentials SmartPing manquants' 
+    if (!appId || !password) {
+      return NextResponse.json({
+        equipes: [],
+        error: 'Credentials SmartPing manquants'
       })
     }
 
@@ -55,7 +55,7 @@ export async function GET() {
     const tmc = encryptTimestamp(tm, password)
 
     // 1. Récupérer les équipes du club TLSTT
-    const equipesUrl = `https://www.fftt.com/mobile/pxml/xml_equipe.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&numclu=${TLSTT_CLUB_NUMBER}`
+    const equipesUrl = `https://apiv2.fftt.com/mobile/pxml/xml_equipe.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&numclu=${TLSTT_CLUB_NUMBER}`
     const equipesResponse = await fetch(equipesUrl, { cache: 'no-store' })
     const equipesXml = await equipesResponse.text()
     const equipes = parseEquipesXml(equipesXml)
@@ -77,7 +77,7 @@ export async function GET() {
         const tmc2 = encryptTimestamp(tm2, password)
 
         // Récupérer classement
-        const classementUrl = `https://www.fftt.com/mobile/pxml/xml_result_equ.php?serie=${serie}&tm=${tm2}&tmc=${tmc2}&id=${appId}&action=classement&auto=1&D1=${D1}&cx_poule=${cx_poule}`
+        const classementUrl = `https://apiv2.fftt.com/mobile/pxml/xml_result_equ.php?serie=${serie}&tm=${tm2}&tmc=${tmc2}&id=${appId}&action=classement&auto=1&D1=${D1}&cx_poule=${cx_poule}`
         const classementResponse = await fetch(classementUrl, { cache: 'no-store' })
         const classementXml = await classementResponse.text()
         const classement = parseClassementXml(classementXml)
@@ -87,7 +87,7 @@ export async function GET() {
         const tmc3 = encryptTimestamp(tm3, password)
 
         // Récupérer rencontres
-        const rencontresUrl = `https://www.fftt.com/mobile/pxml/xml_result_equ.php?serie=${serie}&tm=${tm3}&tmc=${tmc3}&id=${appId}&action=&auto=1&D1=${D1}&cx_poule=${cx_poule}`
+        const rencontresUrl = `https://apiv2.fftt.com/mobile/pxml/xml_result_equ.php?serie=${serie}&tm=${tm3}&tmc=${tmc3}&id=${appId}&action=&auto=1&D1=${D1}&cx_poule=${cx_poule}`
         const rencontresResponse = await fetch(rencontresUrl, { cache: 'no-store' })
         const rencontresXml = await rencontresResponse.text()
         const rencontres = parseRencontresXml(rencontresXml)
@@ -203,16 +203,16 @@ function parseRencontresXml(xml: string): Rencontre[] {
   return rencontres
 }
 
+// Format YYYYDDMMHHmmss — DD avant MM, sans ms (conforme SDK SmartPing)
 function generateTimestamp(): string {
   const now = new Date()
   const year = now.getFullYear().toString()
-  const month = (now.getMonth() + 1).toString().padStart(2, '0')
   const day = now.getDate().toString().padStart(2, '0')
+  const month = (now.getMonth() + 1).toString().padStart(2, '0')
   const hours = now.getHours().toString().padStart(2, '0')
   const minutes = now.getMinutes().toString().padStart(2, '0')
   const seconds = now.getSeconds().toString().padStart(2, '0')
-  const ms = now.getMilliseconds().toString().padStart(3, '0')
-  return `${year}${month}${day}${hours}${minutes}${seconds}${ms}`
+  return `${year}${day}${month}${hours}${minutes}${seconds}`
 }
 
 function encryptTimestamp(timestamp: string, password: string): string {
