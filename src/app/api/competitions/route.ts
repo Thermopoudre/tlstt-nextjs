@@ -84,7 +84,7 @@ export async function GET() {
 
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue'
-    console.error('Erreur API competitions:', message)
+    console.warn('Erreur API competitions:', message)
     return NextResponse.json({
       aVenir: [],
       passees: [],

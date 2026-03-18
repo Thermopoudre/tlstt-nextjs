@@ -315,7 +315,7 @@ export async function GET(req: NextRequest) {
 
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue'
-    console.error('Erreur sync-equipes:', message)
+    console.warn('Erreur sync-equipes:', message)
     return NextResponse.json({
       success: false,
       error: message,

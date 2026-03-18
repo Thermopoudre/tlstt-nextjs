@@ -21,7 +21,7 @@ export async function GET(request: Request, { params }: RouteParams) {
 
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue'
-    console.error('Erreur API club detail:', message)
+    console.warn('Erreur API club detail:', message)
 
     // Fallback Supabase clubs_paca
     try {

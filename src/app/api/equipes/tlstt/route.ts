@@ -110,7 +110,7 @@ export async function GET() {
 
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue'
-    console.error('Erreur API equipes TLSTT:', message)
+    console.warn('Erreur API equipes TLSTT:', message)
     return NextResponse.json({
       equipes: [],
       error: message

@@ -82,7 +82,7 @@ export async function GET() {
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erreur inconnue'
-      console.error('Erreur API SmartPing clubs PACA:', message)
+      console.warn('Erreur API SmartPing clubs PACA:', message)
     }
   }
 
