@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { createClient } from '@/lib/supabase/server'
 
 interface Club {
   idclub: string
@@ -32,66 +33,94 @@ const DEPARTEMENTS_PACA = [
 ]
 
 export async function GET() {
+  const appId = process.env.SMARTPING_APP_ID || ''
+  const password = process.env.SMARTPING_PASSWORD || ''
+
+  if (appId && password) {
+    try {
+      // Générer une série locale si SMARTPING_SERIE non défini (conforme au SDK officiel)
+      const serie = process.env.SMARTPING_SERIE || crypto.randomBytes(8).toString('hex').slice(0, 15)
+
+      const tm = generateTimestamp()
+      const tmc = encryptTimestamp(tm, password)
+
+      // Récupérer les clubs de chaque département en parallèle
+      const clubsByDep = await Promise.all(
+        DEPARTEMENTS_PACA.map(async (dep) => {
+          const url = `https://apiv2.fftt.com/mobile/pxml/xml_club_dep2.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&dep=${dep.code}`
+          const response = await fetch(url, { cache: 'no-store' })
+          const xml = await response.text()
+          return { dep: dep.code, depNom: dep.nom, clubs: parseClubsXml(xml, dep.code) }
+        })
+      )
+
+      // Fusionner tous les clubs
+      let allClubs: Club[] = []
+      for (const { clubs, dep } of clubsByDep) {
+        allClubs = allClubs.concat(clubs.map(c => ({ ...c, departement: dep })))
+      }
+
+      if (allClubs.length > 0) {
+        const clubsWithBasicInfo = allClubs.map(club => ({
+          ...club,
+          departementNom: DEPARTEMENTS_PACA.find(d => d.code === club.departement)?.nom || ''
+        }))
+
+        clubsWithBasicInfo.sort((a, b) => {
+          if (a.departement !== b.departement) {
+            return a.departement.localeCompare(b.departement)
+          }
+          return a.nom.localeCompare(b.nom)
+        })
+
+        return NextResponse.json({
+          clubs: clubsWithBasicInfo,
+          departements: DEPARTEMENTS_PACA,
+          total: clubsWithBasicInfo.length,
+          source: 'api'
+        })
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erreur inconnue'
+      console.error('Erreur API SmartPing clubs PACA:', message)
+    }
+  }
+
+  // Fallback : données Supabase
   try {
-    const appId = process.env.SMARTPING_APP_ID || ''
-    const password = process.env.SMARTPING_PASSWORD || ''
-    const serie = process.env.SMARTPING_SERIE || ''
+    const supabase = await createClient()
+    const { data: rows } = await supabase
+      .from('clubs_paca')
+      .select('numero, nom, ville, code_postal, departement, telephone, email, nom_contact, website')
+      .eq('is_active', true)
+      .order('departement')
+      .order('nom')
 
-    if (!appId || !password || !serie) {
-      return NextResponse.json({ 
-        clubs: [], 
-        error: 'Credentials SmartPing manquants' 
-      })
-    }
-
-    const tm = generateTimestamp()
-    const tmc = encryptTimestamp(tm, password)
-
-    // Récupérer les clubs de chaque département en parallèle
-    const clubsByDep = await Promise.all(
-      DEPARTEMENTS_PACA.map(async (dep) => {
-        const url = `https://www.fftt.com/mobile/pxml/xml_club_dep2.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&dep=${dep.code}`
-        const response = await fetch(url, { cache: 'no-store' })
-        const xml = await response.text()
-        return { dep: dep.code, depNom: dep.nom, clubs: parseClubsXml(xml, dep.code) }
-      })
-    )
-
-    // Fusionner tous les clubs
-    let allClubs: Club[] = []
-    for (const { clubs, dep } of clubsByDep) {
-      allClubs = allClubs.concat(clubs.map(c => ({ ...c, departement: dep })))
-    }
-
-    // Récupérer les détails pour les 100 premiers clubs (limite API)
-    // Pour éviter trop d'appels, on ne récupère que les détails à la demande
-    const clubsWithBasicInfo = allClubs.map(club => ({
-      ...club,
-      departementNom: DEPARTEMENTS_PACA.find(d => d.code === club.departement)?.nom || ''
+    const clubs = (rows || []).map(r => ({
+      idclub: r.numero || '',
+      numero: r.numero || '',
+      nom: r.nom || '',
+      validation: '',
+      departement: r.departement || '',
+      departementNom: DEPARTEMENTS_PACA.find(d => d.code === r.departement)?.nom || '',
+      ville: r.ville || '',
+      codePostal: r.code_postal || '',
+      telephone: r.telephone || '',
+      email: r.email || '',
+      nomCorrespondant: r.nom_contact || '',
+      web: r.website || ''
     }))
 
-    // Trier par département puis par nom
-    clubsWithBasicInfo.sort((a, b) => {
-      if (a.departement !== b.departement) {
-        return a.departement.localeCompare(b.departement)
-      }
-      return a.nom.localeCompare(b.nom)
-    })
-
     return NextResponse.json({
-      clubs: clubsWithBasicInfo,
+      clubs,
       departements: DEPARTEMENTS_PACA,
-      total: clubsWithBasicInfo.length,
-      source: 'api'
+      total: clubs.length,
+      source: 'cache'
     })
-
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue'
-    console.error('Erreur API clubs PACA:', message)
-    return NextResponse.json({
-      clubs: [],
-      error: message
-    }, { status: 500 })
+    console.error('Erreur fallback Supabase clubs PACA:', message)
+    return NextResponse.json({ clubs: [], error: message }, { status: 500 })
   }
 }
 
@@ -120,16 +149,16 @@ function parseClubsXml(xml: string, departement: string): Club[] {
   return clubs
 }
 
+// Format YYYYDDMMHHmmss — DD avant MM, sans millisecondes (conforme SDK SmartPing)
 function generateTimestamp(): string {
   const now = new Date()
   const year = now.getFullYear().toString()
-  const month = (now.getMonth() + 1).toString().padStart(2, '0')
   const day = now.getDate().toString().padStart(2, '0')
+  const month = (now.getMonth() + 1).toString().padStart(2, '0')
   const hours = now.getHours().toString().padStart(2, '0')
   const minutes = now.getMinutes().toString().padStart(2, '0')
   const seconds = now.getSeconds().toString().padStart(2, '0')
-  const ms = now.getMilliseconds().toString().padStart(3, '0')
-  return `${year}${month}${day}${hours}${minutes}${seconds}${ms}`
+  return `${year}${day}${month}${hours}${minutes}${seconds}`
 }
 
 function encryptTimestamp(timestamp: string, password: string): string {
