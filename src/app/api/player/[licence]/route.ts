@@ -152,15 +152,19 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         .single()
 
       if (existingPlayer) {
+        const updatePayload: Record<string, unknown> = {
+          fftt_points: playerData.pointsOfficiel,
+          fftt_points_exact: playerData.pointsMensuels || playerData.pointsOfficiel,
+          last_sync: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+        // Ne mettre à jour la catégorie que si SmartPing retourne une valeur non-nulle
+        if (playerData.echelon || playerData.categorie) {
+          updatePayload.category = playerData.echelon === 'N' ? `N${playerData.place}` : playerData.categorie
+        }
         await supabase
           .from('players')
-          .update({
-            fftt_points: playerData.pointsOfficiel,
-            fftt_points_exact: playerData.pointsMensuels || playerData.pointsOfficiel,
-            category: playerData.echelon === 'N' ? `N${playerData.place}` : playerData.categorie,
-            last_sync: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
+          .update(updatePayload)
           .eq('id', existingPlayer.id)
       }
     }
@@ -172,15 +176,32 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .eq('smartping_licence', licence)
       .single()
 
+    // Fallback vers données Supabase quand SmartPing retourne 0
+    // (xml_joueur.php peut omettre point/apoint/valinit pour certains joueurs)
+    const supabasePointsMensuels = (player as Record<string, unknown>)?.fftt_points_exact as number || (player as Record<string, unknown>)?.fftt_points as number || 0
+    const supabaseAnciens = (player as Record<string, unknown>)?.fftt_points_ancien as number | null ?? null
+    const supabaseInitial = (player as Record<string, unknown>)?.fftt_points_initial as number | null ?? null
+
+    const resolvedPointsMensuels = playerData?.pointsMensuels || supabasePointsMensuels
+    const resolvedAnciens = playerData?.anciensPointsMensuels || supabaseAnciens
+    const resolvedInitial = playerData?.pointsInitiaux || supabaseInitial
+
+    const resolvedProgressionMois = playerData?.progressionMensuelle !== 0
+      ? playerData?.progressionMensuelle
+      : (resolvedAnciens != null ? resolvedPointsMensuels - resolvedAnciens : 0)
+    const resolvedProgressionSaison = playerData?.progressionAnnuelle !== 0
+      ? playerData?.progressionAnnuelle
+      : (resolvedInitial != null ? resolvedPointsMensuels - resolvedInitial : 0)
+
     return NextResponse.json({
       player: {
         ...player,
-        // Enrichir avec toutes les données SmartPing
-        pointsMensuels: playerData?.pointsMensuels,
-        anciensPointsMensuels: playerData?.anciensPointsMensuels,
-        pointsInitiaux: playerData?.pointsInitiaux,
-        progressionAnnuelle: playerData?.progressionAnnuelle,
-        progressionMensuelle: playerData?.progressionMensuelle,
+        // Enrichir avec toutes les données SmartPing (+ fallback Supabase si SmartPing retourne 0)
+        pointsMensuels: resolvedPointsMensuels,
+        anciensPointsMensuels: resolvedAnciens,
+        pointsInitiaux: resolvedInitial,
+        progressionAnnuelle: resolvedProgressionSaison,
+        progressionMensuelle: resolvedProgressionMois,
         rangDepartemental: playerData?.rangDep,
         rangRegional: playerData?.rangReg,
         rangNational: playerData?.rangNat || playerData?.clGlob,
@@ -190,7 +211,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         echelon: playerData?.echelon,
         place: playerData?.place,
         propositionClassement: playerData?.propositionClassement,
-        valeurInitiale: playerData?.valeurInitiale,
+        valeurInitiale: resolvedInitial,
         classementOfficiel: playerData?.clast
       },
       parties,
