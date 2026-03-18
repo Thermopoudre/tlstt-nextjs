@@ -61,7 +61,6 @@ export class SmartPingAPI {
       })
       return fetch(`${this.baseUrl}/${endpoint}?${searchParams.toString()}`, {
         method: 'GET',
-        headers: { 'Accept': 'application/xml' },
         cache: 'no-store'
       })
     }
