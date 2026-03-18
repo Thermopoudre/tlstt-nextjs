@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: AlbumPageProps): Promise<Meta
 
   const { data: album } = await supabase
     .from('albums')
-    .select('title, description, cover_url')
+    .select('title, description, cover_image_url')
     .eq('id', parseInt(id))
     .single()
 
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: AlbumPageProps): Promise<Meta
     title: `${album.title} - Galerie Photo`,
     description: album.description || `Album photo "${album.title}" du club TLSTT Toulon La Seyne Tennis de Table.`,
     path: `/galerie/${id}`,
-    image: album.cover_url || undefined,
+    image: album.cover_image_url || undefined,
     keywords: ['galerie', 'photos', album.title, 'TLSTT', 'tennis de table'],
   })
 }
@@ -50,11 +50,17 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
     notFound()
   }
 
-  const { data: photos } = await supabase
+  const { data: photosRaw } = await supabase
     .from('photos')
     .select('*')
     .eq('album_id', album.id)
-    .order('display_order')
+    .order('position')
+
+  const photos = photosRaw?.map(p => ({
+    id: p.id,
+    url: p.image_url,
+    description: p.caption || null,
+  })) ?? []
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -85,7 +91,7 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
                   </span>
                   <span className="text-gray-500 text-sm">
                     <i className="fas fa-camera mr-1"></i>
-                    {photos?.length || 0} photo{(photos?.length || 0) > 1 ? 's' : ''}
+                    {photos.length} photo{photos.length > 1 ? 's' : ''}
                   </span>
                   {album.season && (
                     <span className="bg-[#3b9fd8]/10 text-[#3b9fd8] text-xs px-3 py-1 rounded-full border border-[#3b9fd8]/30">
@@ -109,7 +115,7 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
 
       {/* Grille de photos */}
       <div className="container-custom py-8">
-        {photos && photos.length > 0 ? (
+        {photos.length > 0 ? (
           <PhotoGalleryClient photos={photos} />
         ) : (
           <div className="text-center py-16 bg-[#1a1a1a] border border-[#333] rounded-2xl">

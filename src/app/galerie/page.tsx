@@ -91,9 +91,9 @@ export default async function GaleriePage() {
                 className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden hover:border-[#3b9fd8]/50 transition-all hover:-translate-y-1 group"
               >
                 <div className="relative h-48 overflow-hidden bg-[#111]">
-                  {album.cover_url ? (
+                  {album.cover_image_url ? (
                     <Image
-                      src={album.cover_url}
+                      src={album.cover_image_url}
                       alt={album.title}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
