@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { smartPingAPI } from '@/lib/smartping/api'
 
 export const maxDuration = 60
@@ -18,7 +18,8 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const supabase = await createClient()
+  // Client service-role : indispensable pour écrire (les crons n'ont pas de session admin -> RLS bloquerait)
+  const supabase = createAdminClient()
   const appId = process.env.SMARTPING_APP_ID || ''
   const password = process.env.SMARTPING_PASSWORD || ''
   const clubId = '13830083'
