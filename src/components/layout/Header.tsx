@@ -17,6 +17,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [openMobileSubmenu, setOpenMobileSubmenu] = useState<string | null>(null)
   const [showLogin, setShowLogin] = useState(false)
+  const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [showRegister, setShowRegister] = useState(false)
 
   const isActive = (href: string) => {
@@ -94,7 +95,12 @@ export default function Header() {
             <nav className="hidden lg:flex items-center">
               <ul className="flex items-center">
                 {menuItems.map((item, index) => (
-                  <li key={index} className="relative group">
+                  <li
+                    key={index}
+                    className="relative group"
+                    onMouseEnter={() => setOpenMenu(item.label)}
+                    onMouseLeave={() => setOpenMenu(null)}
+                  >
                     {(item as any).isCta ? (
                       <Link
                         href={item.href}
@@ -121,7 +127,7 @@ export default function Header() {
 
                         {/* Submenu */}
                         {item.hasSubmenu && submenus[item.label] && (
-                          <ul className="absolute left-0 top-full bg-[#1a1a1a] border border-[#3b9fd8]/30 shadow-xl rounded-lg py-2 min-w-[180px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-50">
+                          <ul className={`absolute left-0 top-full bg-[#1a1a1a] border border-[#3b9fd8]/30 shadow-xl rounded-lg py-2 min-w-[180px] transition-all duration-200 z-50 ${openMenu === item.label ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}>
                             {submenus[item.label].map((subItem, subIndex) => (
                               <li key={subIndex}>
                                 <Link
