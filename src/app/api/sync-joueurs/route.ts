@@ -2,8 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { smartPingAPI } from '@/lib/smartping/api'
 
-// Route pour synchroniser les joueurs depuis l'API FFTT
-// Utilise xml_liste_joueur.php pour la liste, puis xml_joueur.php pour les points exacts
+export const maxDuration = 60
+
+// Synchronise le roster des joueurs depuis l'API FFTT.
+// IMPORTANT : pour le compte SX044, seul xml_liste_joueur.php est autorisé
+// (xml_joueur/xml_licence_b renvoient "Compte incorrect"). On fait donc UN SEUL
+// appel en masse (rapide, pas de timeout) et on met à jour roster + noms + échelon,
+// SANS écraser les points exacts déjà présents en base.
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET
   if (cronSecret) {
@@ -12,217 +17,120 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
   }
-  const supabase = await createClient()
 
+  const supabase = await createClient()
   const appId = process.env.SMARTPING_APP_ID || ''
   const password = process.env.SMARTPING_PASSWORD || ''
   const clubId = '13830083'
 
   if (!appId || !password) {
-    return NextResponse.json({
-      success: false,
-      error: 'Variables SmartPing manquantes',
-      config: { hasAppId: !!appId, hasPassword: !!password }
-    }, { status: 400 })
+    return NextResponse.json({ success: false, error: 'Variables SmartPing manquantes' }, { status: 400 })
   }
 
   try {
-    // Récupérer la liste de tous les joueurs du club
-    console.log('📋 Récupération liste joueurs FFTT...')
+    // 1. Un seul appel en masse (endpoint autorisé)
     const listeXml = await smartPingAPI.getJoueurs(clubId)
-
     if (listeXml.includes('<erreur>')) {
-      const error = listeXml.match(/<erreur>([^<]*)<\/erreur>/)?.[1]
-      return NextResponse.json({ success: false, error, step: 'liste_joueurs' }, { status: 400 })
+      const error = listeXml.match(/<erreur>([^<]*)<\/erreur>/)?.[1] || 'Erreur FFTT'
+      return NextResponse.json({ success: false, error, step: 'xml_liste_joueur' }, { status: 502 })
     }
 
-    // Parser les joueurs
-    const joueurMatches = listeXml.match(/<joueur>[\s\S]*?<\/joueur>/g) || []
-
-    const joueursFFTT = joueurMatches.map(xml => {
-      const clastRaw = extractValue(xml, 'clast')
-      const clast = clastRaw ? parseInt(clastRaw) : 5
-
-      return {
-        licence: extractValue(xml, 'licence'),
-        nom: extractValue(xml, 'nom'),
-        prenom: extractValue(xml, 'prenom'),
-        club: extractValue(xml, 'club'),
-        nclub: extractValue(xml, 'nclub'),
-        clast: isNaN(clast) ? 5 : clast // Fallback à 5 (500 pts) si non numérique
-      }
-    }).filter(j => j.licence && j.nom)
-
-    console.log(`📥 ${joueursFFTT.length} joueurs trouvés dans la base FFTT`)
-
-    let updated = 0
-    let created = 0
-    let errors = 0
-    let pointsExactsRecuperes = 0
-
-    for (const joueur of joueursFFTT) {
-      try {
-        // Récupérer les points exacts via xml_joueur.php
-        let pointsExact: number | null = null
-        let anciensPoints: number | null = null
-        let valeurInitiale: number | null = null
-        let categorie: string | null = null
-        let classementOfficiel: string | null = null
-        let apiSuccess = false
-
-        try {
-          const joueurXml = await smartPingAPI.getJoueurClassement(joueur.licence!)
-
-          if (!joueurXml.includes('<erreur>') && joueurXml.includes('<joueur>')) {
-            apiSuccess = true
-
-            // point = points mensuels actuels (ex: 1847)
-            const point = extractValue(joueurXml, 'point')
-            const apoint = extractValue(joueurXml, 'apoint')
-            const valinit = extractValue(joueurXml, 'valinit')
-            const cat = extractValue(joueurXml, 'cat')
-            const claof = extractValue(joueurXml, 'claof')
-            const clastXml = extractValue(joueurXml, 'clast')
-
-            // Points mensuels actuels (arrondi pour eviter les erreurs de precision float)
-            if (point && !isNaN(parseFloat(point)) && parseFloat(point) > 0) {
-              pointsExact = Math.round(parseFloat(point))
-              pointsExactsRecuperes++
-            }
-
-            // Anciens points mensuels (mois precedent)
-            if (apoint && !isNaN(parseFloat(apoint)) && parseFloat(apoint) > 0) {
-              anciensPoints = Math.round(parseFloat(apoint))
-            }
-
-            // Valeur initiale de saison (debut de saison)
-            if (valinit && !isNaN(parseFloat(valinit)) && parseFloat(valinit) > 0) {
-              valeurInitiale = Math.round(parseFloat(valinit))
-            }
-
-            // Categorie
-            if (cat) categorie = cat
-
-            // Classement officiel
-            if (claof) {
-              classementOfficiel = claof
-            } else if (clastXml) {
-              classementOfficiel = clastXml
-            }
-          }
-        } catch (detailErr: unknown) {
-          const detailMsg = detailErr instanceof Error ? detailErr.message : 'Erreur inconnue'
-          console.warn(`⚠️ Impossible de recuperer details joueur ${joueur.licence}:`, detailMsg)
+    const joueursFFTT = (listeXml.match(/<joueur>[\s\S]*?<\/joueur>/g) || [])
+      .map(xml => {
+        const clastRaw = extractValue(xml, 'clast')
+        const clast = clastRaw && !isNaN(parseInt(clastRaw)) ? parseInt(clastRaw) : null
+        return {
+          licence: extractValue(xml, 'licence'),
+          nom: extractValue(xml, 'nom'),
+          prenom: extractValue(xml, 'prenom'),
+          clast,
         }
+      })
+      .filter(j => j.licence && j.nom)
 
-        // Fallback: utiliser clast * 100 si on n'a pas de points exacts
-        if (!pointsExact) {
-          pointsExact = joueur.clast * 100
-        }
-
-        // Determiner la categorie affichable
-        let displayCategory = categorie
-        if (!displayCategory && classementOfficiel) {
-          displayCategory = classementOfficiel
-        }
-        if (!displayCategory && joueur.clast && !isNaN(joueur.clast)) {
-          displayCategory = `${joueur.clast}`
-        }
-        if (!displayCategory) {
-          displayCategory = 'NC'
-        }
-
-        // Verifier si le joueur existe
-        const { data: existing } = await supabase
-          .from('players')
-          .select('id, fftt_points_exact, fftt_points_initial, fftt_points_ancien')
-          .eq('smartping_licence', joueur.licence)
-          .single()
-
-        if (existing) {
-          const updateData: Record<string, unknown> = {
-            first_name: joueur.prenom,
-            last_name: joueur.nom,
-            fftt_points_exact: pointsExact,
-            fftt_points: pointsExact,
-            fftt_category: displayCategory,
-            category: displayCategory,
-            last_sync: new Date().toISOString()
-          }
-
-          // Toujours mettre a jour les anciens points si disponibles depuis l'API
-          if (anciensPoints !== null) {
-            updateData.fftt_points_ancien = anciensPoints
-          } else if (apiSuccess && (existing.fftt_points_ancien === null || existing.fftt_points_ancien === undefined)) {
-            updateData.fftt_points_ancien = pointsExact
-          }
-
-          // Mettre a jour les points initiaux de saison
-          if (valeurInitiale !== null) {
-            updateData.fftt_points_initial = valeurInitiale
-          } else if (apiSuccess && (existing.fftt_points_initial === null || !existing.fftt_points_initial)) {
-            updateData.fftt_points_initial = pointsExact
-          }
-
-          await supabase.from('players').update(updateData).eq('id', existing.id)
-          updated++
-        } else {
-          const playerData: Record<string, unknown> = {
-            first_name: joueur.prenom,
-            last_name: joueur.nom,
-            smartping_licence: joueur.licence,
-            fftt_points_exact: pointsExact,
-            fftt_points: pointsExact,
-            fftt_category: displayCategory,
-            category: displayCategory,
-            last_sync: new Date().toISOString(),
-            fftt_points_initial: valeurInitiale || pointsExact,
-            fftt_points_ancien: anciensPoints || pointsExact
-          }
-
-          await supabase.from('players').insert(playerData)
-          created++
-        }
-      } catch (err: unknown) {
-        const errMsg = err instanceof Error ? err.message : 'Erreur inconnue'
-        console.error(`Erreur joueur ${joueur.licence}:`, errMsg)
-        errors++
-      }
+    if (joueursFFTT.length === 0) {
+      return NextResponse.json({ success: false, error: 'Aucun joueur retourné par la FFTT' }, { status: 502 })
     }
 
-    // Récupérer le Top 10 pour vérification
-    const { data: top10 } = await supabase
+    // 2. État actuel en base (1 requête)
+    const { data: existingRows } = await supabase
       .from('players')
-      .select('first_name, last_name, fftt_points_exact, fftt_category, smartping_licence')
-      .order('fftt_points_exact', { ascending: false })
-      .limit(10)
+      .select('id, smartping_licence, fftt_points_exact')
+    const existing = new Map((existingRows || []).map(r => [r.smartping_licence, r]))
+
+    const now = new Date().toISOString()
+    const toInsert: Record<string, unknown>[] = []
+    const updates: { id: number; data: Record<string, unknown> }[] = []
+
+    for (const j of joueursFFTT) {
+      const category = j.clast !== null ? String(j.clast) : 'NC'
+      const row = existing.get(j.licence!)
+      if (row) {
+        // Joueur existant : on rafraîchit nom/prénom/échelon, on PRÉSERVE les points exacts.
+        const data: Record<string, unknown> = {
+          first_name: j.prenom,
+          last_name: j.nom,
+          fftt_category: category,
+          category,
+          last_sync: now,
+        }
+        // Points seulement si absents (ne pas dégrader une vraie valeur par l'estimation échelon×100)
+        if ((row.fftt_points_exact ?? 0) === 0 && j.clast !== null) {
+          data.fftt_points = j.clast * 100
+          data.fftt_points_exact = j.clast * 100
+        }
+        updates.push({ id: row.id, data })
+      } else {
+        // Nouveau joueur
+        const estimate = j.clast !== null ? j.clast * 100 : 500
+        toInsert.push({
+          smartping_licence: j.licence,
+          first_name: j.prenom,
+          last_name: j.nom,
+          fftt_category: category,
+          category,
+          fftt_points: estimate,
+          fftt_points_exact: estimate,
+          fftt_points_initial: estimate,
+          fftt_points_ancien: estimate,
+          last_sync: now,
+          admin_notes: 'TLSTT - Sync API (liste)',
+        })
+      }
+    }
+
+    // 3. Inserts en masse
+    let created = 0
+    if (toInsert.length > 0) {
+      const { error: insErr, count } = await supabase
+        .from('players')
+        .insert(toInsert, { count: 'exact' })
+      if (insErr) console.warn('Insert joueurs:', insErr.message)
+      else created = count || toInsert.length
+    }
+
+    // 4. Updates par lots parallèles (DB only, pas d'appel FFTT -> rapide)
+    let updated = 0
+    const BATCH = 25
+    for (let i = 0; i < updates.length; i += BATCH) {
+      const slice = updates.slice(i, i + BATCH)
+      const results = await Promise.all(
+        slice.map(u => supabase.from('players').update(u.data).eq('id', u.id))
+      )
+      updated += results.filter(r => !r.error).length
+    }
 
     return NextResponse.json({
       success: true,
-      message: `✅ Synchronisation terminée avec points exacts`,
-      stats: {
-        joueursTotal: joueursFFTT.length,
-        pointsExactsRecuperes,
-        updated,
-        created,
-        errors
-      },
-      top10: top10?.map(p => ({
-        nom: `${p.first_name} ${p.last_name}`,
-        points: p.fftt_points_exact,
-        categorie: p.fftt_category,
-        licence: p.smartping_licence
-      })),
-      timestamp: new Date().toISOString()
+      message: 'Synchronisation roster terminée (xml_liste_joueur)',
+      stats: { joueursFFTT: joueursFFTT.length, created, updated },
+      note: 'Points exacts non synchronisés : xml_joueur non autorisé pour ce compte FFTT (à activer côté FFTT).',
+      timestamp: now,
     })
-
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue'
-    console.error('Erreur sync:', message)
-    return NextResponse.json({
-      success: false,
-      error: message
-    }, { status: 500 })
+    console.error('Erreur sync-joueurs:', message)
+    return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }
 
