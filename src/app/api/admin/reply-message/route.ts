@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const { data: adminData } = await supabase
       .from('admins')
       .select('id')
-      .eq('id', user.id)
+      .eq('email', user.email)
       .single()
     if (!adminData) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })

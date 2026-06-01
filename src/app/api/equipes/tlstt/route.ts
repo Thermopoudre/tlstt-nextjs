@@ -1,5 +1,30 @@
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { createClient } from '@/lib/supabase/server'
+
+// Fallback Supabase : table `teams` quand l'API FFTT est indisponible (endpoints non activés)
+async function supabaseTeamsFallback() {
+  const supabase = await createClient()
+  const { data } = await supabase.from('teams').select('*').eq('is_active', true)
+  const equipes = (data || []).map((t) => ({
+    libequipe: t.name,
+    libdivision: t.division || '',
+    liendivision: t.link_fftt || '',
+    idepr: '',
+    libepr: t.division || '',
+    cx_poule: t.pool || '',
+    D1: '',
+    classement: [],
+    rencontres: [],
+    cla: t.cla || 0,
+    joue: t.joue || 0,
+    pts: t.pts || 0,
+    vic: t.vic || 0,
+    def: t.def || 0,
+    nul: t.nul || 0,
+  }))
+  return NextResponse.json({ equipes, clubNumber: TLSTT_CLUB_NUMBER, source: 'supabase' })
+}
 
 // Numéro du club TLSTT
 const TLSTT_CLUB_NUMBER = '13830083'
@@ -45,10 +70,7 @@ export async function GET() {
     const serie = process.env.SMARTPING_SERIE || crypto.randomBytes(8).toString('hex').slice(0, 15)
 
     if (!appId || !password) {
-      return NextResponse.json({
-        equipes: [],
-        error: 'Credentials SmartPing manquants'
-      })
+      return supabaseTeamsFallback()
     }
 
     const tm = generateTimestamp()
@@ -59,6 +81,11 @@ export async function GET() {
     const equipesResponse = await fetch(equipesUrl, { cache: 'no-store' })
     const equipesXml = await equipesResponse.text()
     const equipes = parseEquipesXml(equipesXml)
+
+    // FFTT n'a renvoyé aucune équipe (compte non activé / 401) -> fallback Supabase
+    if (equipes.length === 0) {
+      return supabaseTeamsFallback()
+    }
 
     // 2. Pour chaque équipe, récupérer classement et rencontres
     const equipesWithData = await Promise.all(
@@ -111,10 +138,11 @@ export async function GET() {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue'
     console.warn('Erreur API equipes TLSTT:', message)
-    return NextResponse.json({
-      equipes: [],
-      error: message
-    }, { status: 500 })
+    try {
+      return await supabaseTeamsFallback()
+    } catch {
+      return NextResponse.json({ equipes: [], error: message }, { status: 500 })
+    }
   }
 }
 
@@ -212,7 +240,8 @@ function generateTimestamp(): string {
   const hours = now.getHours().toString().padStart(2, '0')
   const minutes = now.getMinutes().toString().padStart(2, '0')
   const seconds = now.getSeconds().toString().padStart(2, '0')
-  return `${year}${day}${month}${hours}${minutes}${seconds}`
+  const milliseconds = now.getMilliseconds().toString().padStart(3, '0')
+  return `${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`
 }
 
 function encryptTimestamp(timestamp: string, password: string): string {

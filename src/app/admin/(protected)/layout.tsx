@@ -22,6 +22,7 @@ export default async function AdminProtectedLayout({
     .from('admins')
     .select('*')
     .eq('email', user.email)
+    .eq('is_active', true)
     .single()
 
   if (!adminData) {

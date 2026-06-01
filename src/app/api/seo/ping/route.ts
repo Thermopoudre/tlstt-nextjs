@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const { data: adminData } = await supabase
       .from('admins')
       .select('id')
-      .eq('id', user.id)
+      .eq('email', user.email)
       .single()
 
     if (!adminData) {

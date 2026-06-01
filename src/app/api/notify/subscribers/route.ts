@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
-    const { data: adminData } = await supabase.from('admins').select('id').eq('id', user.id).single()
+    const { data: adminData } = await supabase.from('admins').select('id').eq('email', user.email).single()
     if (!adminData) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }

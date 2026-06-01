@@ -80,6 +80,7 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
       title: 'Communication',
       items: [
         { title: 'Messages', icon: 'fa-comments', path: '/admin/messages', badgeKey: 'messages' as const },
+        { title: 'Communications', icon: 'fa-bullhorn', path: '/admin/communications' },
         { title: 'Contact', icon: 'fa-address-card', path: '/admin/contact' },
         { title: 'Config Email', icon: 'fa-envelope', path: '/admin/email' },
         { title: 'Partenaires', icon: 'fa-handshake', path: '/admin/partenaires' },

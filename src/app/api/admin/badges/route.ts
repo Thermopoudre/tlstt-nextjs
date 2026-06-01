@@ -5,7 +5,7 @@ async function checkAdmin() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data } = await supabase.from('admins').select('id').eq('id', user.id).single()
+  const { data } = await supabase.from('admins').select('id').eq('email', user.email).single()
   return data ? user : null
 }
 

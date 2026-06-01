@@ -1,8 +1,14 @@
 import crypto from 'crypto'
 
-// Génère une série locale aléatoire (15 chars hex) — conforme au SDK officiel SmartPing
+// Génère une série conforme à la spec SmartPing 2.0 : 15 caractères [A-Z][0-9]
 function generateLocalSerie(): string {
-  return crypto.randomBytes(8).toString('hex').slice(0, 15)
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  let s = ''
+  const bytes = crypto.randomBytes(15)
+  for (let i = 0; i < 15; i++) {
+    s += chars[bytes[i] % chars.length]
+  }
+  return s
 }
 
 // Classe pour interagir avec l'API SmartPing / FFTT
@@ -10,171 +16,154 @@ export class SmartPingAPI {
   private appId: string
   private password: string
   private serie: string
+  private initialized = false
   private baseUrl = 'https://apiv2.fftt.com/mobile/pxml'
 
   constructor() {
     this.appId = process.env.SMARTPING_APP_ID || ''
     this.password = process.env.SMARTPING_PASSWORD || ''
-    // Utiliser la série de l'env si définie, sinon générer localement (pas d'appel API nécessaire)
+    // Série issue de l'env si définie, sinon générée localement (initialisée via xml_initialisation.php)
     this.serie = process.env.SMARTPING_SERIE || generateLocalSerie()
   }
 
-  // Générer le timestamp au format YYYYDDMMHHmmss (format attendu par l'API FFTT)
-  // ATTENTION : DD avant MM (jour avant mois), sans millisecondes — conforme au SDK officiel
+  // Timestamp officiel SmartPing 2.0 : année(4)+mois(2)+jour(2)+heure(2)+min(2)+sec(2)+millièmes(3)
+  // => YYYYMMDDHHMMSSmmm (17 caractères). Conforme au vecteur de test FFTT.
   private generateTimestamp(): string {
     const now = new Date()
-    const year = now.getFullYear().toString()
-    const day = now.getDate().toString().padStart(2, '0')
-    const month = (now.getMonth() + 1).toString().padStart(2, '0')
-    const hours = now.getHours().toString().padStart(2, '0')
-    const minutes = now.getMinutes().toString().padStart(2, '0')
-    const seconds = now.getSeconds().toString().padStart(2, '0')
-    return `${year}${day}${month}${hours}${minutes}${seconds}`
+    const p = (n: number, len = 2) => n.toString().padStart(len, '0')
+    return (
+      now.getFullYear().toString() +
+      p(now.getMonth() + 1) +
+      p(now.getDate()) +
+      p(now.getHours()) +
+      p(now.getMinutes()) +
+      p(now.getSeconds()) +
+      p(now.getMilliseconds(), 3)
+    )
   }
 
-  // Crypter le timestamp avec HMAC-SHA1
+  // Cryptage : HMAC-SHA1(tm, MD5(motdepasse)) en hexa minuscule
   private encryptTimestamp(timestamp: string): string {
-    // 1. MD5 du mot de passe
     const md5Key = crypto.createHash('md5').update(this.password).digest('hex')
-    
-    // 2. HMAC-SHA1 du timestamp avec la clé MD5
     const hmac = crypto.createHmac('sha1', md5Key)
     hmac.update(timestamp)
     return hmac.digest('hex')
   }
 
-  // Méthode publique pour les appels API directs (utilisée par discover-equipes)
-  async request_public(endpoint: string, params: Record<string, string> = {}): Promise<any> {
+  private buildUrl(endpoint: string, params: Record<string, string>): string {
+    const tm = this.generateTimestamp()
+    const tmc = this.encryptTimestamp(tm)
+    const searchParams = new URLSearchParams({
+      serie: this.serie,
+      tm,
+      tmc,
+      id: this.appId,
+      ...params,
+    })
+    return `${this.baseUrl}/${endpoint}?${searchParams.toString()}`
+  }
+
+  // Initialise la série via xml_initialisation.php (1 fois par cold-start), conforme à la spec.
+  private async ensureInitialized(force = false): Promise<void> {
+    if (this.initialized && !force) return
+    if (force) this.serie = generateLocalSerie()
+    try {
+      const res = await fetch(this.buildUrl('xml_initialisation.php', {}), {
+        method: 'GET',
+        cache: 'no-store',
+      })
+      const xml = await res.text()
+      const appli = xml.match(/<appli>([^<]*)<\/appli>/)?.[1]?.trim()
+      // <appli>1</appli> = accès autorisé. Dans tous les cas on évite une boucle d'init.
+      this.initialized = true
+      void appli
+    } catch {
+      this.initialized = true
+    }
+  }
+
+  // Méthode publique pour les appels API directs
+  async request_public(endpoint: string, params: Record<string, string> = {}): Promise<string> {
     return this.request(endpoint, params)
   }
 
-  private async request(endpoint: string, params: Record<string, string> = {}): Promise<any> {
-    const doFetch = async (): Promise<Response> => {
-      const tm = this.generateTimestamp()
-      const tmc = this.encryptTimestamp(tm)
-      const searchParams = new URLSearchParams({
-        serie: this.serie,
-        tm,
-        tmc,
-        id: this.appId,
-        ...params
-      })
-      return fetch(`${this.baseUrl}/${endpoint}?${searchParams.toString()}`, {
-        method: 'GET',
-        cache: 'no-store'
-      })
-    }
+  private async request(endpoint: string, params: Record<string, string> = {}): Promise<string> {
+    await this.ensureInitialized()
+
+    const doFetch = async (): Promise<Response> =>
+      fetch(this.buildUrl(endpoint, params), { method: 'GET', cache: 'no-store' })
 
     try {
       let response = await doFetch()
-
-      // Série rejetée — en régénérer une nouvelle et réessayer une fois
+      // Série rejetée/expirée — réinitialiser et réessayer une fois
       if (response.status === 401) {
-        this.serie = generateLocalSerie()
+        await this.ensureInitialized(true)
         response = await doFetch()
       }
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-
-      const text = await response.text()
-      return this.parseXMLResponse(text)
+      return await response.text()
     } catch (error) {
-      console.error('SmartPing API Error:', error)
+      // 401 attendus sur endpoints non activés par la FFTT pour ce compte -> warn, fallback Supabase côté routes
+      console.warn('SmartPing API:', error instanceof Error ? error.message : error)
       throw error
     }
   }
 
-  private parseXMLResponse(xml: string): any {
-    // Parser XML simple pour les réponses SmartPing
-    // Retourner le XML brut pour un parsing personnalisé
-    return xml
-  }
-
-  // Récupérer la liste des joueurs d'un club (base classement)
   async getJoueurs(clubId: string = '13830083'): Promise<string> {
     return this.request('xml_liste_joueur.php', { club: clubId })
   }
-
-  // Récupérer la liste des licenciés d'un club (base SPID) - plus complet
   async getLicencies(clubId: string = '13830083'): Promise<string> {
     return this.request('xml_liste_joueur_o.php', { club: clubId })
   }
-
-  // Récupérer les licenciés avec infos classement (MEILLEUR endpoint)
   async getLicenciesComplet(clubId: string = '13830083'): Promise<string> {
     return this.request('xml_licence_b.php', { club: clubId })
   }
-
-  // Récupérer le détail d'un joueur (base classement)
   async getJoueurClassement(licence: string): Promise<string> {
     return this.request('xml_joueur.php', { licence })
   }
-
-  // Récupérer le détail d'un licencié (base SPID)
   async getLicence(licence: string): Promise<string> {
     return this.request('xml_licence.php', { licence })
   }
-
-  // Récupérer le détail d'un licencié avec classement
   async getLicenceComplet(licence: string): Promise<string> {
     return this.request('xml_licence_b.php', { licence })
   }
-
-  // Récupérer l'historique des classements
   async getHistoriqueClassement(licence: string): Promise<string> {
     return this.request('xml_histo_classement.php', { numlic: licence })
   }
-
-  // Récupérer les équipes d'un club
-  async getEquipes(clubId: string = '13830083'): Promise<string> {
-    return this.request('xml_equipe.php', { numclu: clubId })
+  // type : M (France masc.), F (France fém.), A (toutes France), '' (toutes les autres équipes)
+  async getEquipes(clubId: string = '13830083', type: string = 'A'): Promise<string> {
+    const params: Record<string, string> = { numclu: clubId }
+    if (type) params.type = type
+    return this.request('xml_equipe.php', params)
   }
-
-  // Récupérer les organismes (F=Fédération, Z=Zone, L=Ligue, D=Département)
   async getOrganismes(type: string = 'D', pere?: string): Promise<string> {
     const params: Record<string, string> = { type }
     if (pere) params.pere = pere
     return this.request('xml_organisme.php', params)
   }
-
-  // Récupérer les épreuves pour un organisme (E=Equipes, I=Individuelles)
   async getEpreuves(organisme: string, type: string = 'E'): Promise<string> {
     return this.request('xml_epreuve.php', { organisme, type })
   }
-
-  // Récupérer les divisions pour une épreuve
   async getDivisions(organisme: string, epreuve: string, type: string = 'E'): Promise<string> {
     return this.request('xml_division.php', { organisme, epreuve, type })
   }
-
-  // Récupérer les résultats d'une poule
   async getResultatsPoule(divisionId: string, pouleId: string): Promise<string> {
-    return this.request('xml_result_equ.php', { D1: divisionId, cx_poule: pouleId })
+    return this.request('xml_result_equ.php', { action: '', auto: '1', D1: divisionId, cx_poule: pouleId })
   }
-
-  // Récupérer le classement d'une poule
   async getClassementPoule(divisionId: string, pouleId: string): Promise<string> {
-    return this.request('xml_result_equ.php', { D1: divisionId, cx_poule: pouleId, action: 'classement' })
+    return this.request('xml_result_equ.php', { action: 'classement', auto: '1', D1: divisionId, cx_poule: pouleId })
   }
-
-  // Récupérer les parties d'un joueur (base classement mysql)
   async getPartiesJoueur(licence: string): Promise<string> {
     return this.request('xml_partie_mysql.php', { licence })
   }
-
-  // Récupérer les parties d'un joueur (base SPID)
   async getPartiesJoueurSpid(licence: string): Promise<string> {
     return this.request('xml_partie.php', { numlic: licence })
   }
-
-  // Récupérer les actualités FFTT
   async getActualites(): Promise<string> {
     return this.request('xml_new_actu.php', {})
   }
-
-  // Récupérer le détail d'un club
   async getClubDetail(clubId: string = '13830083'): Promise<string> {
     return this.request('xml_club_detail.php', { club: clubId })
   }

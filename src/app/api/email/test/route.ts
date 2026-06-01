@@ -10,7 +10,7 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
-    const { data: admin } = await supabase.from('admins').select('id').eq('id', user.id).single()
+    const { data: admin } = await supabase.from('admins').select('id').eq('email', user.email).single()
     if (!admin) {
       return NextResponse.json({ error: 'Accès admin requis' }, { status: 403 })
     }
@@ -37,7 +37,7 @@ export async function POST() {
     if (!user) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
-    const { data: admin } = await supabase.from('admins').select('id').eq('id', user.id).single()
+    const { data: admin } = await supabase.from('admins').select('id').eq('email', user.email).single()
     if (!admin) {
       return NextResponse.json({ error: 'Accès admin requis' }, { status: 403 })
     }
