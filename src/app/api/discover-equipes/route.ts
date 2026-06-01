@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SmartPingAPI } from '@/lib/smartping/api'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 const TLSTT_CLUB_NUMBER = '13830083'
 
@@ -246,7 +246,7 @@ export async function GET(req: NextRequest) {
     let supabaseUpdates = 0
     if (discovered.length > 0) {
       try {
-        const supabase = await createClient()
+        const supabase = createAdminClient()
 
         for (const team of discovered) {
           // Extraire le numéro d'équipe (ex: "TOULON LA SEYNE TT 2" -> "2")

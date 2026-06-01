@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SmartPingAPI } from '@/lib/smartping/api'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 const TLSTT_CLUB_NUMBER = '13830083'
 
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const api = new SmartPingAPI()
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // 1. Récupérer les équipes depuis FFTT (xml_equipe.php?numclu=13830083)
     let equipesXml: string

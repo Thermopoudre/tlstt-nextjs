@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { smartPingAPI } from '@/lib/smartping/api'
 
 const CLUB_ID = '13830083'
@@ -122,7 +122,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const results: { team: string; status: string; stats?: TeamStats; error?: string }[] = []
   let matchesInserted = 0
   let matchesUpdated = 0
