@@ -157,9 +157,15 @@ export function organizationJsonLd(settings?: {
       addressCountry: 'FR',
     },
     sameAs: [
-      s.facebook,
-      s.instagram,
+      s.facebook || 'https://www.facebook.com/tlstt83',
+      s.instagram || 'https://www.instagram.com/tlstt_officiel',
     ].filter(Boolean),
+    areaServed: ['La Seyne-sur-Mer', 'Toulon', 'Var', "Provence-Alpes-Côte d'Azur"],
+    openingHoursSpecification: [
+      { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Thursday', 'Friday'], opens: '17:30', closes: '23:00' },
+      { '@type': 'OpeningHoursSpecification', dayOfWeek: 'Wednesday', opens: '14:00', closes: '23:00' },
+      { '@type': 'OpeningHoursSpecification', dayOfWeek: 'Saturday', opens: '09:00', closes: '19:00' },
+    ],
     memberOf: {
       '@type': 'SportsOrganization',
       name: 'Fédération Française de Tennis de Table',

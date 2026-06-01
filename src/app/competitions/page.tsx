@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import CompetitionsContent from './CompetitionsContent'
 import JsonLd from '@/components/seo/JsonLd'
-import { breadcrumbJsonLd } from '@/lib/seo'
+import { breadcrumbJsonLd, eventJsonLd } from '@/lib/seo'
 
 // Revalider toutes les heures (cron sync-equipes sam+dim soir)
 export const revalidate = 3600
@@ -40,12 +40,24 @@ export default async function CompetitionsPage() {
     .select('*')
     .order('date', { ascending: false })
 
+  const upcoming = (competitions || []).filter((c: { status?: string }) => c.status === 'upcoming').slice(0, 20)
+  const eventsLd = upcoming.map((c: { team_name?: string; opponent?: string; type?: string; date: string; location?: string }) =>
+    eventJsonLd({
+      name: `${c.team_name || 'TLSTT'} ${c.type === 'domicile' ? 'reçoit' : 'se déplace à'} ${c.opponent || ''}`.trim(),
+      startDate: c.date,
+      location: c.location || undefined,
+    })
+  )
+
   return (
     <>
-      <JsonLd data={breadcrumbJsonLd([
-        { name: 'Accueil', url: '/' },
-        { name: 'Compétitions', url: '/competitions' },
-      ])} />
+      <JsonLd data={[
+        breadcrumbJsonLd([
+          { name: 'Accueil', url: '/' },
+          { name: 'Compétitions', url: '/competitions' },
+        ]),
+        ...eventsLd,
+      ]} />
       <CompetitionsContent competitions={competitions || []} />
     </>
   )
