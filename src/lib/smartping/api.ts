@@ -92,9 +92,8 @@ export class SmartPingAPI {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      // L'API FFTT renvoie de l'ISO-8859-1 : décoder explicitement (sinon accents cassés)
-      const buffer = await response.arrayBuffer()
-      return new TextDecoder('iso-8859-1').decode(buffer)
+      // Le contenu est en UTF-8 (malgré l'en-tête XML qui annonce ISO-8859-1) : décodage UTF-8
+      return await response.text()
     } catch (error) {
       // 401 attendus sur endpoints non activés par la FFTT pour ce compte -> warn, fallback Supabase côté routes
       console.warn('SmartPing API:', error instanceof Error ? error.message : error)
