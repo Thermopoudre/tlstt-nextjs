@@ -27,7 +27,7 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
   const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % images.length)
 
   return (
-    <section className="relative h-[70vh] min-h-[500px] max-h-[700px] overflow-hidden">
+    <section className="relative h-[70vh] min-h-[500px] max-h-[700px] overflow-hidden bg-gradient-to-br from-[#10325F] via-[#0a1a2e] to-[#0a0a0a]">
       {/* Fond vidéo YouTube — plein écran, centré */}
       {youtubeId && (
         <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">

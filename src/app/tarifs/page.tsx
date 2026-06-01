@@ -40,7 +40,7 @@ export default async function TarifsPage() {
       .single(),
   ])
 
-  const saisonLabel: string = (globalSettings as any)?.settings?.tarifs_saison_label || 'Saison 2024-2025'
+  const saisonLabel: string = (globalSettings as any)?.settings?.tarifs_saison_label || 'Saison 2025-2026'
 
   // Grouper par catégorie, triées par position de catégorie
   const groupedMap: Record<string, { category: string; position: number; items: any[] }> = {}

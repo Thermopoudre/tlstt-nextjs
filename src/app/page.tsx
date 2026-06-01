@@ -127,7 +127,7 @@ export default async function HomePage() {
         ]),
       ]} />
       {/* Hero Carousel Section */}
-      <HeroCarousel images={carouselImages} youtubeId="bHvbGcTyuKE" />
+      <HeroCarousel images={carouselImages} />
 
       {/* Stats Section - Noir avec bordures bleu */}
       <section className="py-12 bg-[#0a0a0a]">

@@ -71,6 +71,8 @@ export default function Header() {
                   src="/logo.jpeg"
                   alt="TLSTT"
                   fill
+                  priority
+                  sizes="56px"
                   className="object-contain"
                 />
               </div>
