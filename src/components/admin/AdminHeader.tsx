@@ -15,6 +15,18 @@ export default function AdminHeader({ admin }: AdminHeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
   const notifRef = useRef<HTMLDivElement>(null)
+  const [refreshState, setRefreshState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+
+  const handleRefreshSite = async () => {
+    setRefreshState('loading')
+    try {
+      const res = await fetch('/api/admin/revalidate', { method: 'POST' })
+      setRefreshState(res.ok ? 'done' : 'error')
+    } catch {
+      setRefreshState('error')
+    }
+    setTimeout(() => setRefreshState('idle'), 4000)
+  }
 
   useEffect(() => {
     loadNotifications()
@@ -168,6 +180,17 @@ export default function AdminHeader({ admin }: AdminHeaderProps) {
                 </div>
               )}
             </div>
+
+            {/* Rafraîchir le site public (revalidation à la demande) */}
+            <button
+              onClick={handleRefreshSite}
+              disabled={refreshState === 'loading'}
+              title="Rendre visibles immédiatement sur le site public les dernières modifications"
+              className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg text-sm border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-60"
+            >
+              <i className={`fas ${refreshState === 'loading' ? 'fa-spinner fa-spin' : refreshState === 'done' ? 'fa-check text-green-600' : refreshState === 'error' ? 'fa-triangle-exclamation text-red-600' : 'fa-rotate'}`}></i>
+              <span>{refreshState === 'done' ? 'Site à jour' : refreshState === 'error' ? 'Erreur' : 'Rafraîchir le site'}</span>
+            </button>
 
             {/* Quick Add */}
             <div className="hidden md:flex items-center gap-2">
