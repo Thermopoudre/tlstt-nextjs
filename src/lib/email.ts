@@ -36,7 +36,7 @@ export interface SmtpConfig {
  * Priorite : DB > Variables d'environnement
  */
 export async function getSmtpConfig(): Promise<SmtpConfig> {
-  let dbSettings: Record<string, string> = {}
+  const dbSettings: Record<string, string> = {}
 
   try {
     const supabase = await createServerClient()
