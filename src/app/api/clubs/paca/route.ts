@@ -47,7 +47,7 @@ export async function GET() {
       // Récupérer les clubs de chaque département en parallèle
       const clubsByDep = await Promise.all(
         DEPARTEMENTS_PACA.map(async (dep) => {
-          const url = `https://apiv2.fftt.com/mobile/pxml/xml_club_dep2.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&dep=${dep.code}`
+          const url = `https://www.fftt.com/mobile/pxml/xml_club_dep2.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&dep=${dep.code}`
           const response = await fetch(url, { cache: 'no-store' })
           const xml = await response.text()
           return { dep: dep.code, depNom: dep.nom, clubs: parseClubsXml(xml, dep.code) }

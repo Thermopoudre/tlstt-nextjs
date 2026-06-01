@@ -77,7 +77,7 @@ export async function GET() {
     const tmc = encryptTimestamp(tm, password)
 
     // 1. Récupérer les équipes du club TLSTT
-    const equipesUrl = `https://apiv2.fftt.com/mobile/pxml/xml_equipe.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&numclu=${TLSTT_CLUB_NUMBER}`
+    const equipesUrl = `https://www.fftt.com/mobile/pxml/xml_equipe.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&numclu=${TLSTT_CLUB_NUMBER}`
     const equipesResponse = await fetch(equipesUrl, { cache: 'no-store' })
     const equipesXml = await equipesResponse.text()
     const equipes = parseEquipesXml(equipesXml)
@@ -104,7 +104,7 @@ export async function GET() {
         const tmc2 = encryptTimestamp(tm2, password)
 
         // Récupérer classement
-        const classementUrl = `https://apiv2.fftt.com/mobile/pxml/xml_result_equ.php?serie=${serie}&tm=${tm2}&tmc=${tmc2}&id=${appId}&action=classement&auto=1&D1=${D1}&cx_poule=${cx_poule}`
+        const classementUrl = `https://www.fftt.com/mobile/pxml/xml_result_equ.php?serie=${serie}&tm=${tm2}&tmc=${tmc2}&id=${appId}&action=classement&auto=1&D1=${D1}&cx_poule=${cx_poule}`
         const classementResponse = await fetch(classementUrl, { cache: 'no-store' })
         const classementXml = await classementResponse.text()
         const classement = parseClassementXml(classementXml)
@@ -114,7 +114,7 @@ export async function GET() {
         const tmc3 = encryptTimestamp(tm3, password)
 
         // Récupérer rencontres
-        const rencontresUrl = `https://apiv2.fftt.com/mobile/pxml/xml_result_equ.php?serie=${serie}&tm=${tm3}&tmc=${tmc3}&id=${appId}&action=&auto=1&D1=${D1}&cx_poule=${cx_poule}`
+        const rencontresUrl = `https://www.fftt.com/mobile/pxml/xml_result_equ.php?serie=${serie}&tm=${tm3}&tmc=${tmc3}&id=${appId}&action=&auto=1&D1=${D1}&cx_poule=${cx_poule}`
         const rencontresResponse = await fetch(rencontresUrl, { cache: 'no-store' })
         const rencontresXml = await rencontresResponse.text()
         const rencontres = parseRencontresXml(rencontresXml)

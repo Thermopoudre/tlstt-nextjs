@@ -17,7 +17,7 @@ export class SmartPingAPI {
   private password: string
   private serie: string
   private initialized = false
-  private baseUrl = 'https://apiv2.fftt.com/mobile/pxml'
+  private baseUrl = 'https://www.fftt.com/mobile/pxml'
 
   constructor() {
     this.appId = process.env.SMARTPING_APP_ID || ''
@@ -65,21 +65,10 @@ export class SmartPingAPI {
 
   // Initialise la série via xml_initialisation.php (1 fois par cold-start), conforme à la spec.
   private async ensureInitialized(force = false): Promise<void> {
-    if (this.initialized && !force) return
     if (force) this.serie = generateLocalSerie()
-    try {
-      const res = await fetch(this.buildUrl('xml_initialisation.php', {}), {
-        method: 'GET',
-        cache: 'no-store',
-      })
-      const xml = await res.text()
-      const appli = xml.match(/<appli>([^<]*)<\/appli>/)?.[1]?.trim()
-      // <appli>1</appli> = accès autorisé. Dans tous les cas on évite une boucle d'init.
-      this.initialized = true
-      void appli
-    } catch {
-      this.initialized = true
-    }
+    this.initialized = true
+    // xml_initialisation.php n'est pas requis pour ce compte : les scripts autorisés
+    // répondent directement. On évite donc un appel réseau inutile.
   }
 
   // Méthode publique pour les appels API directs
@@ -103,7 +92,9 @@ export class SmartPingAPI {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      return await response.text()
+      // L'API FFTT renvoie de l'ISO-8859-1 : décoder explicitement (sinon accents cassés)
+      const buffer = await response.arrayBuffer()
+      return new TextDecoder('iso-8859-1').decode(buffer)
     } catch (error) {
       // 401 attendus sur endpoints non activés par la FFTT pour ce compte -> warn, fallback Supabase côté routes
       console.warn('SmartPing API:', error instanceof Error ? error.message : error)

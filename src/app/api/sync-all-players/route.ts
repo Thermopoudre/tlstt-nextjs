@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
         batch.map(async (player) => {
           try {
             const response = await fetch(
-              `https://apiv2.fftt.com/mobile/pxml/xml_licence_b.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=${player.smartping_licence}`,
+              `https://www.fftt.com/mobile/pxml/xml_licence_b.php?serie=${serie}&tm=${tm}&tmc=${tmc}&id=${appId}&licence=${player.smartping_licence}`,
               { cache: 'no-store' }
             )
             const xml = await response.text()
