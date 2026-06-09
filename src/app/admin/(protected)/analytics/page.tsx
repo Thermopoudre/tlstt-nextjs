@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -222,24 +224,24 @@ export default function AdminAnalyticsPage() {
             Actions rapides
           </h2>
           <div className="grid grid-cols-2 gap-3">
-            <a href="/admin/actualites" className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium text-gray-700">
+            <Link href="/admin/actualites" className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium text-gray-700">
               <i className="fas fa-plus text-green-500"></i>Nouvel article
-            </a>
-            <a href="/admin/newsletter" className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium text-gray-700">
+            </Link>
+            <Link href="/admin/newsletter" className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium text-gray-700">
               <i className="fas fa-paper-plane text-blue-500"></i>Newsletter
-            </a>
-            <a href="/admin/equipes" className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium text-gray-700">
+            </Link>
+            <Link href="/admin/equipes" className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium text-gray-700">
               <i className="fas fa-sync text-orange-500"></i>Sync equipes
-            </a>
-            <a href="/admin/membres" className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium text-gray-700">
+            </Link>
+            <Link href="/admin/membres" className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium text-gray-700">
               <i className="fas fa-user-check text-purple-500"></i>Valider membres
-            </a>
-            <a href="/admin/galerie" className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium text-gray-700">
+            </Link>
+            <Link href="/admin/galerie" className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium text-gray-700">
               <i className="fas fa-images text-pink-500"></i>Galerie
-            </a>
-            <a href="/admin/pages/builder" className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium text-gray-700">
+            </Link>
+            <Link href="/admin/pages/builder" className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium text-gray-700">
               <i className="fas fa-puzzle-piece text-teal-500"></i>Page Builder
-            </a>
+            </Link>
           </div>
         </div>
       </div>
