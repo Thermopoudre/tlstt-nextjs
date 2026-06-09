@@ -134,8 +134,8 @@ export default async function HomePage() {
         <div className="container-custom">
           <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <StaggerItem>
-              <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">
-                <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
+              <div className="group bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10">
+                <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center shadow-lg shadow-[#3b9fd8]/30 transition-transform duration-300 group-hover:scale-110">
                   <i className="fas fa-users text-2xl text-white"></i>
                 </div>
                 <StatCounter value={totalPlayers} suffix="+" />
@@ -144,8 +144,8 @@ export default async function HomePage() {
             </StaggerItem>
 
             <StaggerItem>
-              <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">
-                <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
+              <div className="group bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10">
+                <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center shadow-lg shadow-[#3b9fd8]/30 transition-transform duration-300 group-hover:scale-110">
                   <i className="fas fa-trophy text-2xl text-white"></i>
                 </div>
                 <StatCounter value={totalTeams} />
@@ -154,8 +154,8 @@ export default async function HomePage() {
             </StaggerItem>
 
             <StaggerItem>
-              <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">
-                <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
+              <div className="group bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10">
+                <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center shadow-lg shadow-[#3b9fd8]/30 transition-transform duration-300 group-hover:scale-110">
                   <i className="fas fa-calendar-alt text-2xl text-white"></i>
                 </div>
                 <StatCounter value={yearsOfHistory} suffix="+" />
@@ -164,8 +164,8 @@ export default async function HomePage() {
             </StaggerItem>
 
             <StaggerItem>
-              <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">
-                <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
+              <div className="group bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10">
+                <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center shadow-lg shadow-[#3b9fd8]/30 transition-transform duration-300 group-hover:scale-110">
                   <i className="fas fa-images text-2xl text-white"></i>
                 </div>
                 <StatCounter value={totalAlbums} />
@@ -180,7 +180,7 @@ export default async function HomePage() {
       <section className="py-16 bg-[#111111]">
         <div className="container-custom">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-white">
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">
               <i className="fas fa-newspaper mr-3 text-[#3b9fd8]"></i>
               Dernières Actualités
             </h2>
@@ -209,7 +209,7 @@ export default async function HomePage() {
       {/* Prochains entraînements - Fond noir */}
       <section className="py-16 bg-[#0a0a0a]">
         <div className="container-custom">
-          <h2 className="text-3xl font-bold text-white mb-8">
+          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-8">
             <i className="fas fa-calendar-check mr-3 text-[#3b9fd8]"></i>
             Prochains Entraînements
           </h2>
@@ -219,7 +219,7 @@ export default async function HomePage() {
                 const days = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
                 return (
                   <StaggerItem key={training.id}>
-                  <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 hover:border-[#3b9fd8] transition-colors">
+                  <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10">
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 bg-[#3b9fd8] rounded-full flex items-center justify-center flex-shrink-0">
                         <i className="fas fa-table-tennis text-2xl text-white"></i>
@@ -315,7 +315,7 @@ export default async function HomePage() {
       <section className="py-12 bg-[#0a0a0a]">
         <div className="container-custom">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2">
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-2">
               <i className="fas fa-handshake mr-3 text-[#3b9fd8]"></i>
               Nos Partenaires
             </h2>

@@ -18,7 +18,7 @@ export default function NewsCard({ article }: { article: any }) {
   return (
     <Link
       href={`/actualites/${article.category}/${article.id}`}
-      className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden group hover:border-[#3b9fd8] transition-all duration-300"
+      className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10"
     >
       <div className="relative h-48 bg-[#111] overflow-hidden">
         <img
