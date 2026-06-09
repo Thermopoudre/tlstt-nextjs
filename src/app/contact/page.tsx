@@ -68,7 +68,7 @@ export default async function ContactPage() {
           {/* Informations */}
           <div className="space-y-6">
             {/* Adresse */}
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 hover:border-[#3b9fd8] transition-colors">
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <i className="fas fa-map-marker-alt text-[#3b9fd8]"></i>
                 Adresse
@@ -89,7 +89,7 @@ export default async function ContactPage() {
             </div>
 
             {/* Horaires */}
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 hover:border-[#3b9fd8] transition-colors">
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <i className="fas fa-clock text-[#3b9fd8]"></i>
                 Horaires d&apos;ouverture
@@ -105,7 +105,7 @@ export default async function ContactPage() {
             </div>
 
             {/* Contact direct */}
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 hover:border-[#3b9fd8] transition-colors">
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <i className="fas fa-phone text-[#3b9fd8]"></i>
                 Contact direct
@@ -125,7 +125,7 @@ export default async function ContactPage() {
             </div>
 
             {/* Réseaux sociaux */}
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 hover:border-[#3b9fd8] transition-colors">
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <i className="fas fa-share-alt text-[#3b9fd8]"></i>
                 Suivez-nous

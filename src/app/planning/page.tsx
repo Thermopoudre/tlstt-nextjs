@@ -161,7 +161,7 @@ export default async function PlanningPage() {
 
         {/* Infos */}
         <div className="grid md:grid-cols-3 gap-6">
-          <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 hover:border-[#3b9fd8] transition-colors">
+          <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10">
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
               <i className="fas fa-map-marker-alt text-[#3b9fd8]"></i>
               Lieu
@@ -181,7 +181,7 @@ export default async function PlanningPage() {
             )}
           </div>
 
-          <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 hover:border-[#3b9fd8] transition-colors">
+          <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10">
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
               <i className="fas fa-euro-sign text-[#3b9fd8]"></i>
               Tarifs
@@ -196,7 +196,7 @@ export default async function PlanningPage() {
             </div>
           </div>
 
-          <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 hover:border-[#3b9fd8] transition-colors">
+          <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10">
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
               <i className="fas fa-lightbulb text-[#3b9fd8]"></i>
               Infos Pratiques

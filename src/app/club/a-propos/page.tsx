@@ -77,7 +77,7 @@ export default async function AProposPage() {
             { value: global.nb_equipes, label: 'Équipes engagées', icon: 'fa-trophy' },
             { value: global.nb_entraineurs, label: 'Entraîneurs diplômés', icon: 'fa-chalkboard-teacher' },
           ].map((stat, i) => (
-            <div key={i} className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center hover:border-[#3b9fd8] transition-colors">
+            <div key={i} className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10">
               <div className="w-12 h-12 bg-[#3b9fd8] rounded-full mx-auto mb-3 flex items-center justify-center">
                 <i className={`fas ${stat.icon} text-xl text-white`}></i>
               </div>
