@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+import { createReadOnlyClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 
 export default async function AdminGaleriePage() {
-  const supabase = await createClient()
+  const supabase = await createReadOnlyClient()
 
   // Récupérer tous les albums avec leur nombre de photos
   const { data: albums } = await supabase

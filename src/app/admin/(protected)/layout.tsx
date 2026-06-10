@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createReadOnlyClient } from '@/lib/supabase/server'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminHeader from '@/components/admin/AdminHeader'
 
@@ -8,7 +8,7 @@ export default async function AdminProtectedLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
+  const supabase = await createReadOnlyClient()
 
   // Vérifier l'authentification via getSession (décodage local du cookie, AUCUN appel réseau).
   // getUser() faisait un appel serveur->Supabase Auth qui echouait sous la limite de connexions

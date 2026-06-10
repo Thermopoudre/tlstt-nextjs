@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
+import { createReadOnlyClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import DashboardCharts from '@/components/admin/DashboardCharts'
 
 export default async function AdminDashboard() {
-  const supabase = await createClient()
+  const supabase = await createReadOnlyClient()
 
   const now = new Date()
   const sevenDaysAgo = new Date(now); sevenDaysAgo.setDate(now.getDate() - 6); sevenDaysAgo.setHours(0,0,0,0)

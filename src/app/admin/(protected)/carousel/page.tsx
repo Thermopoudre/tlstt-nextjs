@@ -1,10 +1,10 @@
-import { createClient } from '@/lib/supabase/server'
+import { createReadOnlyClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
 export default async function AdminCarouselPage() {
-  const supabase = await createClient()
+  const supabase = await createReadOnlyClient()
 
   // Vérifier l'authentification admin
   const { data: { user } } = await supabase.auth.getUser()
@@ -20,7 +20,7 @@ export default async function AdminCarouselPage() {
 
   async function deleteSlide(formData: FormData) {
     'use server'
-    const supabase = await createClient()
+    const supabase = await createReadOnlyClient()
     const id = formData.get('id') as string
     await supabase.from('carousel_slides').delete().eq('id', id)
     revalidatePath('/', 'layout')
@@ -28,7 +28,7 @@ export default async function AdminCarouselPage() {
 
   async function toggleActive(formData: FormData) {
     'use server'
-    const supabase = await createClient()
+    const supabase = await createReadOnlyClient()
     const id = formData.get('id') as string
     const currentStatus = formData.get('is_active') === 'true'
     await supabase.from('carousel_slides').update({ is_active: !currentStatus }).eq('id', id)

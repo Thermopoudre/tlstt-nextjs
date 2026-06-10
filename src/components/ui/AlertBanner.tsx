@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createReadOnlyClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 
 interface Alert {
@@ -40,7 +40,7 @@ export default async function AlertBanner() {
   let alerts: Alert[] = []
 
   try {
-    const supabase = await createClient()
+    const supabase = await createReadOnlyClient()
     const now = new Date().toISOString()
 
     const { data } = await supabase
