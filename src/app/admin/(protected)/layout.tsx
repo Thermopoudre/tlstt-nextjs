@@ -10,8 +10,12 @@ export default async function AdminProtectedLayout({
 }) {
   const supabase = await createClient()
 
-  // Vérifier l'authentification
-  const { data: { user } } = await supabase.auth.getUser()
+  // Vérifier l'authentification via getSession (décodage local du cookie, AUCUN appel réseau).
+  // getUser() faisait un appel serveur->Supabase Auth qui echouait sous la limite de connexions
+  // et faisait purger le cookie (deconnexions admin). La validation d'admin reste assuree par la
+  // requete sur la table admins ci-dessous (RLS + email).
+  const { data: { session } } = await supabase.auth.getSession()
+  const user = session?.user
 
   if (!user) {
     redirect('/admin/login')
