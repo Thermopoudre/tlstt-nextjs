@@ -152,12 +152,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         .single()
 
       if (existingPlayer) {
+        const newPoints = playerData.pointsOfficiel || 0
+        const newExact = playerData.pointsMensuels || playerData.pointsOfficiel || 0
         const updatePayload: Record<string, unknown> = {
-          fftt_points: playerData.pointsOfficiel,
-          fftt_points_exact: playerData.pointsMensuels || playerData.pointsOfficiel,
           last_sync: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }
+        // IMPORTANT : ne JAMAIS écraser des points valides par 0.
+        // L'endpoint live FFTT (xml_joueur) n'est pas activé pour ce compte et renvoie
+        // souvent point=0 -> sans ce garde-fou, la base perdait les vrais points (corruption).
+        if (newPoints > 0) updatePayload.fftt_points = newPoints
+        if (newExact > 0) updatePayload.fftt_points_exact = newExact
         // Ne mettre à jour la catégorie que si SmartPing retourne une valeur non-nulle
         if (playerData.echelon || playerData.categorie) {
           updatePayload.category = playerData.echelon === 'N' ? `N${playerData.place}` : playerData.categorie
