@@ -1,5 +1,6 @@
 import { createReadOnlyClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import ConfirmSubmitButton from '@/components/admin/ConfirmSubmitButton'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
@@ -120,17 +121,12 @@ export default async function AdminCarouselPage() {
                         </Link>
                         <form action={deleteSlide}>
                           <input type="hidden" name="id" value={slide.id} />
-                          <button
-                            type="submit"
+                          <ConfirmSubmitButton
+                            message="Supprimer ce slide ?"
                             className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
-                            onClick={(e) => {
-                              if (!confirm('Supprimer ce slide ?')) {
-                                e.preventDefault()
-                              }
-                            }}
                           >
                             <i className="fas fa-trash"></i>
-                          </button>
+                          </ConfirmSubmitButton>
                         </form>
                       </div>
                     </td>
