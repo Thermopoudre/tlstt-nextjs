@@ -35,6 +35,8 @@ export default function BoutiqueClient() {
   const [showCart, setShowCart] = useState(false)
   const [helloassoUrl, setHelloassoUrl] = useState<string>('')
   const [helloassoCotisationUrl, setHelloassoCotisationUrl] = useState<string>('')
+  const [orderSubmitting, setOrderSubmitting] = useState(false)
+  const [orderSuccess, setOrderSuccess] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -243,8 +245,6 @@ export default function BoutiqueClient() {
     ))
   }
 
-  const [orderSubmitting, setOrderSubmitting] = useState(false)
-  const [orderSuccess, setOrderSuccess] = useState(false)
 
   const cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
 
