@@ -46,7 +46,13 @@ export default function BoutiqueClient() {
         .select('*')
         .eq('is_active', true)
         .order('category')
-      setProducts(data || [])
+      // Supabase renvoie les colonnes numeric (price) en chaine -> on convertit en nombre,
+      // sinon product.price.toFixed() plante et casse toute la page boutique.
+      setProducts((data || []).map((p: any) => ({
+        ...p,
+        price: Number(p.price) || 0,
+        stock: Number(p.stock) || 0,
+      })))
 
       // Charger les URLs HelloAsso
       const { data: settings } = await supabase
