@@ -246,13 +246,13 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
               >
                 <i className="fas fa-external-link text-sm"></i>
               </Link>
-              <Link
+              <a
                 href="/api/auth/logout"
                 title="Déconnexion"
                 className="flex items-center justify-center w-10 h-10 rounded-lg text-white hover:bg-red-600 transition-all"
               >
                 <i className="fas fa-sign-out-alt text-sm"></i>
-              </Link>
+              </a>
             </div>
           ) : (
             <div className="flex gap-2">
@@ -264,13 +264,13 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
                 <i className="fas fa-external-link w-4"></i>
                 <span>Voir le site</span>
               </Link>
-              <Link
+              <a
                 href="/api/auth/logout"
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-white hover:bg-red-600 transition-all text-sm"
               >
                 <i className="fas fa-sign-out-alt"></i>
                 <span>Déconnexion</span>
-              </Link>
+              </a>
             </div>
           )}
         </div>
