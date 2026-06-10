@@ -197,6 +197,7 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
                     <Link
                       key={item.path}
                       href={item.path}
+                      prefetch={false}
                       onClick={() => setMobileMenuOpen(false)}
                       title={collapsed ? item.title : undefined}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm ${
