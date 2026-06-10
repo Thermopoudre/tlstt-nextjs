@@ -14,16 +14,11 @@ export async function updateSession(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            request.cookies.set(name, value)
-          )
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+        setAll() {
+          // No-op VOLONTAIRE : le middleware ne reecrit PLUS les cookies de session.
+          // La reecriture des cookies chunkes a chaque requete corrompait la session cote client
+          // (le navigateur ne pouvait plus relire la session -> purge -> deconnexion admin).
+          // Le client navigateur (singleton) gere seul le refresh/ecriture, comme l'espace membre (stable).
         },
       },
     }
