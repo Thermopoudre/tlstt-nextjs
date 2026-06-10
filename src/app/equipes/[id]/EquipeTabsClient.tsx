@@ -52,6 +52,7 @@ export default function EquipeTabsClient({
 
   const data = activePhase === 1 ? phase1 : phase2
   const { classement, rencontres, error } = data
+  const isNational = !!error && error.startsWith('NATIONALE:')
 
   const equipeInfo = classement.find((e) => (TLSTT_CLUB_NUMBER && e.numero === TLSTT_CLUB_NUMBER) || e.equipe.toUpperCase().includes('SEYNE')) || null
   const equipePosition = equipeInfo?.clt || '-'
@@ -218,7 +219,7 @@ export default function EquipeTabsClient({
               </div>
             ) : (
               <p className="text-gray-500 text-center py-8">
-                {error ? 'Impossible de charger le classement' : 'Aucun classement disponible'}
+                {isNational ? 'Classement géré au niveau fédéral — consultez le site officiel FFTT' : error ? 'Impossible de charger le classement' : 'Aucun classement disponible'}
               </p>
             )}
           </div>
@@ -234,19 +235,19 @@ export default function EquipeTabsClient({
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2 border-b border-[#333]">
                 <span className="text-gray-400">Matchs joués</span>
-                <span className="font-bold text-[#3b9fd8]">{equipeJoue}</span>
+                <span className="font-bold text-[#3b9fd8]">{isNational ? '—' : equipeJoue}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-[#333]">
                 <span className="text-gray-400">Victoires</span>
-                <span className="font-bold text-green-500">{equipeVic}</span>
+                <span className="font-bold text-green-500">{isNational ? '—' : equipeVic}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-[#333]">
                 <span className="text-gray-400">Nuls</span>
-                <span className="font-bold text-gray-300">{equipeNul}</span>
+                <span className="font-bold text-gray-300">{isNational ? '—' : equipeNul}</span>
               </div>
               <div className="flex justify-between items-center py-2">
                 <span className="text-gray-400">Défaites</span>
-                <span className="font-bold text-red-500">{equipeDef}</span>
+                <span className="font-bold text-red-500">{isNational ? '—' : equipeDef}</span>
               </div>
             </div>
           </div>

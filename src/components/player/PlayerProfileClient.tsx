@@ -84,7 +84,32 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
       const response = await fetch(`/api/player/${player.smartping_licence}`)
       const data = await response.json()
 
-      if (data.player) setPlayer(data.player)
+      if (data.player) {
+        // Si l'API live FFTT ne renvoie pas de points exploitables (endpoint non active),
+        // on conserve les points stockes (Supabase, sync cron) et on neutralise les deltas aberrants.
+        const live = data.player
+        const liveHasPoints = Number(live.pointsMensuels) > 0 || Number(live.fftt_points_exact) > 0
+        if (liveHasPoints) {
+          setPlayer(live)
+        } else {
+          setPlayer((prev) => ({
+            ...live,
+            fftt_points: prev.fftt_points,
+            fftt_points_exact: prev.fftt_points_exact,
+            fftt_points_ancien: prev.fftt_points_ancien,
+            fftt_points_initial: prev.fftt_points_initial,
+            pointsMensuels: prev.pointsMensuels || prev.fftt_points_exact || prev.fftt_points,
+            anciensPointsMensuels: prev.anciensPointsMensuels,
+            pointsInitiaux: prev.pointsInitiaux,
+            progressionMensuelle: prev.progressionMensuelle ?? 0,
+            progressionAnnuelle: prev.progressionAnnuelle ?? 0,
+            rangDepartemental: prev.rangDepartemental,
+            rangRegional: prev.rangRegional,
+            rangNational: prev.rangNational,
+            classementOfficiel: prev.classementOfficiel,
+          }))
+        }
+      }
       if (data.parties) setParties(data.parties)
       if (data.historique) setHistorique(data.historique)
       if (data.stats) setStats(data.stats)
