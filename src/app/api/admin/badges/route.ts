@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createReadOnlyClient } from '@/lib/supabase/server'
 
 async function checkAdmin() {
-  const supabase = await createClient()
+  const supabase = await createReadOnlyClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
   const { data } = await supabase.from('admins').select('id').eq('email', user.email).single()
@@ -14,7 +14,7 @@ export async function GET() {
     return NextResponse.json({ membres: 0, messages: 0 }, { status: 401 })
   }
   try {
-    const supabase = await createClient()
+    const supabase = await createReadOnlyClient()
 
     const [{ count: membres }, { count: messages }] = await Promise.all([
       supabase

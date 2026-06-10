@@ -1,9 +1,9 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createReadOnlyClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 async function checkAdmin() {
-  const supabase = await createClient()
+  const supabase = await createReadOnlyClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
   const { data } = await supabase.from('admins').select('id').eq('email', user.email).single()

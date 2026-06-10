@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createReadOnlyClient } from '@/lib/supabase/server'
 
 const SMTP_KEYS = [
   'smtp_host',
@@ -16,7 +16,7 @@ const SMTP_KEYS = [
  */
 export async function GET() {
   try {
-    const supabase = await createClient()
+    const supabase = await createReadOnlyClient()
 
     // Verify admin
     const { data: { user } } = await supabase.auth.getUser()
@@ -56,7 +56,7 @@ export async function GET() {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    const supabase = await createReadOnlyClient()
 
     // Verify admin
     const { data: { user } } = await supabase.auth.getUser()

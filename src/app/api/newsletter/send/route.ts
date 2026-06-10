@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createReadOnlyClient } from '@/lib/supabase/server'
 import nodemailer from 'nodemailer'
 import { getSmtpConfig } from '@/lib/email'
 
@@ -61,7 +61,7 @@ function buildEmailHtml(newsletter: any, unsubscribeUrl: string): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    const supabase = await createReadOnlyClient()
 
     // Verify admin
     const { data: { user } } = await supabase.auth.getUser()

@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createReadOnlyClient } from '@/lib/supabase/server'
 
 // Revalidation à la demande : rend immédiatement visibles sur le site public les
 // modifications faites dans le back-office (sinon cache ISR jusqu'à 60 min).
 export async function POST() {
   try {
-    const supabase = await createClient()
+    const supabase = await createReadOnlyClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
 
