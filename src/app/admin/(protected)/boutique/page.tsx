@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import ImageUpload from '@/components/admin/ImageUpload'
 
 interface Product {
   id: string
@@ -212,11 +213,12 @@ export default function AdminBoutiquePage() {
                   <input type="text" value={form.sizes} onChange={e => setForm({ ...form, sizes: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="S, M, L, XL" />
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Image URL</label>
-                  <input type="url" value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-                </div>
+                <ImageUpload
+                  value={form.image_url}
+                  onChange={(url) => setForm({ ...form, image_url: url })}
+                  folder="boutique"
+                  label="Image du produit"
+                />
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} className="w-5 h-5 rounded" />
                   <span className="text-sm font-semibold text-gray-700">Actif</span>
