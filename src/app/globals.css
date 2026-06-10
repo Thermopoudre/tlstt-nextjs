@@ -556,3 +556,21 @@ a, button {
     scroll-behavior: auto !important;
   }
 }
+
+/* ===================================================================== */
+/* Mode simplifié back-office (accessibilité — bénévoles seniors)         */
+/* Activé via le bouton "Mode simplifié" : ajoute .admin-simple sur <html> */
+/* ===================================================================== */
+html.admin-simple {
+  /* base 16px -> 18px : agrandit tout le texte ET les cibles (padding/hauteurs en rem) du back-office */
+  font-size: 18px;
+}
+/* Masque les entrées de menu non essentielles en mode simplifié */
+html.admin-simple .admin-extra {
+  display: none !important;
+}
+/* Cibles tactiles confortables sur les liens/boutons du back-office en mode simplifié */
+html.admin-simple .admin-root a,
+html.admin-simple .admin-root button {
+  min-height: 2.6rem;
+}

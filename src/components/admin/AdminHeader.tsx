@@ -16,6 +16,20 @@ export default function AdminHeader({ admin }: AdminHeaderProps) {
   const [notifications, setNotifications] = useState<any[]>([])
   const notifRef = useRef<HTMLDivElement>(null)
   const [refreshState, setRefreshState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+  const [simpleMode, setSimpleMode] = useState(false)
+
+  useEffect(() => {
+    const on = typeof window !== 'undefined' && localStorage.getItem('admin-simple') === '1'
+    setSimpleMode(on)
+    document.documentElement.classList.toggle('admin-simple', on)
+  }, [])
+
+  const toggleSimpleMode = () => {
+    const next = !simpleMode
+    setSimpleMode(next)
+    localStorage.setItem('admin-simple', next ? '1' : '0')
+    document.documentElement.classList.toggle('admin-simple', next)
+  }
 
   const handleRefreshSite = async () => {
     setRefreshState('loading')
@@ -180,6 +194,20 @@ export default function AdminHeader({ admin }: AdminHeaderProps) {
                 </div>
               )}
             </div>
+
+            {/* Mode simplifié (accessibilité bénévoles seniors) */}
+            <button
+              onClick={toggleSimpleMode}
+              title="Affiche un menu réduit aux fonctions essentielles, avec un texte plus grand. Idéal pour une prise en main facile."
+              className={`hidden md:flex items-center gap-2 px-3 py-2 rounded-lg text-sm border transition-colors ${
+                simpleMode
+                  ? 'border-green-300 bg-green-50 text-green-700'
+                  : 'border-gray-200 text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <i className={`fas ${simpleMode ? 'fa-toggle-on text-green-600' : 'fa-toggle-off'}`}></i>
+              <span>Mode simplifié</span>
+            </button>
 
             {/* Rafraîchir le site public (revalidation à la demande) */}
             <button

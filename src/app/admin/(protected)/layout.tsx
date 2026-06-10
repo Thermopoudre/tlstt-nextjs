@@ -34,7 +34,12 @@ export default async function AdminProtectedLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="admin-root min-h-screen bg-gray-100">
+      <script
+        dangerouslySetInnerHTML={{
+          __html: "try{if(localStorage.getItem('admin-simple')==='1'){document.documentElement.classList.add('admin-simple')}else{document.documentElement.classList.remove('admin-simple')}}catch(e){}",
+        }}
+      />
       <AdminSidebar admin={adminData} />
       <div className="lg:ml-64">
         <AdminHeader admin={adminData} />

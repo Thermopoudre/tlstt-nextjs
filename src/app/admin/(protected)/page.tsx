@@ -59,6 +59,39 @@ export default async function AdminDashboard() {
         <p className="text-gray-600 mt-2">Vue d'ensemble de votre site TLSTT</p>
       </div>
 
+      {/* Grands boutons d'actions courantes (prise en main facile) */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-5">
+        <h3 className="text-xl font-bold text-primary mb-4">
+          <i className="fas fa-wand-magic-sparkles mr-2"></i>Que voulez-vous faire&nbsp;?
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Link href="/admin/actualites/nouveau" title="Rédiger un nouvel article qui apparaîtra sur le site" className="admin-root flex items-start gap-4 p-4 rounded-xl border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors">
+            <i className="fas fa-pen-to-square text-3xl text-blue-600 mt-1"></i>
+            <span><span className="block font-bold text-gray-800">Écrire une actualité</span><span className="block text-sm text-gray-500">Publier une news sur le site</span></span>
+          </Link>
+          <Link href="/admin/actualites" title="Voir, modifier ou supprimer les actualités existantes" className="flex items-start gap-4 p-4 rounded-xl border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors">
+            <i className="fas fa-newspaper text-3xl text-blue-600 mt-1"></i>
+            <span><span className="block font-bold text-gray-800">Gérer les actualités</span><span className="block text-sm text-gray-500">Modifier ou supprimer un article</span></span>
+          </Link>
+          <Link href="/admin/galerie" title="Créer un album et ajouter des photos" className="flex items-start gap-4 p-4 rounded-xl border border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-colors">
+            <i className="fas fa-images text-3xl text-purple-600 mt-1"></i>
+            <span><span className="block font-bold text-gray-800">Ajouter des photos</span><span className="block text-sm text-gray-500">Albums et galerie du club</span></span>
+          </Link>
+          <Link href="/admin/alertes" title="Afficher un bandeau d'information en haut du site" className="flex items-start gap-4 p-4 rounded-xl border border-gray-200 hover:border-amber-400 hover:bg-amber-50 transition-colors">
+            <i className="fas fa-bell text-3xl text-amber-500 mt-1"></i>
+            <span><span className="block font-bold text-gray-800">Mettre une alerte</span><span className="block text-sm text-gray-500">Bandeau en haut du site</span></span>
+          </Link>
+          <Link href="/admin/tarifs" title="Modifier les tarifs des cotisations" className="flex items-start gap-4 p-4 rounded-xl border border-gray-200 hover:border-green-400 hover:bg-green-50 transition-colors">
+            <i className="fas fa-euro-sign text-3xl text-green-600 mt-1"></i>
+            <span><span className="block font-bold text-gray-800">Modifier les tarifs</span><span className="block text-sm text-gray-500">Cotisations et prix</span></span>
+          </Link>
+          <a href="/" target="_blank" rel="noopener noreferrer" title="Ouvrir le site public dans un nouvel onglet" className="flex items-start gap-4 p-4 rounded-xl border border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-colors">
+            <i className="fas fa-up-right-from-square text-3xl text-gray-600 mt-1"></i>
+            <span><span className="block font-bold text-gray-800">Voir le site</span><span className="block text-sm text-gray-500">Ouvrir le site public</span></span>
+          </a>
+        </div>
+      </div>
+
       {/* Cartes statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">

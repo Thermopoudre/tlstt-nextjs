@@ -9,6 +9,46 @@ interface AdminSidebarProps {
   admin: { name?: string; email?: string; role?: string }
 }
 
+// Entrées affichées en "Mode simplifié" (les plus utilisées par des bénévoles non techniques)
+const ESSENTIAL_PATHS = new Set<string>([
+  '/admin', '/admin/actualites', '/admin/alertes', '/admin/galerie', '/admin/tarifs', '/admin/membres',
+])
+// Descriptions courtes -> infobulles d'aide au survol
+const MENU_HELP: Record<string, string> = {
+  '/admin': "Vue d'ensemble du site",
+  '/admin/accueil': "Modifier la page d'accueil",
+  '/admin/parametres': 'Réglages généraux (nom, email, réseaux sociaux)',
+  '/admin/actualites': 'Écrire et gérer les actualités du club',
+  '/admin/alertes': "Bandeau d'information en haut du site",
+  '/admin/carousel': "Images défilantes de la page d'accueil",
+  '/admin/galerie': 'Albums et photos du club',
+  '/admin/newsletter': 'Envoyer une newsletter aux abonnés',
+  '/admin/membres': 'Valider et gérer les membres',
+  '/admin/joueurs': 'Liste des joueurs (données FFTT)',
+  '/admin/equipes': 'Équipes du club (données FFTT)',
+  '/admin/competitions': 'Résultats et calendrier (données FFTT)',
+  '/admin/palmares': 'Palmarès du club',
+  '/admin/planning': 'Horaires des entraînements',
+  '/admin/club': "Texte de présentation « À propos »",
+  '/admin/labels': 'Labels et distinctions FFTT',
+  '/admin/boutique': 'Produits de la boutique',
+  '/admin/marketplace': 'Annonces entre membres',
+  '/admin/commandes': 'Commandes de la boutique',
+  '/admin/helloasso': 'Liens de paiement HelloAsso',
+  '/admin/messages': 'Messages reçus via le formulaire de contact',
+  '/admin/communications': 'Communications du secrétariat aux membres',
+  '/admin/contact': 'Coordonnées affichées sur le site',
+  '/admin/email': "Configuration de l'envoi d'emails",
+  '/admin/partenaires': 'Partenaires et sponsors',
+  '/admin/tarifs': 'Tarifs des cotisations',
+  '/admin/faq': 'Questions fréquentes',
+  '/admin/stages': 'Stages et événements',
+  '/admin/pages/mentions-legales': 'Mentions légales',
+  '/admin/pages/confidentialite': 'Politique de confidentialité',
+  '/admin/pages/cookies': 'Politique cookies',
+  '/admin/admins': 'Gérer les comptes administrateurs',
+}
+
 export default function AdminSidebar({ admin }: AdminSidebarProps) {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -183,7 +223,7 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
         {/* Menu */}
         <nav className={`p-2 overflow-y-auto scrollbar-thin ${collapsed ? 'h-[calc(100vh-130px)]' : 'h-[calc(100vh-200px)]'}`}>
           {menuSections.map((section, idx) => (
-            <div key={idx} className="mb-3">
+            <div key={idx} className={`mb-3 ${section.items.some((it) => ESSENTIAL_PATHS.has(it.path)) ? '' : 'admin-extra'}`}>
               {!collapsed && (
                 <p className="text-xs font-semibold text-blue-300 uppercase tracking-wider mb-1.5 px-3">
                   {section.title}
@@ -199,12 +239,12 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
                       href={item.path}
                       prefetch={false}
                       onClick={() => setMobileMenuOpen(false)}
-                      title={collapsed ? item.title : undefined}
+                      title={collapsed ? item.title : (MENU_HELP[item.path] || item.title)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm ${
                         isActive(item.path)
                           ? 'bg-white text-primary shadow-lg font-semibold'
                           : 'text-white/90 hover:bg-blue-800/50'
-                      } ${collapsed ? 'justify-center' : ''}`}
+                      } ${collapsed ? 'justify-center' : ''} ${ESSENTIAL_PATHS.has(item.path) ? '' : 'admin-extra'}`}
                     >
                       <div className="relative flex-shrink-0">
                         <i className={`fas ${item.icon} w-5 text-center`}></i>
