@@ -33,9 +33,13 @@ export async function updateSession(request: NextRequest) {
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
 
+  // IMPORTANT : getSession() decode le cookie localement (aucun appel reseau).
+  // getUser() faisait un appel serveur->Supabase Auth qui, sous la limite de connexions,
+  // echouait par intermittence et faisait PURGER le cookie de session (deconnexions admin).
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
+  const user = session?.user ?? null
 
   const pathname = request.nextUrl.pathname
 
