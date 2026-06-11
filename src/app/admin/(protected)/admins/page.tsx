@@ -16,14 +16,19 @@ export default function AdminAdminsPage() {
   useEffect(() => { loadData() }, [])
 
   const loadData = async () => {
-    const supabase = createClient()
-    const [{ data: adminsList }, { data: { user } }] = await Promise.all([
-      supabase.from('admins').select('id, email, name, role, created_at, is_active').order('created_at'),
-      supabase.auth.getUser(),
-    ])
-    setAdmins(adminsList ?? [])
-    setCurrentUser(user)
-    setLoading(false)
+    try {
+      const supabase = createClient()
+      const [{ data: adminsList }, { data: { user } }] = await Promise.all([
+        supabase.from('admins').select('id, email, name, role, created_at, is_active').order('created_at'),
+        supabase.auth.getUser(),
+      ])
+      setAdmins(adminsList ?? [])
+      setCurrentUser(user)
+    } catch {
+      // ne jamais rester bloque sur le spinner
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleInvite = async () => {
