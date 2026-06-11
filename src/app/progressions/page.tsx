@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import ProgressionsClient from './ProgressionsClient'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd } from '@/lib/seo'
+import EnConstructionBanner from '@/components/ui/EnConstructionBanner'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 
@@ -31,7 +32,10 @@ export default function ProgressionsPage() {
         { name: 'Accueil', url: '/' },
         { name: 'Progressions', url: '/progressions' },
       ])} />
-      <ProgressionsClient />
+      <EnConstructionBanner />
+      <div className="opacity-50 grayscale pointer-events-none select-none" aria-hidden="true">
+        <ProgressionsClient />
+      </div>
     </>
   )
 }
