@@ -134,7 +134,7 @@ export default function MarketplaceClient() {
 
   // Vérifier si membre validé du club (pas visiteur simple)
   // On attend que loading soit false ET que le profil soit résolu avant de trancher
-  const isMemberValidated = profile?.role === 'admin' || profile?.role === 'member' || profile?.is_validated === true
+  const isMemberValidated = profile?.role === 'admin' || profile?.is_validated === true
 
   // Membre connecté mais non validé comme membre du club
   if (!loading && user && profile !== null && !isMemberValidated) {

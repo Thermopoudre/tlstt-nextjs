@@ -55,7 +55,6 @@ export default function ListingDetailPage() {
   // Vérification accès membre validé
   const isMemberValidated =
     profile?.role === 'admin' ||
-    profile?.role === 'member' ||
     profile?.is_validated === true
 
   useEffect(() => {

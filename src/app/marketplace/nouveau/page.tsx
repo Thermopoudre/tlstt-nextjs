@@ -34,7 +34,6 @@ export default function NouvelleAnnoncePage() {
   // Vérification accès membre validé
   const isMemberValidated =
     profile?.role === 'admin' ||
-    profile?.role === 'member' ||
     profile?.is_validated === true
 
   if (!loading && !user) {

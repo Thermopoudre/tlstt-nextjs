@@ -76,7 +76,7 @@ export default function BoutiqueClient() {
   }, [user])
 
   // Membre connecte mais pas encore valide
-  const isMemberValidated = profile?.role === 'admin' || profile?.role === 'member' || profile?.is_validated === true
+  const isMemberValidated = profile?.role === 'admin' || profile?.is_validated === true
 
   // Page pour visiteurs non connectes
   if (!loading && !user) {
