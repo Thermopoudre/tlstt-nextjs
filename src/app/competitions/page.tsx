@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import EnConstructionBanner from '@/components/ui/EnConstructionBanner'
 import Link from 'next/link'
 import CompetitionsContent from './CompetitionsContent'
 import JsonLd from '@/components/seo/JsonLd'
@@ -58,7 +59,10 @@ export default async function CompetitionsPage() {
         ]),
         ...eventsLd,
       ]} />
-      <CompetitionsContent competitions={competitions || []} />
+      <EnConstructionBanner />
+      <div className="opacity-50 grayscale pointer-events-none select-none" aria-hidden="true">
+        <CompetitionsContent competitions={competitions || []} />
+      </div>
     </>
   )
 }

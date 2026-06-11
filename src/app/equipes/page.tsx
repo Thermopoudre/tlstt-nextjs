@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import EquipesClient from './EquipesClient'
+import EnConstructionBanner from '@/components/ui/EnConstructionBanner'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd } from '@/lib/seo'
 
@@ -40,7 +41,10 @@ export default function EquipesPage() {
         { name: 'Accueil', url: '/' },
         { name: 'Équipes', url: '/equipes' },
       ])} />
-      <EquipesClient />
+      <EnConstructionBanner />
+      <div className="opacity-50 grayscale pointer-events-none select-none" aria-hidden="true">
+        <EquipesClient />
+      </div>
     </>
   )
 }
