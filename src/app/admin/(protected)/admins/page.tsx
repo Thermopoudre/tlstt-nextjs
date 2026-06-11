@@ -10,6 +10,7 @@ export default function AdminAdminsPage() {
   const [form, setForm] = useState({ email: '', name: '', role: 'admin' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [currentUser, setCurrentUser] = useState<any>(null)
 
   useEffect(() => { loadData() }, [])
@@ -29,21 +30,24 @@ export default function AdminAdminsPage() {
     if (!form.email || !form.name) return
     setSaving(true)
     setError('')
-    const supabase = createClient()
-    // Vérifie si l'email existe déjà
-    const { data: existing } = await supabase.from('admins').select('id').eq('email', form.email).single()
-    if (existing) {
-      setError('Cet email est déjà administrateur.')
-      setSaving(false)
-      return
-    }
-    const { error: err } = await supabase.from('admins').insert({ email: form.email, name: form.name, role: form.role, is_active: true })
-    if (err) {
-      setError('Erreur lors de l\'ajout : ' + err.message)
-    } else {
-      setShowForm(false)
-      setForm({ email: '', name: '', role: 'admin' })
-      loadData()
+    setSuccess('')
+    try {
+      const res = await fetch('/api/admin/admins', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, name: form.name, role: form.role }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || "Erreur lors de l'ajout.")
+      } else {
+        setShowForm(false)
+        setForm({ email: '', name: '', role: 'admin' })
+        setSuccess(data.message || 'Administrateur ajouté et invitation envoyée.')
+        loadData()
+      }
+    } catch (e: any) {
+      setError(e?.message || 'Erreur réseau.')
     }
     setSaving(false)
   }
@@ -89,11 +93,20 @@ export default function AdminAdminsPage() {
         </button>
       </div>
 
-      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 flex items-start gap-3">
-        <i className="fas fa-exclamation-triangle text-yellow-500 mt-0.5"></i>
-        <div className="text-sm text-yellow-800">
-          <strong>Note :</strong> Ajouter un email ici autorise l'accès au backoffice après connexion avec cet email via Supabase Auth.
-          La personne doit d'abord créer un compte ou être invitée dans Supabase Dashboard → Authentication → Users.
+      {success && (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-start gap-3">
+          <i className="fas fa-check-circle text-green-500 mt-0.5"></i>
+          <div className="text-sm text-green-800 flex-1">{success}</div>
+          <button onClick={() => setSuccess('')} className="text-green-500 hover:text-green-700"><i className="fas fa-times"></i></button>
+        </div>
+      )}
+
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3">
+        <i className="fas fa-circle-info text-blue-500 mt-0.5"></i>
+        <div className="text-sm text-blue-800">
+          <strong>Ajout d'un administrateur :</strong> l'email est autorisé à accéder au back-office, et un
+          <strong> email d'invitation</strong> est envoyé automatiquement à la personne pour qu'elle définisse
+          son mot de passe. Une fois fait, elle se connecte sur <strong>/admin</strong>.
         </div>
       </div>
 

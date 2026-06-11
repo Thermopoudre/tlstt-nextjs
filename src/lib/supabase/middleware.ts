@@ -39,7 +39,7 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // Protect admin routes (except login page)
-  if (pathname.startsWith('/admin') && pathname !== '/admin/login' && !user) {
+  if (pathname.startsWith('/admin') && pathname !== '/admin/login' && pathname !== '/admin/definir-mot-de-passe' && !user) {
     return NextResponse.redirect(new URL('/admin/login', request.url))
   }
 
