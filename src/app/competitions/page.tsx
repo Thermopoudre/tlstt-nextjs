@@ -8,7 +8,7 @@ import { breadcrumbJsonLd, eventJsonLd } from '@/lib/seo'
 // Revalider toutes les heures (cron sync-equipes sam+dim soir)
 export const revalidate = 3600
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 
 export const metadata: Metadata = {
   title: 'Compétitions - Résultats et Calendrier',

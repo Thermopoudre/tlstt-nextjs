@@ -215,7 +215,7 @@ export async function sendWelcomeEmail(email: string, firstName: string): Promis
             <li>Recevoir les communications du club</li>
           </ul>
           <div style="text-align: center; margin: 24px 0;">
-            <a href="https://tlstt-nextjs.vercel.app/espace-membre" style="display: inline-block; background: #3b9fd8; color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+            <a href="https://tlstt.fr/espace-membre" style="display: inline-block; background: #3b9fd8; color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; font-weight: bold;">
               Mon Espace Membre
             </a>
           </div>

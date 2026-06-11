@@ -15,7 +15,7 @@ import { StaggerContainer, StaggerItem } from '@/components/ui/StaggerContainer'
 // Page d'accueil : revalider toutes les 30 min (actualités, carousel)
 export const revalidate = 1800
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 
 export const metadata: Metadata = {
   title: 'TLSTT - Toulon La Seyne Tennis de Table | Club de Ping-Pong Var 83',

@@ -3,7 +3,7 @@ import { createClient, createReadOnlyClient } from '@/lib/supabase/server'
 import nodemailer from 'nodemailer'
 import { getSmtpConfig } from '@/lib/email'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 const BATCH_SIZE = 50 // emails par lot
 const DELAY_BETWEEN_BATCHES = 2000 // ms
 

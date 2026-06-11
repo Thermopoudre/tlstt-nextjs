@@ -10,7 +10,7 @@ import JsonLd from '@/components/seo/JsonLd'
 import { organizationJsonLd } from '@/lib/seo'
 import AlertBanner from '@/components/ui/AlertBanner'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 
 const montserrat = Montserrat({
   subsets: ['latin'],

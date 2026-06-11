@@ -7,7 +7,7 @@ import { breadcrumbJsonLd } from '@/lib/seo'
 // Revalider toutes les heures (les points FFTT changent 2x/mois, sync SmartPing quotidien)
 export const revalidate = 3600
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 
 export const metadata: Metadata = {
   title: 'Joueurs - Classement des Licenciés',

@@ -8,7 +8,7 @@ import { faqJsonLd, breadcrumbJsonLd } from '@/lib/seo'
 
 export const revalidate = 3600
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 
 export const metadata: Metadata = {
   title: 'FAQ - Questions Fréquentes | TLSTT Tennis de Table',

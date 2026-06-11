@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 const SITE_NAME = 'TLSTT - Toulon La Seyne Tennis de Table'
 const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`
 

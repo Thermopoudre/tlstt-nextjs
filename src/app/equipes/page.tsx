@@ -7,7 +7,7 @@ import { breadcrumbJsonLd } from '@/lib/seo'
 // revalidate pour que le shell HTML soit recréé régulièrement (SEO + breadcrumb frais)
 export const revalidate = 3600
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 
 export const metadata: Metadata = {
   title: 'Équipes TLSTT | Championnats par équipes — Saison 2025/2026',

@@ -277,7 +277,7 @@ export default function NewActualitePage() {
                   <p className="text-[#1a0dab] text-lg leading-tight truncate">
                     {formData.meta_title || formData.title || 'Titre de l\'article'} | TLSTT
                   </p>
-                  <p className="text-green-700 text-sm">tlstt-nextjs.vercel.app &rsaquo; actualites &rsaquo; {formData.category}</p>
+                  <p className="text-green-700 text-sm">tlstt.fr &rsaquo; actualites &rsaquo; {formData.category}</p>
                   <p className="text-gray-600 text-sm line-clamp-2">
                     {formData.meta_description || formData.excerpt || 'La description sera auto-générée depuis le contenu de l\'article...'}
                   </p>

@@ -11,7 +11,7 @@ import LikeButton from '@/components/ui/LikeButton'
 
 export const revalidate = 3600
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt-nextjs.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 
 type NewsCategory = 'tt' | 'club' | 'handi'
 
