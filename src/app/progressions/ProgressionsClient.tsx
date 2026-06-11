@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { TableSkeleton, StatCardSkeleton } from '@/components/ui/Skeleton'
 import Link from 'next/link'
@@ -29,32 +29,38 @@ interface Stats {
   nouveauxPaliers?: PlayerProgression[]
 }
 
+type Periode = 'mois' | 'saison'
+
 export default function ProgressionsClient() {
-  const [topMois, setTopMois] = useState<PlayerProgression[]>([])
-  const [topSaison, setTopSaison] = useState<PlayerProgression[]>([])
   const [tous, setTous] = useState<PlayerProgression[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [source, setSource] = useState('')
-  const [ffttStatus, setFfttStatus] = useState('')
   const [lastUpdate, setLastUpdate] = useState('')
   const [search, setSearch] = useState('')
-  const [activeTab, setActiveTab] = useState<'progression' | 'jeunes'>('progression')
+  const [periode, setPeriode] = useState<Periode>('mois')
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch('/api/progressions', { cache: 'no-store' })
         const data = await response.json()
-        setTopMois(data.topMois || [])
-        setTopSaison(data.topSaison || [])
-        setTous(data.tous || [])
+        const all: PlayerProgression[] = data.tous && data.tous.length
+          ? data.tous
+          : ([...(data.topMois || []), ...(data.topSaison || [])])
+        const seen = new Set<string>()
+        const uniq = all.filter(p => {
+          const k = p.licence || p.id
+          if (seen.has(k)) return false
+          seen.add(k)
+          return true
+        })
+        setTous(uniq)
         setStats(data.stats || null)
         setSource(data.source || '')
-        setFfttStatus(data.ffttStatus || '')
         setLastUpdate(data.lastUpdate || '')
-      } catch (err) {
-        console.error(err)
+      } catch {
+        // silencieux : la page reste utilisable meme si l'API echoue
       } finally {
         setIsLoading(false)
       }
@@ -62,150 +68,108 @@ export default function ProgressionsClient() {
     fetchData()
   }, [])
 
-  // Catégories jeunes FFTT
-  const CATEGORIES_JEUNES = ['poussin', 'benjamin', 'minime', 'cadet', 'junior', 'po', 'be', 'mi', 'ca', 'ju']
-  const isJeune = (categorie: string | null) => {
-    if (!categorie) return false
-    const cat = categorie.toLowerCase().trim()
-    return CATEGORIES_JEUNES.some(c => cat === c || cat.startsWith(c))
-  }
+  const evo = (p: PlayerProgression) => (periode === 'mois' ? p.progressionMois : p.progressionSaison)
+  const evoAutre = (p: PlayerProgression) => (periode === 'mois' ? p.progressionSaison : p.progressionMois)
 
-  const filteredPlayers = tous.filter(p =>
-    p.nom?.toLowerCase().includes(search.toLowerCase()) ||
-    p.prenom?.toLowerCase().includes(search.toLowerCase()) ||
-    p.licence?.includes(search)
+  const classement = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    const base = q
+      ? tous.filter(p =>
+          p.nom?.toLowerCase().includes(q) ||
+          p.prenom?.toLowerCase().includes(q) ||
+          p.licence?.includes(q))
+      : tous
+    return [...base].sort((a, b) => (periode === 'mois'
+      ? b.progressionMois - a.progressionMois
+      : b.progressionSaison - a.progressionSaison))
+  }, [tous, search, periode])
+
+  const podium = useMemo(
+    () => (search.trim() ? [] : classement.filter(p => (periode === 'mois' ? p.progressionMois : p.progressionSaison) > 0).slice(0, 3)),
+    [classement, search, periode]
   )
 
-  // Joueurs jeunes
-  const jeunesPlayers = tous.filter(p => isJeune(p.categorie))
-  const jeunesFiltered = jeunesPlayers.filter(p =>
-    p.nom?.toLowerCase().includes(search.toLowerCase()) ||
-    p.prenom?.toLowerCase().includes(search.toLowerCase()) ||
-    p.licence?.includes(search)
-  )
-  const jeunesTopMois = [...jeunesPlayers]
-    .filter(p => p.progressionMois > 0)
-    .sort((a, b) => b.progressionMois - a.progressionMois)
-    .slice(0, 10)
-  const jeunesTop3 = jeunesFiltered.slice(0, 3)
-
-  // Meilleure progression du mois
-  const bestProgression = topMois[0]
+  const liste = search.trim() ? classement : classement.slice(0, 30)
+  const totalPositifs = classement.filter(p => evo(p) > 0).length
+  const periodeLabel = periode === 'mois' ? 'ce mois' : 'cette saison'
+  const refLabel = periode === 'mois' ? 'du mois dernier' : 'du debut de saison (500 pts au depart)'
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
-      {/* Hero */}
       <div className="py-12 bg-[#0a0a0a] border-b border-[#222]">
         <div className="container-custom">
           <Breadcrumbs className="text-gray-500 mb-6" />
-
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-bold mb-4 text-white">
               <i className="fas fa-chart-line mr-3 text-[#3b9fd8]"></i>
               <span className="text-[#3b9fd8]">PROGRESSIONS</span> DU CLUB
             </h1>
-            <p className="text-xl text-gray-400">Suivi des progressions et classement jeunes</p>
-
-            {/* Status badge */}
-            <div className="flex justify-center mt-4">
-              <span className={`px-4 py-2 rounded-full text-sm font-medium ${
-                source === 'FFTT Live'
-                  ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                  : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-              }`}>
-                <i className={`fas fa-${source === 'FFTT Live' ? 'check-circle' : 'database'} mr-2`}></i>
-                {source || 'Chargement...'}
-              </span>
-            </div>
-
-            {lastUpdate && (
-              <p className="text-xs text-gray-600 mt-3">
-                <i className="fas fa-clock mr-1"></i>
-                Dernière mise à jour : {new Date(lastUpdate).toLocaleString('fr-FR')}
-              </p>
+            <p className="text-xl text-gray-400">Les joueurs qui progressent le plus &mdash; du mois et de la saison</p>
+            {(source || lastUpdate) && (
+              <div className="flex justify-center mt-4">
+                <span className="px-4 py-2 rounded-full text-sm font-medium bg-[#1a1a1a] border border-[#333] text-gray-400">
+                  <i className="fas fa-database mr-2 text-[#3b9fd8]"></i>
+                  {source || 'Donnees du club'}{lastUpdate ? ` — ${lastUpdate}` : ''}
+                </span>
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      <div className="container-custom py-8">
-        {/* Stats */}
+      <div className="container-custom py-10">
         {isLoading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-            {[1, 2, 3, 4, 5].map(i => <StatCardSkeleton key={i} />)}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {[1, 2, 3, 4].map(i => <StatCardSkeleton key={i} />)}
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-            <div className="bg-[#3b9fd8]/10 border border-[#3b9fd8]/30 rounded-xl p-4 text-center">
-              <div className="w-10 h-10 bg-[#3b9fd8] rounded-full mx-auto mb-2 flex items-center justify-center">
-                <i className="fas fa-users text-lg text-white"></i>
-              </div>
-              <p className="text-3xl font-bold text-[#3b9fd8]">{stats?.total || 0}</p>
-              <p className="text-sm text-gray-400">Joueurs</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-5 text-center">
+              <p className="text-3xl font-bold text-white">{stats?.total ?? tous.length}</p>
+              <p className="text-sm text-gray-500 mt-1">Joueurs</p>
             </div>
-            <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-center">
-              <div className="w-10 h-10 bg-green-500 rounded-full mx-auto mb-2 flex items-center justify-center">
-                <i className="fas fa-arrow-up text-lg text-white"></i>
-              </div>
-              <p className="text-3xl font-bold text-green-400">{stats?.enProgression || 0}</p>
-              <p className="text-sm text-gray-400">En hausse</p>
+            <div className="bg-[#1a1a1a] border border-green-500/30 rounded-xl p-5 text-center">
+              <p className="text-3xl font-bold text-green-400">{stats?.enProgression ?? 0}</p>
+              <p className="text-sm text-gray-500 mt-1">En progression</p>
             </div>
-            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-center">
-              <div className="w-10 h-10 bg-red-500 rounded-full mx-auto mb-2 flex items-center justify-center">
-                <i className="fas fa-arrow-down text-lg text-white"></i>
-              </div>
-              <p className="text-3xl font-bold text-red-400">{stats?.enRegression || 0}</p>
-              <p className="text-sm text-gray-400">En baisse</p>
+            <div className="bg-[#1a1a1a] border border-red-500/30 rounded-xl p-5 text-center">
+              <p className="text-3xl font-bold text-red-400">{stats?.enRegression ?? 0}</p>
+              <p className="text-sm text-gray-500 mt-1">En baisse</p>
             </div>
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-4 text-center">
-              <div className="w-10 h-10 bg-gray-600 rounded-full mx-auto mb-2 flex items-center justify-center">
-                <i className="fas fa-minus text-lg text-white"></i>
-              </div>
-              <p className="text-3xl font-bold text-gray-400">{stats?.stables || 0}</p>
-              <p className="text-sm text-gray-500">Stables</p>
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-5 text-center">
+              <p className="text-3xl font-bold text-gray-400">{stats?.stables ?? 0}</p>
+              <p className="text-sm text-gray-500 mt-1">Stables</p>
             </div>
-            {bestProgression && bestProgression.progressionMois > 0 && (
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 text-center">
-                <div className="w-10 h-10 bg-yellow-500 rounded-full mx-auto mb-2 flex items-center justify-center">
-                  <i className="fas fa-fire text-lg text-white"></i>
-                </div>
-                <p className="text-xl font-bold text-yellow-400">+{bestProgression.progressionMois}</p>
-                <p className="text-xs text-gray-400 truncate">{bestProgression.prenom} {bestProgression.nom}</p>
-              </div>
-            )}
           </div>
         )}
 
-        {/* Tabs */}
         <div className="flex justify-center flex-wrap gap-3 mb-6">
           <button
-            onClick={() => setActiveTab('progression')}
+            onClick={() => setPeriode('mois')}
             className={`px-6 py-3 rounded-full font-semibold transition-all ${
-              activeTab === 'progression'
-                ? 'bg-[#3b9fd8] text-white'
+              periode === 'mois'
+                ? 'bg-[#3b9fd8] text-white shadow-lg'
                 : 'bg-[#1a1a1a] border border-[#333] text-gray-400 hover:border-[#3b9fd8]'
             }`}
           >
-            <i className="fas fa-chart-line mr-2"></i>
-            Progressions
+            <i className="fas fa-fire mr-2"></i>Evolutions du mois
           </button>
           <button
-            onClick={() => setActiveTab('jeunes')}
+            onClick={() => setPeriode('saison')}
             className={`px-6 py-3 rounded-full font-semibold transition-all ${
-              activeTab === 'jeunes'
-                ? 'bg-emerald-500 text-white'
-                : 'bg-[#1a1a1a] border border-[#333] text-gray-400 hover:border-emerald-500'
+              periode === 'saison'
+                ? 'bg-[#3b9fd8] text-white shadow-lg'
+                : 'bg-[#1a1a1a] border border-[#333] text-gray-400 hover:border-[#3b9fd8]'
             }`}
           >
-            <i className="fas fa-star mr-2"></i>
-            Jeunes
-            {jeunesPlayers.length > 0 && (
-              <span className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-xs">{jeunesPlayers.length}</span>
-            )}
+            <i className="fas fa-calendar-check mr-2"></i>Evolutions de la saison
           </button>
         </div>
 
-        {/* Search */}
+        <p className="text-center text-sm text-gray-500 mb-6">
+          Calcul : points actuels &minus; points {refLabel}.
+        </p>
+
         <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-4 mb-6">
           <div className="relative">
             <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
@@ -219,305 +183,157 @@ export default function ProgressionsClient() {
           </div>
         </div>
 
-        {/* Content */}
         {isLoading ? (
           <TableSkeleton rows={10} />
-        ) : activeTab === 'progression' ? (
-          /* Progressions du mois */
-          <div className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden">
-            <div className="p-4 border-b border-[#333] flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <i className="fas fa-fire text-orange-500"></i>
-                Meilleures Progressions
-              </h2>
-              <span className="text-sm text-gray-500">Ce mois</span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-[#111] border-b border-[#333]">
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400 w-16">#</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Joueur</th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-400">Points</th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-400">Progression</th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-400 hidden md:table-cell">Saison</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#333]">
-                  {topMois.filter(p => p.progressionMois > 0).slice(0, 20).map((player, index) => (
-                    <tr key={player.id} className="hover:bg-[#222] transition-colors">
-                      <td className="px-4 py-3">
-                        <span className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-                          index === 0 ? 'bg-orange-500' :
-                          index === 1 ? 'bg-orange-400' :
-                          index === 2 ? 'bg-orange-300' :
-                          'bg-[#333]'
-                        }`}>
-                          {index + 1}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Link href={`/joueurs/${player.licence}`} className="hover:text-[#3b9fd8] transition-colors">
-                          <p className="font-semibold text-white">{player.prenom} {player.nom}</p>
-                          <p className="text-xs text-gray-500">{player.licence}</p>
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className="font-bold text-white">{Math.round(player.pointsActuels)}</span>
-                        <span className="text-gray-500 text-sm ml-1">pts</span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-500/20 text-green-400">
-                          <i className="fas fa-arrow-up mr-1"></i>
-                          +{player.progressionMois}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right hidden md:table-cell">
-                        <span className={`text-sm font-semibold ${
-                          player.progressionSaison > 0 ? 'text-green-400' :
-                          player.progressionSaison < 0 ? 'text-red-400' : 'text-gray-500'
-                        }`}>
-                          {player.progressionSaison > 0 ? '+' : ''}{player.progressionSaison}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {topMois.filter(p => p.progressionMois > 0).length === 0 && (
-              <div className="p-12 text-center">
-                <i className="fas fa-chart-line text-6xl text-gray-600 mb-4"></i>
-                <h3 className="text-xl font-bold text-white mb-2">Pas de progression ce mois</h3>
-                <p className="text-gray-500">Les données seront mises à jour prochainement</p>
-              </div>
-            )}
-          </div>
         ) : (
-          /* Onglet Jeunes */
-          <div className="space-y-8">
-            {jeunesPlayers.length === 0 ? (
-              <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-12 text-center">
-                <i className="fas fa-star text-6xl text-gray-600 mb-4"></i>
-                <h3 className="text-xl font-bold text-white mb-2">Aucun joueur jeune trouvé</h3>
-                <p className="text-gray-500">Les catégories jeunes (Poussin, Benjamin, Minime, Cadet, Junior) seront affichées ici</p>
-              </div>
-            ) : (
-              <>
-                {/* Podium Top 3 Jeunes */}
-                {!search && jeunesPlayers.length >= 1 && (
-                  <div>
-                    <h3 className="text-2xl font-bold text-center mb-8 text-white">
-                      <i className="fas fa-star mr-2 text-emerald-400"></i>
-                      <span className="text-emerald-400">TOP 3</span> JEUNES
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                      {[1, 0, 2].map((idx, order) => {
-                        const player = jeunesTop3[idx]
-                        if (!player) return null
-                        const medals = ['🥈', '🥇', '🥉']
-                        const positions = ['2e', '1er', '3e']
-                        const borderColors = ['border-gray-400', 'border-emerald-500', 'border-emerald-700']
-                        const bgColors = ['bg-gray-500/10', 'bg-emerald-500/10', 'bg-emerald-700/10']
-                        return (
-                          <div
-                            key={player.id}
-                            className={`${bgColors[order]} border-2 ${borderColors[order]} rounded-2xl p-6 text-center ${order === 1 ? 'md:-mt-6 md:scale-105' : ''}`}
+          <>
+            {podium.length >= 1 && (
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-center mb-8 text-white">
+                  <i className="fas fa-trophy mr-2 text-yellow-400"></i>
+                  <span className="text-[#3b9fd8]">TOP 3</span> &mdash; meilleures evolutions {periodeLabel}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                  {[1, 0, 2].map((idx, order) => {
+                    const player = podium[idx]
+                    if (!player) return null
+                    const medals = ['🥈', '🥇', '🥉']
+                    const positions = ['2e', '1er', '3e']
+                    const borderColors = ['border-gray-400', 'border-yellow-500', 'border-amber-700']
+                    const bgColors = ['bg-gray-500/10', 'bg-yellow-500/10', 'bg-amber-700/10']
+                    return (
+                      <div
+                        key={player.id}
+                        className={`${bgColors[order]} border-2 ${borderColors[order]} rounded-2xl p-6 text-center ${order === 1 ? 'md:-mt-6 md:scale-105' : ''}`}
+                      >
+                        <div className="text-5xl mb-3">{medals[order]}</div>
+                        <div className="text-lg font-bold text-white mb-2">{positions[order]}</div>
+                        <div className="w-16 h-16 rounded-full bg-[#3b9fd8] flex items-center justify-center text-xl font-bold text-white mx-auto mb-4">
+                          {player.prenom?.[0]}{player.nom?.[0]}
+                        </div>
+                        <h4 className="text-lg font-bold mb-1 text-white">{player.prenom} {player.nom}</h4>
+                        <p className="text-gray-500 text-sm mb-3">{player.licence}</p>
+                        <div className="text-2xl font-bold text-white">
+                          {Math.round(player.pointsActuels)} <span className="text-sm text-gray-500">pts</span>
+                        </div>
+                        <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-500/20 text-green-400">
+                          <i className="fas fa-arrow-up mr-1"></i>+{Math.round(evo(player))} {periodeLabel}
+                        </div>
+                        <div>
+                          <Link
+                            href={`/joueurs/${player.licence}`}
+                            className="inline-block mt-4 px-5 py-2 bg-[#3b9fd8] text-white rounded-full font-semibold hover:bg-[#2d8bc9] transition-all text-sm"
                           >
-                            <div className="text-5xl mb-4">{medals[order]}</div>
-                            <div className="text-xl font-bold text-white mb-2">{positions[order]}</div>
-                            <div className="w-16 h-16 rounded-full bg-emerald-500 flex items-center justify-center text-xl font-bold text-white mx-auto mb-4">
-                              {player.prenom?.[0]}{player.nom?.[0]}
-                            </div>
-                            <h4 className="text-lg font-bold mb-1 text-white">{player.prenom} {player.nom}</h4>
-                            {player.categorie && (
-                              <span className="px-2 py-0.5 bg-emerald-500/20 border border-emerald-500/40 rounded text-xs text-emerald-400 mb-2 inline-block">
-                                {player.categorie}
-                              </span>
-                            )}
-                            <p className="text-gray-500 text-sm mb-3">{player.licence}</p>
-                            <div className="text-3xl font-bold text-emerald-400">
-                              {Math.round(player.pointsActuels)} <span className="text-lg text-gray-500">pts</span>
-                            </div>
-                            {player.progressionMois !== 0 && (
-                              <div className={`mt-2 text-sm font-semibold ${player.progressionMois > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                {player.progressionMois > 0 ? '+' : ''}{player.progressionMois} ce mois
-                              </div>
-                            )}
-                            <Link
-                              href={`/joueurs/${player.licence}`}
-                              className="inline-block mt-4 px-5 py-2 bg-emerald-500 text-white rounded-full font-semibold hover:bg-emerald-600 transition-all text-sm"
-                            >
-                              <i className="fas fa-user mr-2"></i>Profil
-                            </Link>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Meilleures progressions jeunes du mois */}
-                {jeunesTopMois.length > 0 && (
-                  <div className="bg-[#1a1a1a] border border-emerald-500/30 rounded-xl overflow-hidden">
-                    <div className="p-4 border-b border-[#333] flex items-center justify-between">
-                      <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                        <i className="fas fa-fire text-emerald-500"></i>
-                        Meilleures Progressions Jeunes
-                      </h2>
-                      <span className="text-sm text-gray-500">Ce mois</span>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="bg-[#111] border-b border-[#333]">
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400 w-16">#</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Joueur</th>
-                            <th className="px-4 py-3 text-center text-sm font-semibold text-gray-400 hidden sm:table-cell">Catégorie</th>
-                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-400">Points</th>
-                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-400">Progression</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#333]">
-                          {jeunesTopMois.map((player, index) => (
-                            <tr key={player.id} className="hover:bg-[#222] transition-colors">
-                              <td className="px-4 py-3">
-                                <span className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-                                  index === 0 ? 'bg-emerald-500' :
-                                  index === 1 ? 'bg-emerald-400' :
-                                  index === 2 ? 'bg-emerald-300' :
-                                  'bg-[#333]'
-                                }`}>
-                                  {index + 1}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3">
-                                <Link href={`/joueurs/${player.licence}`} className="hover:text-emerald-400 transition-colors">
-                                  <p className="font-semibold text-white">{player.prenom} {player.nom}</p>
-                                  <p className="text-xs text-gray-500">{player.licence}</p>
-                                </Link>
-                              </td>
-                              <td className="px-4 py-3 text-center hidden sm:table-cell">
-                                <span className="px-2 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded text-xs text-emerald-400">
-                                  {player.categorie || '-'}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <span className="font-bold text-white">{Math.round(player.pointsActuels)}</span>
-                                <span className="text-gray-500 text-sm ml-1">pts</span>
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-500/20 text-green-400">
-                                  <i className="fas fa-arrow-up mr-1"></i>
-                                  +{player.progressionMois}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-                {/* Classement complet jeunes */}
-                <div className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden">
-                  <div className="p-4 border-b border-[#333] flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                      <i className="fas fa-list-ol text-emerald-500"></i>
-                      Classement Jeunes
-                    </h2>
-                    <span className="text-sm text-gray-500">{jeunesFiltered.length} joueurs</span>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="bg-[#111] border-b border-[#333]">
-                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400 w-16">Rang</th>
-                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Joueur</th>
-                          <th className="px-4 py-3 text-center text-sm font-semibold text-gray-400 hidden sm:table-cell">Catégorie</th>
-                          <th className="px-4 py-3 text-right text-sm font-semibold text-gray-400">Points</th>
-                          <th className="px-4 py-3 text-right text-sm font-semibold text-gray-400 hidden md:table-cell">Évolution</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#333]">
-                        {jeunesFiltered.map((player, index) => (
-                          <tr key={player.id} className="hover:bg-[#222] transition-colors">
-                            <td className="px-4 py-3">
-                              <span className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-                                index === 0 ? 'bg-emerald-500' :
-                                index === 1 ? 'bg-gray-400' :
-                                index === 2 ? 'bg-amber-600' :
-                                'bg-[#333]'
-                              }`}>
-                                {index + 1}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3">
-                              <Link href={`/joueurs/${player.licence}`} className="hover:text-emerald-400 transition-colors">
-                                <p className="font-semibold text-white">{player.prenom} {player.nom}</p>
-                                <p className="text-xs text-gray-500">{player.licence}</p>
-                              </Link>
-                            </td>
-                            <td className="px-4 py-3 text-center hidden sm:table-cell">
-                              <span className="px-2 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded text-xs text-emerald-400">
-                                {player.categorie || '-'}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-right">
-                              <span className="font-bold text-emerald-400 text-lg">{Math.round(player.pointsActuels)}</span>
-                            </td>
-                            <td className="px-4 py-3 text-right hidden md:table-cell">
-                              {player.progressionMois !== 0 ? (
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
-                                  player.progressionMois > 0
-                                    ? 'bg-green-500/20 text-green-400'
-                                    : 'bg-red-500/20 text-red-400'
-                                }`}>
-                                  <i className={`fas fa-arrow-${player.progressionMois > 0 ? 'up' : 'down'} mr-1`}></i>
-                                  {player.progressionMois > 0 ? '+' : ''}{player.progressionMois}
-                                </span>
-                              ) : (
-                                <span className="text-gray-500 text-xs">-</span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  {jeunesFiltered.length === 0 && (
-                    <div className="p-12 text-center">
-                      <i className="fas fa-search text-4xl text-gray-600 mb-4"></i>
-                      <p className="text-gray-500">Aucun joueur jeune trouvé pour cette recherche</p>
-                    </div>
-                  )}
+                            <i className="fas fa-user mr-2"></i>Profil
+                          </Link>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
-              </>
+              </div>
             )}
-          </div>
-        )}
 
-        {/* Nouveaux paliers */}
-        {stats?.nouveauxPaliers && stats.nouveauxPaliers.length > 0 && (
-          <div className="mt-8 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl p-6">
-            <h3 className="text-lg font-bold text-white mb-4">
-              <i className="fas fa-award text-purple-400 mr-2"></i>
-              Nouveaux Paliers Atteints
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              {stats.nouveauxPaliers.map(player => (
-                <Link
-                  key={player.id}
-                  href={`/joueurs/${player.licence}`}
-                  className="bg-[#1a1a1a] border border-purple-500/30 rounded-lg px-4 py-2 hover:border-purple-500 transition-colors"
-                >
-                  <span className="text-white font-semibold">{player.prenom} {player.nom}</span>
-                  <span className="text-purple-400 ml-2 font-bold">{player.palierAtteint} pts</span>
-                </Link>
-              ))}
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden">
+              <div className="p-4 border-b border-[#333] flex items-center justify-between">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <i className={`fas ${periode === 'mois' ? 'fa-fire text-orange-500' : 'fa-calendar-check text-[#3b9fd8]'}`}></i>
+                  Meilleures evolutions {periodeLabel}
+                </h2>
+                <span className="text-sm text-gray-500">
+                  {search.trim() ? `${liste.length} resultat(s)` : `${totalPositifs} en progression`}
+                </span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-[#111] border-b border-[#333]">
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400 w-16">#</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Joueur</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-400">Points</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-400">{periode === 'mois' ? 'Ce mois' : 'Cette saison'}</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-400 hidden md:table-cell">{periode === 'mois' ? 'Saison' : 'Ce mois'}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#333]">
+                    {liste.map((player, index) => {
+                      const e = Math.round(evo(player))
+                      const eAutre = Math.round(evoAutre(player))
+                      return (
+                        <tr key={player.id} className="hover:bg-[#222] transition-colors">
+                          <td className="px-4 py-3">
+                            <span className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                              index === 0 ? 'bg-yellow-500' :
+                              index === 1 ? 'bg-gray-400' :
+                              index === 2 ? 'bg-amber-600' :
+                              'bg-[#333]'
+                            }`}>
+                              {index + 1}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Link href={`/joueurs/${player.licence}`} className="hover:text-[#3b9fd8] transition-colors">
+                              <p className="font-semibold text-white">{player.prenom} {player.nom}</p>
+                              <p className="text-xs text-gray-500">{player.licence}</p>
+                            </Link>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <span className="font-bold text-white">{Math.round(player.pointsActuels)}</span>
+                            <span className="text-gray-500 text-sm ml-1">pts</span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold ${
+                              e > 0 ? 'bg-green-500/20 text-green-400' :
+                              e < 0 ? 'bg-red-500/20 text-red-400' : 'bg-[#333] text-gray-400'
+                            }`}>
+                              {e > 0 && <i className="fas fa-arrow-up mr-1"></i>}
+                              {e < 0 && <i className="fas fa-arrow-down mr-1"></i>}
+                              {e > 0 ? '+' : ''}{e}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right hidden md:table-cell">
+                            <span className={`text-sm font-semibold ${
+                              eAutre > 0 ? 'text-green-400' : eAutre < 0 ? 'text-red-400' : 'text-gray-500'
+                            }`}>
+                              {eAutre > 0 ? '+' : ''}{eAutre}
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              {liste.length === 0 && (
+                <div className="p-12 text-center">
+                  <i className="fas fa-chart-line text-6xl text-gray-600 mb-4"></i>
+                  <h3 className="text-xl font-bold text-white mb-2">Aucun resultat</h3>
+                  <p className="text-gray-500">Essayez une autre recherche.</p>
+                </div>
+              )}
             </div>
-          </div>
+
+            {stats?.nouveauxPaliers && stats.nouveauxPaliers.length > 0 && (
+              <div className="mt-8 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl p-6">
+                <h3 className="text-lg font-bold text-white mb-4">
+                  <i className="fas fa-award text-purple-400 mr-2"></i>
+                  Nouveaux paliers atteints
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {stats.nouveauxPaliers.map(player => (
+                    <Link
+                      key={player.id}
+                      href={`/joueurs/${player.licence}`}
+                      className="bg-[#1a1a1a] border border-purple-500/30 rounded-lg px-4 py-2 hover:border-purple-500 transition-colors"
+                    >
+                      <span className="text-white font-semibold">{player.prenom} {player.nom}</span>
+                      <span className="text-purple-400 ml-2 font-bold">{player.palierAtteint} pts</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

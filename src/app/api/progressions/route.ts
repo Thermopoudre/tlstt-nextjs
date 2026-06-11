@@ -34,6 +34,7 @@ export async function GET() {
     const { data: players, error } = await supabase
       .from('players')
       .select('*')
+      .like('admin_notes', 'TLSTT%')
       .order('fftt_points_exact', { ascending: false, nullsFirst: false })
 
     if (error) throw error
