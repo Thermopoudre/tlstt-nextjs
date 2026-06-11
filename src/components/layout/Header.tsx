@@ -67,17 +67,17 @@ export default function Header() {
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-              <div className="relative w-14 h-14 rounded-full border-2 border-[#3b9fd8]/50 overflow-hidden bg-white">
+              <div className="relative w-[68px] h-[68px] rounded-full border-2 border-[#3b9fd8]/70 overflow-hidden bg-white shadow-md">
                 <Image
                   src="/logo.jpeg"
                   alt="TLSTT"
                   fill
                   priority
-                  sizes="56px"
+                  sizes="68px"
                   className="object-contain"
                 />
               </div>
-              <span className="font-heading text-sm font-bold leading-tight hidden sm:block">
+              <span className="font-heading text-lg font-extrabold leading-tight hidden sm:block tracking-tight">
                 <span className="text-white">TLSTT</span>
               </span>
             </Link>

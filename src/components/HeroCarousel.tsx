@@ -18,7 +18,7 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % images.length)
-    }, 5000)
+    }, 6000)
     return () => clearInterval(timer)
   }, [images.length])
 
