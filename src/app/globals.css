@@ -574,3 +574,22 @@ html.admin-simple .admin-root a,
 html.admin-simple .admin-root button {
   min-height: 2.6rem;
 }
+
+/* ===================================================================== */
+/* Lisibilité des champs de formulaire "clairs" (back-office, connexion)  */
+/* Le body est en thème sombre (color:#fff). Les champs Tailwind          */
+/* border-gray-300 sont sur fond blanc -> sans cette règle, le texte saisi */
+/* heritait du blanc => blanc sur blanc (invisible). On force un texte     */
+/* foncé + fond blanc sur ces champs. Les champs sombres .input-field      */
+/* gardent leur style (classe plus specifique).                           */
+/* ===================================================================== */
+input[class*="border-gray-300"],
+textarea[class*="border-gray-300"],
+select[class*="border-gray-300"] {
+  color: #111827;
+  background-color: #ffffff;
+}
+input[class*="border-gray-300"]::placeholder,
+textarea[class*="border-gray-300"]::placeholder {
+  color: #9ca3af;
+}
