@@ -41,12 +41,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Charger le profil utilisateur
   const loadProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from('member_profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    setProfile(data)
+    try {
+      const { data } = await supabase
+        .from('member_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+      setProfile(data)
+    } catch {
+      // Pas de profil membre (ex: compte admin sans fiche membre) -> on n'echoue pas
+      setProfile(null)
+    }
   }
 
   // Rafraîchir le profil
@@ -57,14 +62,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    let mounted = true
+    // Filet de securite : ne jamais rester bloque sur l'etat "chargement"
+    // (sinon l'avatar de l'en-tete reste un rond non cliquable).
+    const safety = setTimeout(() => { if (mounted) setLoading(false) }, 4000)
+
     // Vérifier la session au chargement
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        loadProfile(session.user.id)
-      }
-      setLoading(false)
-    })
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (!mounted) return
+        setUser(session?.user ?? null)
+        if (session?.user) {
+          loadProfile(session.user.id)
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (mounted) setLoading(false) })
 
     // Écouter les changements d'auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -77,7 +90,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      clearTimeout(safety)
+      subscription.unsubscribe()
+    }
   }, [])
 
   // Connexion
