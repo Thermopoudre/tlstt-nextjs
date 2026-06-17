@@ -1,10 +1,31 @@
 import { createBrowserClient } from '@supabase/ssr'
 
-// Construit le client navigateur (type identique à l'usage d'origine).
+// Verrou d'authentification EN MÉMOIRE.
+// supabase-js utilise par défaut le verrou natif `navigator.locks` (avec un AbortSignal)
+// pour sérialiser les opérations d'auth. Sous contention (plusieurs requêtes .from() au
+// chargement, refresh de token...), ce verrou lève par intermittence
+// "AbortError: signal is aborted without reason" -> la session devient instable
+// (lectures en anonyme = listes vides, écritures refusées en silence, écrans qui tournent).
+// On le remplace par une simple file d'attente de promesses : même garantie de
+// sérialisation DANS l'onglet, mais SANS AbortSignal -> plus d'AbortError.
+let lockChain: Promise<unknown> = Promise.resolve()
+async function memoryLock<R>(_name: string, _acquireTimeout: number, fn: () => Promise<R>): Promise<R> {
+  const run = lockChain.then(() => fn(), () => fn())
+  // on neutralise le résultat/erreur pour la file, sans casser la chaîne
+  lockChain = run.then(() => undefined, () => undefined)
+  return run
+}
+
+// Construit le client navigateur (singleton ci-dessous).
 function build() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        lock: memoryLock,
+      },
+    }
   )
 }
 
