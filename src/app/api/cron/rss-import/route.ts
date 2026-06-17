@@ -4,18 +4,29 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createReadOnlyClient } from '@/lib/supabase/server'
 
 // Import quotidien d'actualités TT haut niveau (FFTT + ITTF) en catégorie "tt".
-// Cron Vercel 1x/jour. Traduit l'anglais (ITTF) en français.
+// Récupère le vrai flux fédéral (contenu riche + image) via proxy si bloqué,
+// avec repli Google News. Traduit l'anglais (ITTF) en français.
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
 
-interface Source { name: string; url: string; lang: 'fr' | 'en' }
+interface Source { name: string; url: string; fallback?: string; lang: 'fr' | 'en' }
 const SOURCES: Source[] = [
-  // Le flux propre FFTT filtre les robots (0 article cote serveur) -> on agrege l'actu TT FR via Google News (inclut largement la FFTT / Equipe de France).
-  { name: 'FFTT / France', url: 'https://news.google.com/rss/search?q=%22tennis%20de%20table%22%20(FFTT%20OR%20%22%C3%A9quipe%20de%20France%22%20OR%20championnat%20OR%20Lebrun)&hl=fr&gl=FR&ceid=FR:fr', lang: 'fr' },
-  // ITTF/WTT bloquent les robots (403 Cloudflare). On passe par Google News (international, traduit en FR).
-  { name: 'ITTF / WTT', url: 'https://news.google.com/rss/search?q=ITTF%20OR%20%22World%20Table%20Tennis%22%20OR%20%22table%20tennis%22&hl=en-US&gl=US&ceid=US:en', lang: 'en' },
+  {
+    name: 'FFTT', lang: 'fr',
+    url: 'https://www.fftt.com/feed/',
+    fallback: 'https://news.google.com/rss/search?q=%22tennis%20de%20table%22%20(FFTT%20OR%20%22%C3%A9quipe%20de%20France%22%20OR%20championnat%20OR%20Lebrun)&hl=fr&gl=FR&ceid=FR:fr',
+  },
+  {
+    name: 'ITTF / WTT', lang: 'en',
+    url: 'https://www.ittf.com/feed/',
+    fallback: 'https://news.google.com/rss/search?q=ITTF%20OR%20%22World%20Table%20Tennis%22&hl=en-US&gl=US&ceid=US:en',
+  },
 ]
 const MAX_PER_SOURCE = 8
+const UA = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+  'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+}
 
 function decodeEntities(s: string): string {
   return s
@@ -23,10 +34,9 @@ function decodeEntities(s: string): string {
     .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"').replace(/&#0?39;/g, "'").replace(/&apos;/g, "'")
     .replace(/&nbsp;/g, ' ').replace(/&#8217;/g, "'").replace(/&#8230;/g, '...')
-    .replace(/&amp;/g, '&')
+    .replace(/&#8211;/g, '-').replace(/&#8216;/g, "'").replace(/&amp;/g, '&')
 }
 function stripTags(s: string): string {
-  // double décodage (Google News double-encode), puis suppression balises + entités résiduelles
   let t = decodeEntities(decodeEntities(s))
   t = t.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/&#\d+;/g, ' ')
   return t.replace(/\s+/g, ' ').trim()
@@ -36,16 +46,35 @@ function pick(block: string, tag: string): string {
   return m ? m[1].trim() : ''
 }
 function pickImage(block: string): string | null {
-  let m = block.match(/<enclosure[^>]+url=["']([^"']+)["'][^>]*type=["']image/i)
-  if (m) return m[1]
-  m = block.match(/<media:content[^>]+url=["']([^"']+)["']/i)
+  let m = block.match(/<media:content[^>]+url=["']([^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/i)
   if (m) return m[1]
   m = block.match(/<media:thumbnail[^>]+url=["']([^"']+)["']/i)
   if (m) return m[1]
-  const desc = decodeEntities(pick(block, 'description') + pick(block, 'content:encoded'))
-  m = desc.match(/<img[^>]+src=["']([^"']+)["']/i)
+  m = block.match(/<enclosure[^>]+url=["']([^"']+)["'][^>]*type=["']image/i)
+  if (m) return m[1]
+  const html = decodeEntities(pick(block, 'content:encoded') + ' ' + pick(block, 'description'))
+  m = html.match(/<img[^>]+src=["']([^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/i)
+  if (m) return m[1]
+  m = html.match(/<img[^>]+src=["']([^"']+)["']/i)
   if (m) return m[1]
   return null
+}
+
+async function fetchXml(url: string): Promise<string> {
+  try {
+    const r = await fetch(url, { headers: UA, cache: 'no-store' })
+    if (r.ok) {
+      const t = await r.text()
+      if (/<item[\s>]/i.test(t)) return t
+    }
+  } catch { /* on tente le proxy */ }
+  // Proxy (contourne les blocages d'IP datacenter type Cloudflare)
+  try {
+    const p = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url)
+    const r = await fetch(p, { headers: UA, cache: 'no-store' })
+    if (r.ok) return await r.text()
+  } catch { /* ignore */ }
+  return ''
 }
 
 async function translateToFr(text: string): Promise<string> {
@@ -60,13 +89,9 @@ async function translateToFr(text: string): Promise<string> {
         headers: { 'Authorization': 'DeepL-Auth-Key ' + deepl, 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ text: clean, target_lang: 'FR', source_lang: 'EN' }),
       })
-      if (res.ok) {
-        const j = await res.json()
-        return j?.translations?.[0]?.text || clean
-      }
+      if (res.ok) { const j = await res.json(); return j?.translations?.[0]?.text || clean }
     }
-    // Repli gratuit sans clé (Google translate public)
-    const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=' + encodeURIComponent(clean)
+    const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=' + encodeURIComponent(clean.slice(0, 1500))
     const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } })
     if (r.ok) {
       const data = await r.json()
@@ -81,7 +106,6 @@ async function translateToFr(text: string): Promise<string> {
 async function isAuthorized(req: NextRequest): Promise<boolean> {
   const secret = process.env.CRON_SECRET
   if (secret && req.headers.get('authorization') === 'Bearer ' + secret) return true
-  // Sinon : session admin (permet de déclencher manuellement depuis le back-office)
   try {
     const sb = await createReadOnlyClient()
     const { data: { user } } = await sb.auth.getUser()
@@ -101,38 +125,42 @@ export async function GET(req: NextRequest) {
 
   for (const src of SOURCES) {
     let added = 0
-    let foundCount = 0
+    let usedFallback = false
     try {
-      const res = await fetch(src.url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36', 'Accept': 'application/rss+xml, application/xml, text/xml, */*' },
-        cache: 'no-store',
-      })
-      const xml = await res.text()
-      if (!res.ok) { detail[src.name] = 'http_' + res.status + ' len=' + xml.length; continue }
-      const allBlocks = xml.match(/<item[\s\S]*?<\/item>/gi) || []
-      foundCount = allBlocks.length
-      const blocks = allBlocks.slice(0, MAX_PER_SOURCE)
-      for (const block of blocks) {
+      let xml = await fetchXml(src.url)
+      let blocks = xml.match(/<item[\s\S]*?<\/item>/gi) || []
+      if (blocks.length === 0 && src.fallback) {
+        usedFallback = true
+        xml = await fetchXml(src.fallback)
+        blocks = xml.match(/<item[\s\S]*?<\/item>/gi) || []
+      }
+      for (const block of blocks.slice(0, MAX_PER_SOURCE)) {
         const link = stripTags(pick(block, 'link'))
         if (!link) continue
         const { data: existing } = await supabase.from('news').select('id').eq('source_url', link).maybeSingle()
         if (existing) continue
         let title = stripTags(pick(block, 'title'))
-        let excerpt = stripTags(pick(block, 'description')).slice(0, 400)
+        // Résumé : description, sinon début du contenu complet
+        let excerpt = stripTags(pick(block, 'description'))
+        if (excerpt.length < 120) {
+          const full = stripTags(pick(block, 'content:encoded'))
+          if (full.length > excerpt.length) excerpt = full
+        }
+        excerpt = excerpt.slice(0, 600).trim()
         if (!title) continue
         if (src.lang !== 'fr') {
           title = await translateToFr(title)
-          excerpt = await translateToFr(excerpt)
+          if (excerpt) excerpt = await translateToFr(excerpt)
         }
         const image = pickImage(block)
         const pub = pick(block, 'pubDate')
         const dt = pub ? new Date(pub) : new Date()
         const publishedAt = isNaN(dt.getTime()) ? new Date().toISOString() : dt.toISOString()
-        const content = '<p>' + excerpt + '</p><p><a href="' + link + '" target="_blank" rel="noopener noreferrer">Lire l&apos;article complet sur ' + src.name + '</a></p>'
+        const content = '<p>' + excerpt + '</p><p><a href="' + link + '" target="_blank" rel="noopener noreferrer">Lire l&apos;article complet sur ' + src.name + ' &rarr;</a></p>'
         const { error } = await supabase.from('news').insert({
           category: 'tt',
           title: title.slice(0, 250),
-          excerpt,
+          excerpt: excerpt.slice(0, 400),
           content,
           image_url: image,
           status: 'published',
@@ -143,8 +171,10 @@ export async function GET(req: NextRequest) {
         })
         if (!error) { added++; total++ }
       }
-    } catch (e) { detail[src.name] = 'err:' + (e instanceof Error ? e.message : String(e)); continue }
-    detail[src.name] = 'ok found=' + foundCount + ' added=' + added
+      detail[src.name] = 'ok' + (usedFallback ? '(fallback)' : '') + ' added=' + added
+    } catch (e) {
+      detail[src.name] = 'err:' + (e instanceof Error ? e.message : String(e))
+    }
   }
 
   if (total > 0) { try { revalidatePath('/actualites', 'layout') } catch { /* noop */ } }
