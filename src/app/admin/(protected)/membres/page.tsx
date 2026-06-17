@@ -74,6 +74,15 @@ export default function AdminMembresPage() {
     else { showMsg('success', 'Utilisateur promu administrateur'); fetchMembers() }
   }
 
+  const promoteToMember = async (id: string) => {
+    const { error } = await supabase.from('member_profiles').update({
+      role: 'member',
+      updated_at: new Date().toISOString()
+    }).eq('id', id)
+    if (error) showMsg('error', 'Erreur lors du changement de role')
+    else { showMsg('success', 'Passe en membre (en attente de validation)'); fetchMembers() }
+  }
+
   const filteredMembers = members.filter(m => {
     if (filter === 'pending') return m.role === 'member' && !m.is_validated
     if (filter === 'validated') return m.is_validated
@@ -240,6 +249,20 @@ export default function AdminMembresPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex gap-1 justify-end">
+                      {member.role === 'visitor' && (
+                        <>
+                          <button onClick={() => promoteToMember(member.id)}
+                            className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-200"
+                            title="Passer en membre">
+                            <i className="fas fa-user-plus mr-1"></i>Passer en membre
+                          </button>
+                          <button onClick={() => validateMember(member.id)}
+                            className="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-semibold hover:bg-green-200"
+                            title="Approuver comme membre">
+                            <i className="fas fa-check mr-1"></i>Approuver
+                          </button>
+                        </>
+                      )}
                       {member.role === 'member' && !member.is_validated && (
                         <>
                           <button onClick={() => validateMember(member.id)}
