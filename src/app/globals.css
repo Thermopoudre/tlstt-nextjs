@@ -517,6 +517,31 @@ textarea.input-field {
   color: #3b9fd8;
 }
 
+/* Contenu riche (prose / prose-invert) en mode clair : les classes prose-*
+   genèrent leurs propres selecteurs, non atteints par les surcharges
+   .text-white/.text-gray-* -> sans ça, texte clair sur fond blanc. */
+.light-mode .prose,
+.light-mode .prose p,
+.light-mode .prose li,
+.light-mode .prose ul,
+.light-mode .prose ol,
+.light-mode .prose blockquote,
+.light-mode .prose td,
+.light-mode .prose th {
+  color: #1f2937 !important;
+}
+.light-mode .prose strong,
+.light-mode .prose b,
+.light-mode .prose h1,
+.light-mode .prose h2,
+.light-mode .prose h3,
+.light-mode .prose h4,
+.light-mode .prose h5,
+.light-mode .prose h6 {
+  color: #0f172a !important;
+}
+.light-mode .prose a { color: #2275ab !important; }
+
 /* Print styles */
 @media print {
   .no-print {
