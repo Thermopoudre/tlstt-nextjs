@@ -79,15 +79,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => {})
       .finally(() => { if (mounted) setLoading(false) })
 
-    // Écouter les changements d'auth
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Écouter les changements d'auth.
+    // IMPORTANT : le callback NE doit PAS être async ni appeler d'autres méthodes
+    // Supabase de façon synchrone -> sinon deadlock du verrou d'auth (navigator.locks)
+    // qui se manifeste par "AbortError: signal is aborted without reason" et fait
+    // perdre la session (lectures en anonyme, sauvegardes qui échouent).
+    // On met l'état à jour de façon synchrone et on diffère le chargement du profil.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
+      setLoading(false)
       if (session?.user) {
-        await loadProfile(session.user.id)
+        const uid = session.user.id
+        setTimeout(() => { loadProfile(uid) }, 0)
       } else {
         setProfile(null)
       }
-      setLoading(false)
     })
 
     return () => {
