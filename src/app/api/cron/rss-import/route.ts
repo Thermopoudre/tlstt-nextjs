@@ -4,15 +4,17 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createReadOnlyClient } from '@/lib/supabase/server'
 
 // Import quotidien d'actualités TT en catégorie "tt".
-// - FFTT/France : vrai flux FFTT via proxy rss2json -> images + contenu + liens directs fftt.com
+// - FFTT/France : Google News FR (actu TT française : FFTT, équipe de France, Lebrun...)
 // - International (ITTF/WTT) : Google News (anglais) traduit en français
+// (Les flux propres FFTT/ITTF bloquent les serveurs -> Google News est la source fiable.
+//  Pas d'image : Google News masque les liens directs des articles.)
 // Cron Vercel 1x/jour.
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
 
-interface Source { name: string; via: 'rss2json' | 'gnews'; url: string; lang: 'fr' | 'en' }
+interface Source { name: string; via: 'gnews'; url: string; lang: 'fr' | 'en' }
 const SOURCES: Source[] = [
-  { name: 'FFTT', via: 'rss2json', url: 'https://www.fftt.com/feed/', lang: 'fr' },
+  { name: 'FFTT / France', via: 'gnews', url: 'https://news.google.com/rss/search?q=%22tennis%20de%20table%22%20(FFTT%20OR%20%22%C3%A9quipe%20de%20France%22%20OR%20championnat%20OR%20Lebrun)&hl=fr&gl=FR&ceid=FR:fr', lang: 'fr' },
   { name: 'ITTF / WTT', via: 'gnews', url: 'https://news.google.com/rss/search?q=ITTF%20OR%20%22World%20Table%20Tennis%22%20table%20tennis&hl=en-US&gl=US&ceid=US:en', lang: 'en' },
 ]
 const MAX_PER_SOURCE = 8
@@ -37,35 +39,12 @@ function pick(block: string, tag: string): string {
   const m = block.match(new RegExp('<' + tag + '[^>]*>([\\s\\S]*?)</' + tag + '>', 'i'))
   return m ? m[1].trim() : ''
 }
-function firstImg(html: string): string | null {
-  const m = decodeEntities(html || '').match(/<img[^>]+src=["']([^"']+)["']/i)
-  return m ? m[1] : null
-}
-
 async function fetchWithTimeout(url: string, ms: number, accept: string): Promise<Response | null> {
   const ctrl = new AbortController()
   const t = setTimeout(() => ctrl.abort(), ms)
   try {
     return await fetch(url, { headers: { 'User-Agent': UA, 'Accept': accept }, redirect: 'follow', cache: 'no-store', signal: ctrl.signal })
   } catch { return null } finally { clearTimeout(t) }
-}
-
-// Récupère un vrai flux (FFTT) via rss2json -> items avec image + contenu + lien direct
-async function viaRss2Json(feedUrl: string): Promise<Item[]> {
-  const api = 'https://api.rss2json.com/v1/api.json?count=' + MAX_PER_SOURCE + '&rss_url=' + encodeURIComponent(feedUrl)
-  const r = await fetchWithTimeout(api, 12000, 'application/json')
-  if (!r || !r.ok) return []
-  const j = await r.json()
-  if (j?.status !== 'ok' || !Array.isArray(j.items)) return []
-  return j.items.slice(0, MAX_PER_SOURCE).map((it: Record<string, unknown>): Item => ({
-    title: stripTags(String(it.title || '')),
-    link: String(it.link || ''),
-    pubDate: String(it.pubDate || ''),
-    image: (it.thumbnail ? String(it.thumbnail) : '') ||
-           (it.enclosure && (it.enclosure as Record<string, unknown>).link ? String((it.enclosure as Record<string, unknown>).link) : '') ||
-           firstImg(String(it.content || it.description || '')) || null,
-    desc: stripTags(String(it.description || it.content || '')).slice(0, 600),
-  }))
 }
 
 // Google News (XML)
@@ -130,7 +109,7 @@ export async function GET(req: NextRequest) {
   for (const src of SOURCES) {
     let added = 0, withImg = 0
     try {
-      const items = src.via === 'rss2json' ? await viaRss2Json(src.url) : await viaGnews(src.url)
+      const items = await viaGnews(src.url)
       for (const it of items) {
         if (!it.link) continue
         const { data: existing } = await supabase.from('news').select('id').eq('source_url', it.link).maybeSingle()
