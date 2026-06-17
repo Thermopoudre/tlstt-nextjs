@@ -91,19 +91,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
   const supabase = createAdminClient()
-  const detail: Record<string, number> = {}
+  const detail: Record<string, string> = {}
   let total = 0
 
   for (const src of SOURCES) {
     let added = 0
+    let foundCount = 0
     try {
       const res = await fetch(src.url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TLSTT-bot/1.0)' },
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36', 'Accept': 'application/rss+xml, application/xml, text/xml, */*' },
         cache: 'no-store',
       })
-      if (!res.ok) { detail[src.name] = -1; continue }
       const xml = await res.text()
-      const blocks = (xml.match(/<item[\s\S]*?<\/item>/gi) || []).slice(0, MAX_PER_SOURCE)
+      if (!res.ok) { detail[src.name] = 'http_' + res.status + ' len=' + xml.length; continue }
+      const allBlocks = xml.match(/<item[\s\S]*?<\/item>/gi) || []
+      foundCount = allBlocks.length
+      const blocks = allBlocks.slice(0, MAX_PER_SOURCE)
       for (const block of blocks) {
         const link = stripTags(pick(block, 'link'))
         if (!link) continue
@@ -135,8 +138,8 @@ export async function GET(req: NextRequest) {
         })
         if (!error) { added++; total++ }
       }
-    } catch { detail[src.name] = -1; continue }
-    detail[src.name] = added
+    } catch (e) { detail[src.name] = 'err:' + (e instanceof Error ? e.message : String(e)); continue }
+    detail[src.name] = 'ok found=' + foundCount + ' added=' + added
   }
 
   if (total > 0) { try { revalidatePath('/actualites', 'layout') } catch { /* noop */ } }
