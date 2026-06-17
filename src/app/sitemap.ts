@@ -152,7 +152,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: cmsPages } = await supabase
     .from('pages')
     .select('slug, updated_at')
-    .eq('is_published', true)
 
   const cmsPageEntries: MetadataRoute.Sitemap = (cmsPages || []).map((p) => ({
     url: `${SITE_URL}/page/${p.slug}`,

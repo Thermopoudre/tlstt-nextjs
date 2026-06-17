@@ -24,7 +24,7 @@ export async function GET() {
       supabase
         .from('contact_messages')
         .select('*', { count: 'exact', head: true })
-        .eq('is_read', false),
+        .eq('status', 'new'),
     ])
 
     return NextResponse.json({ membres: membres ?? 0, messages: messages ?? 0 })
