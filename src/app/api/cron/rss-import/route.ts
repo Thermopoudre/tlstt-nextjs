@@ -49,14 +49,29 @@ async function fetchWithTimeout(url: string, ms: number, accept: string): Promis
   } catch { return null } finally { clearTimeout(t) }
 }
 
-async function enrich(link: string): Promise<{ image: string | null; desc: string; finalUrl: string }> {
+interface Enriched { image: string | null; desc: string; finalUrl: string; title: string }
+async function enrich(link: string): Promise<Enriched> {
+  // 1) microlink : rend le JS, résout la redirection Google News -> vrai article, renvoie og:image/description/titre
+  try {
+    const api = 'https://api.microlink.io/?url=' + encodeURIComponent(link) + '&audio=false&video=false&iframe=false&meta=true'
+    const r = await fetchWithTimeout(api, 13000, 'application/json')
+    if (r && r.ok) {
+      const j = await r.json()
+      if (j?.status === 'success' && j.data) {
+        const img = j.data.image && j.data.image.url ? j.data.image.url : (j.data.logo && j.data.logo.url ? j.data.logo.url : null)
+        return { image: img, desc: j.data.description || '', finalUrl: j.data.url || link, title: j.data.title || '' }
+      }
+    }
+  } catch { /* repli */ }
+  // 2) repli : fetch direct + balises og
   const res = await fetchWithTimeout(link, 7000, 'text/html,application/xhtml+xml,*/*')
-  if (!res || !res.ok) return { image: null, desc: '', finalUrl: link }
+  if (!res || !res.ok) return { image: null, desc: '', finalUrl: link, title: '' }
   const finalUrl = res.url || link
   const html = (await res.text()).slice(0, 200000)
   const image = metaProp(html, 'og:image') || metaProp(html, 'twitter:image') || null
   const desc = metaProp(html, 'og:description') || metaProp(html, 'description') || ''
-  return { image, desc, finalUrl }
+  const title = metaProp(html, 'og:title') || ''
+  return { image, desc, finalUrl, title }
 }
 
 async function translateToFr(text: string): Promise<string> {
@@ -127,7 +142,7 @@ export async function GET(req: NextRequest) {
         const dash = rawTitle.lastIndexOf(' - ')
         if (dash > 20) { publisher = rawTitle.slice(dash + 3).trim(); rawTitle = rawTitle.slice(0, dash).trim() }
 
-        let title = rawTitle
+        let title = (it.title && it.title.length > 10) ? it.title : rawTitle
         let excerpt = (it.desc || stripTags(pick(it.block, 'description'))).slice(0, 600)
         if (src.lang !== 'fr') {
           title = await translateToFr(title)
