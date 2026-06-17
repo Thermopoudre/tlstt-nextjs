@@ -114,6 +114,27 @@ export async function GET(req: NextRequest) {
   if (!(await isAuthorized(req))) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
+  // --- Mode sonde : ?probe=1 -> teste la joignabilité de flux candidats (pas d'écriture) ---
+  if (req.nextUrl.searchParams.get('probe')) {
+    const cands = [
+      'https://www.fftt.com/feed/',
+      'https://www.fftt.com/actualites/feed/',
+      'https://www.ittf.com/feed/',
+      'https://www.pingpong-news.com/feed/',
+    ]
+    const out: Record<string, string> = {}
+    for (const u of cands) {
+      try {
+        const r = await fetchWithTimeout(u, 9000, 'application/rss+xml, application/xml, */*')
+        if (!r) { out[u] = 'no-response'; continue }
+        const body = await r.text()
+        const items = (body.match(/<item[\s\S]*?<\/item>/gi) || []).length
+        const hasImg = /<media:content|<enclosure|content:encoded/i.test(body)
+        out[u] = 'http_' + r.status + ' ct=' + (r.headers.get('content-type') || '?') + ' len=' + body.length + ' items=' + items + ' rich=' + hasImg
+      } catch (e) { out[u] = 'err:' + (e instanceof Error ? e.message : String(e)) }
+    }
+    return NextResponse.json({ probe: true, out })
+  }
   const supabase = createAdminClient()
   const detail: Record<string, string> = {}
   let total = 0
