@@ -16,6 +16,10 @@
     {
       "path": "/api/sync-joueurs",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/rss-import",
+      "schedule": "0 6 * * *"
     }
   ]
 }
