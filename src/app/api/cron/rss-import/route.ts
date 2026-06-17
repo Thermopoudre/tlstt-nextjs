@@ -3,19 +3,22 @@ import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createReadOnlyClient } from '@/lib/supabase/server'
 
-// Import quotidien d'actualités TT (FFTT/France + ITTF/WTT) en catégorie "tt".
-// Enrichit chaque article : image (og:image) + description (og:description) depuis
-// la page réelle, traduit l'anglais en français. Cron Vercel 1x/jour.
+// Import quotidien d'actualités TT en catégorie "tt".
+// - FFTT/France : vrai flux FFTT via proxy rss2json -> images + contenu + liens directs fftt.com
+// - International (ITTF/WTT) : Google News (anglais) traduit en français
+// Cron Vercel 1x/jour.
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
 
-interface Source { name: string; url: string; lang: 'fr' | 'en' }
+interface Source { name: string; via: 'rss2json' | 'gnews'; url: string; lang: 'fr' | 'en' }
 const SOURCES: Source[] = [
-  { name: 'FFTT / France', url: 'https://news.google.com/rss/search?q=%22tennis%20de%20table%22%20(FFTT%20OR%20%22%C3%A9quipe%20de%20France%22%20OR%20championnat%20OR%20Lebrun)&hl=fr&gl=FR&ceid=FR:fr', lang: 'fr' },
-  { name: 'ITTF / WTT', url: 'https://news.google.com/rss/search?q=ITTF%20OR%20%22World%20Table%20Tennis%22%20table%20tennis&hl=en-US&gl=US&ceid=US:en', lang: 'en' },
+  { name: 'FFTT', via: 'rss2json', url: 'https://www.fftt.com/feed/', lang: 'fr' },
+  { name: 'ITTF / WTT', via: 'gnews', url: 'https://news.google.com/rss/search?q=ITTF%20OR%20%22World%20Table%20Tennis%22%20table%20tennis&hl=en-US&gl=US&ceid=US:en', lang: 'en' },
 ]
-const MAX_PER_SOURCE = 6
+const MAX_PER_SOURCE = 8
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
+
+interface Item { title: string; link: string; pubDate: string; image: string | null; desc: string }
 
 function decodeEntities(s: string): string {
   return s
@@ -23,8 +26,7 @@ function decodeEntities(s: string): string {
     .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"').replace(/&#0?39;/g, "'").replace(/&apos;/g, "'")
     .replace(/&nbsp;/g, ' ').replace(/&#8217;/g, "'").replace(/&#8230;/g, '...')
-    .replace(/&#8211;/g, '-').replace(/&#8212;/g, '-')
-    .replace(/&amp;/g, '&')
+    .replace(/&#8211;/g, '-').replace(/&#8212;/g, '-').replace(/&amp;/g, '&')
 }
 function stripTags(s: string): string {
   let t = decodeEntities(decodeEntities(s || ''))
@@ -35,10 +37,9 @@ function pick(block: string, tag: string): string {
   const m = block.match(new RegExp('<' + tag + '[^>]*>([\\s\\S]*?)</' + tag + '>', 'i'))
   return m ? m[1].trim() : ''
 }
-function metaProp(html: string, prop: string): string {
-  let m = html.match(new RegExp('<meta[^>]+(?:property|name)=["\']' + prop + '["\'][^>]+content=["\']([^"\']+)["\']', 'i'))
-  if (!m) m = html.match(new RegExp('<meta[^>]+content=["\']([^"\']+)["\'][^>]+(?:property|name)=["\']' + prop + '["\']', 'i'))
-  return m ? decodeEntities(m[1]).trim() : ''
+function firstImg(html: string): string | null {
+  const m = decodeEntities(html || '').match(/<img[^>]+src=["']([^"']+)["']/i)
+  return m ? m[1] : null
 }
 
 async function fetchWithTimeout(url: string, ms: number, accept: string): Promise<Response | null> {
@@ -49,29 +50,37 @@ async function fetchWithTimeout(url: string, ms: number, accept: string): Promis
   } catch { return null } finally { clearTimeout(t) }
 }
 
-interface Enriched { image: string | null; desc: string; finalUrl: string; title: string }
-async function enrich(link: string): Promise<Enriched> {
-  // 1) microlink : rend le JS, résout la redirection Google News -> vrai article, renvoie og:image/description/titre
-  try {
-    const api = 'https://api.microlink.io/?url=' + encodeURIComponent(link) + '&audio=false&video=false&iframe=false&meta=true'
-    const r = await fetchWithTimeout(api, 13000, 'application/json')
-    if (r && r.ok) {
-      const j = await r.json()
-      if (j?.status === 'success' && j.data) {
-        const img = j.data.image && j.data.image.url ? j.data.image.url : (j.data.logo && j.data.logo.url ? j.data.logo.url : null)
-        return { image: img, desc: j.data.description || '', finalUrl: j.data.url || link, title: j.data.title || '' }
-      }
-    }
-  } catch { /* repli */ }
-  // 2) repli : fetch direct + balises og
-  const res = await fetchWithTimeout(link, 7000, 'text/html,application/xhtml+xml,*/*')
-  if (!res || !res.ok) return { image: null, desc: '', finalUrl: link, title: '' }
-  const finalUrl = res.url || link
-  const html = (await res.text()).slice(0, 200000)
-  const image = metaProp(html, 'og:image') || metaProp(html, 'twitter:image') || null
-  const desc = metaProp(html, 'og:description') || metaProp(html, 'description') || ''
-  const title = metaProp(html, 'og:title') || ''
-  return { image, desc, finalUrl, title }
+// Récupère un vrai flux (FFTT) via rss2json -> items avec image + contenu + lien direct
+async function viaRss2Json(feedUrl: string): Promise<Item[]> {
+  const api = 'https://api.rss2json.com/v1/api.json?count=' + MAX_PER_SOURCE + '&rss_url=' + encodeURIComponent(feedUrl)
+  const r = await fetchWithTimeout(api, 12000, 'application/json')
+  if (!r || !r.ok) return []
+  const j = await r.json()
+  if (j?.status !== 'ok' || !Array.isArray(j.items)) return []
+  return j.items.slice(0, MAX_PER_SOURCE).map((it: Record<string, unknown>): Item => ({
+    title: stripTags(String(it.title || '')),
+    link: String(it.link || ''),
+    pubDate: String(it.pubDate || ''),
+    image: (it.thumbnail ? String(it.thumbnail) : '') ||
+           (it.enclosure && (it.enclosure as Record<string, unknown>).link ? String((it.enclosure as Record<string, unknown>).link) : '') ||
+           firstImg(String(it.content || it.description || '')) || null,
+    desc: stripTags(String(it.description || it.content || '')).slice(0, 600),
+  }))
+}
+
+// Google News (XML)
+async function viaGnews(feedUrl: string): Promise<Item[]> {
+  const r = await fetchWithTimeout(feedUrl, 10000, 'application/rss+xml, application/xml, */*')
+  if (!r || !r.ok) return []
+  const xml = await r.text()
+  const blocks = (xml.match(/<item[\s\S]*?<\/item>/gi) || []).slice(0, MAX_PER_SOURCE)
+  return blocks.map((b): Item => ({
+    title: stripTags(pick(b, 'title')),
+    link: stripTags(pick(b, 'link')),
+    pubDate: pick(b, 'pubDate'),
+    image: null,
+    desc: stripTags(pick(b, 'description')).slice(0, 600),
+  }))
 }
 
 async function translateToFr(text: string): Promise<string> {
@@ -94,7 +103,7 @@ async function translateToFr(text: string): Promise<string> {
       const data = await r.json()
       if (Array.isArray(data) && Array.isArray(data[0])) return data[0].map((seg: string[]) => (seg && seg[0]) || '').join('')
     }
-  } catch { /* repli : texte original */ }
+  } catch { /* repli */ }
   return clean
 }
 
@@ -114,72 +123,38 @@ export async function GET(req: NextRequest) {
   if (!(await isAuthorized(req))) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
-  // --- Mode sonde : ?probe=1 -> teste la joignabilité de flux candidats (pas d'écriture) ---
-  if (req.nextUrl.searchParams.get('probe')) {
-    const cands = [
-      'https://www.fftt.com/feed/',
-      'https://www.fftt.com/actualites/feed/',
-      'https://www.ittf.com/feed/',
-      'https://www.pingpong-news.com/feed/',
-    ]
-    const out: Record<string, string> = {}
-    for (const u of cands) {
-      try {
-        const r = await fetchWithTimeout(u, 9000, 'application/rss+xml, application/xml, */*')
-        if (!r) { out[u] = 'no-response'; continue }
-        const body = await r.text()
-        const items = (body.match(/<item[\s\S]*?<\/item>/gi) || []).length
-        const hasImg = /<media:content|<enclosure|content:encoded/i.test(body)
-        out[u] = 'http_' + r.status + ' ct=' + (r.headers.get('content-type') || '?') + ' len=' + body.length + ' items=' + items + ' rich=' + hasImg
-      } catch (e) { out[u] = 'err:' + (e instanceof Error ? e.message : String(e)) }
-    }
-    return NextResponse.json({ probe: true, out })
-  }
   const supabase = createAdminClient()
   const detail: Record<string, string> = {}
   let total = 0
 
   for (const src of SOURCES) {
-    let added = 0, withImg = 0, withDesc = 0
+    let added = 0, withImg = 0
     try {
-      const res = await fetchWithTimeout(src.url, 10000, 'application/rss+xml, application/xml, text/xml, */*')
-      const xml = res ? await res.text() : ''
-      if (!res || !res.ok) { detail[src.name] = 'feed_ko'; continue }
-      const blocks = (xml.match(/<item[\s\S]*?<\/item>/gi) || []).slice(0, MAX_PER_SOURCE)
-
-      const enriched = await Promise.all(blocks.map(async (block) => {
-        const link = stripTags(pick(block, 'link'))
-        const e = link ? await enrich(link) : { image: null, desc: '', finalUrl: link }
-        return { block, link, ...e }
-      }))
-
-      for (const it of enriched) {
+      const items = src.via === 'rss2json' ? await viaRss2Json(src.url) : await viaGnews(src.url)
+      for (const it of items) {
         if (!it.link) continue
         const { data: existing } = await supabase.from('news').select('id').eq('source_url', it.link).maybeSingle()
         if (existing) continue
 
-        let rawTitle = stripTags(pick(it.block, 'title'))
+        let rawTitle = it.title
         let publisher = src.name
         const dash = rawTitle.lastIndexOf(' - ')
-        if (dash > 20) { publisher = rawTitle.slice(dash + 3).trim(); rawTitle = rawTitle.slice(0, dash).trim() }
+        if (src.via === 'gnews' && dash > 20) { publisher = rawTitle.slice(dash + 3).trim(); rawTitle = rawTitle.slice(0, dash).trim() }
 
-        let title = (it.title && it.title.length > 10) ? it.title : rawTitle
-        let excerpt = (it.desc || stripTags(pick(it.block, 'description'))).slice(0, 600)
+        let title = rawTitle
+        let excerpt = it.desc
         if (src.lang !== 'fr') {
           title = await translateToFr(title)
           if (excerpt) excerpt = await translateToFr(excerpt)
         }
         if (it.image) withImg++
-        if (excerpt && excerpt.length > 40) withDesc++
 
-        const articleUrl = (it.finalUrl && !it.finalUrl.includes('news.google.com')) ? it.finalUrl : it.link
-        const pub = pick(it.block, 'pubDate')
-        const dt = pub ? new Date(pub) : new Date()
+        const dt = it.pubDate ? new Date(it.pubDate) : new Date()
         const publishedAt = isNaN(dt.getTime()) ? new Date().toISOString() : dt.toISOString()
         const content =
           '<p>' + (excerpt || title) + '</p>' +
           '<p><em>Source : ' + publisher + '</em></p>' +
-          '<p><a href="' + articleUrl + '" target="_blank" rel="noopener noreferrer">Lire l&apos;article complet sur ' + publisher + ' &rarr;</a></p>'
+          '<p><a href="' + it.link + '" target="_blank" rel="noopener noreferrer">Lire l&apos;article complet sur ' + publisher + ' &rarr;</a></p>'
 
         const { error } = await supabase.from('news').insert({
           category: 'tt',
@@ -196,7 +171,7 @@ export async function GET(req: NextRequest) {
         if (!error) { added++; total++ }
       }
     } catch (e) { detail[src.name] = 'err:' + (e instanceof Error ? e.message : String(e)); continue }
-    detail[src.name] = 'added=' + added + ' img=' + withImg + ' desc=' + withDesc
+    detail[src.name] = 'added=' + added + ' img=' + withImg
   }
 
   if (total > 0) { try { revalidatePath('/actualites', 'layout') } catch { /* noop */ } }
