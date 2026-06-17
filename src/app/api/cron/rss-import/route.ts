@@ -10,8 +10,9 @@ export const dynamic = 'force-dynamic'
 
 interface Source { name: string; url: string; lang: 'fr' | 'en' }
 const SOURCES: Source[] = [
-  { name: 'FFTT', url: 'http://www.fftt.com/site/medias/flux/rss_all.xml', lang: 'fr' },
-  { name: 'ITTF', url: 'https://www.ittf.com/feed/', lang: 'en' },
+  { name: 'FFTT', url: 'https://www.fftt.com/feed/', lang: 'fr' },
+  // ITTF/WTT bloquent les robots (403 Cloudflare). On passe par Google News (international, traduit en FR).
+  { name: 'ITTF / WTT', url: 'https://news.google.com/rss/search?q=ITTF%20OR%20%22World%20Table%20Tennis%22%20OR%20%22table%20tennis%22&hl=en-US&gl=US&ceid=US:en', lang: 'en' },
 ]
 const MAX_PER_SOURCE = 8
 
