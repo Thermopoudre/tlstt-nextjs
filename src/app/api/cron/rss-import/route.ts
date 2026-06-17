@@ -26,7 +26,10 @@ function decodeEntities(s: string): string {
     .replace(/&amp;/g, '&')
 }
 function stripTags(s: string): string {
-  return decodeEntities(s).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+  // double décodage (Google News double-encode), puis suppression balises + entités résiduelles
+  let t = decodeEntities(decodeEntities(s))
+  t = t.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/&#\d+;/g, ' ')
+  return t.replace(/\s+/g, ' ').trim()
 }
 function pick(block: string, tag: string): string {
   const m = block.match(new RegExp('<' + tag + '[^>]*>([\\s\\S]*?)</' + tag + '>', 'i'))
