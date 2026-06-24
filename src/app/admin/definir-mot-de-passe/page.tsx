@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+type OtpType = 'invite' | 'recovery' | 'signup' | 'email'
+
 export default function DefinirMotDePassePage() {
   const supabase = createClient()
   const router = useRouter()
@@ -14,21 +16,41 @@ export default function DefinirMotDePassePage() {
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState(false)
+  // Renvoi d'un lien neuf si le lien reçu est expiré/invalide
+  const [resendEmail, setResendEmail] = useState('')
+  const [resendMsg, setResendMsg] = useState('')
+  const [resending, setResending] = useState(false)
 
   useEffect(() => {
-    // Le lien d'invitation établit la session (hash ou code) -> on la détecte.
+    let active = true
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        setHasSession(true)
-        setChecking(false)
+      if (session && active) { setHasSession(true); setChecking(false) }
+    })
+
+    // Établit la session à partir du lien reçu, quel que soit son format.
+    async function establish() {
+      try {
+        const url = new URL(window.location.href)
+        const code = url.searchParams.get('code')
+        const tokenHash = url.searchParams.get('token_hash')
+        const type = (url.searchParams.get('type') || 'invite') as OtpType
+        if (tokenHash) {
+          await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
+        } else if (code) {
+          await supabase.auth.exchangeCodeForSession(code)
+        }
+        // sinon : flux implicite (#access_token) -> détecté automatiquement par getSession
+      } catch {
+        // lien invalide/expiré -> l'utilisateur pourra demander un nouveau lien
       }
-    })
-    supabase.auth.getSession().then(({ data }) => {
+      const { data } = await supabase.auth.getSession()
+      if (!active) return
       if (data.session) setHasSession(true)
-    })
-    // Laisser le temps à la détection du lien, puis arrêter le "chargement".
-    const t = setTimeout(() => setChecking(false), 2500)
-    return () => { clearTimeout(t); subscription.unsubscribe() }
+      setChecking(false)
+    }
+    establish()
+
+    return () => { active = false; subscription.unsubscribe() }
   }, [])
 
   const submit = async (e: React.FormEvent) => {
@@ -42,6 +64,20 @@ export default function DefinirMotDePassePage() {
     if (err) { setError(err.message); return }
     setDone(true)
     setTimeout(() => router.push('/admin'), 1800)
+  }
+
+  const requestNewLink = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setResendMsg('')
+    if (!resendEmail) return
+    setResending(true)
+    const { error: err } = await supabase.auth.resetPasswordForEmail(resendEmail, {
+      redirectTo: window.location.origin + '/admin/definir-mot-de-passe',
+    })
+    setResending(false)
+    setResendMsg(err
+      ? 'Erreur : ' + err.message
+      : 'Si un compte existe pour cet email, un nouveau lien vient d’être envoyé. Pensez à vérifier vos spams, puis cliquez le lien le plus récent.')
   }
 
   return (
@@ -58,10 +94,27 @@ export default function DefinirMotDePassePage() {
         )}
 
         {!checking && !hasSession && !done && (
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-4 text-sm text-center">
-            <i className="fas fa-triangle-exclamation mr-1"></i>
-            Lien invalide ou expiré. Demandez à un administrateur de vous renvoyer une invitation,
-            ou utilisez « Mot de passe oublié » sur la page de connexion.
+          <div className="space-y-4">
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-4 text-sm text-center">
+              <i className="fas fa-triangle-exclamation mr-1"></i>
+              Lien invalide ou expiré. Saisissez votre email ci-dessous pour recevoir un nouveau lien.
+            </div>
+            <form onSubmit={requestNewLink} className="space-y-3">
+              <input
+                type="email"
+                value={resendEmail}
+                onChange={(e) => setResendEmail(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                placeholder="votre.email@exemple.com"
+                required
+              />
+              <button type="submit" disabled={resending} className="w-full btn-primary py-3 font-semibold disabled:opacity-50">
+                {resending ? <><i className="fas fa-spinner fa-spin mr-2"></i>Envoi…</> : 'Recevoir un nouveau lien'}
+              </button>
+            </form>
+            {resendMsg && (
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 text-sm rounded-lg p-3 text-center">{resendMsg}</div>
+            )}
           </div>
         )}
 
