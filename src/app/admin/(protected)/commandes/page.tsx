@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 interface Order {
-  id: number
+  id: string
   member_id: string | null
   member_profiles?: { first_name: string | null; last_name: string | null } | null
   total: number
@@ -28,7 +28,7 @@ export default function AdminCommandesPage() {
     setLoading(false)
   }
 
-  const updateStatus = async (id: number, status: string) => {
+  const updateStatus = async (id: string, status: string) => {
     await supabase.from('shop_orders').update({ status }).eq('id', id)
     fetchOrders()
   }
