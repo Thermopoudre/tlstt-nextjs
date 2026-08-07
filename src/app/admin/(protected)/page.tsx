@@ -21,7 +21,7 @@ export default async function AdminDashboard() {
     { data: rawMembres },
   ] = await Promise.all([
     supabase.from('news').select('*', { count: 'exact', head: true }),
-    supabase.from('players').select('*', { count: 'exact', head: true }).eq('admin_notes', 'TLSTT'),
+    supabase.from('players').select('*', { count: 'exact', head: true }).like('admin_notes', 'TLSTT%'),
     supabase.from('contact_messages').select('*', { count: 'exact', head: true }).eq('status', 'new'),
     supabase.from('albums').select('*', { count: 'exact', head: true }),
     supabase.from('news').select('*').order('created_at', { ascending: false }).limit(5),

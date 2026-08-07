@@ -38,6 +38,17 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.018em;
 }
 
+/* Back-office : contenu sur fond clair -> titres sombres (la règle globale ci-dessus
+   est prévue pour le site public sombre et rendait les titres admin illisibles). */
+.admin-root main h1,
+.admin-root main h2,
+.admin-root main h3,
+.admin-root main h4,
+.admin-root main h5,
+.admin-root main h6 {
+  color: #111827;
+}
+
 .container-custom {
   max-width: 80rem;
   margin-left: auto;
