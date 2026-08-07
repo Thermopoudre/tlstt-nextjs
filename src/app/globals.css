@@ -49,6 +49,15 @@ h1, h2, h3, h4, h5, h6 {
   color: #111827;
 }
 
+/* Back-office : le body global est blanc (site public sombre) ; sans couleur explicite,
+   les textes hériteraient du blanc -> illisibles sur les cartes claires. */
+.admin-root main {
+  color: #1f2937;
+}
+.admin-root .text-primary {
+  color: #0f172a;
+}
+
 .container-custom {
   max-width: 80rem;
   margin-left: auto;
