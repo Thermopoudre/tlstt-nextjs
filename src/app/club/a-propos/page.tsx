@@ -11,7 +11,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 
 export const metadata: Metadata = {
   title: 'À propos - Le Club TLSTT | Toulon La Seyne Tennis de Table',
-  description: 'Découvrez le club de tennis de table TLSTT : son histoire depuis 1950, ses valeurs, ses équipements et ses chiffres clés. Club affilié FFTT dans le Var.',
+  description: 'Découvrez le club de tennis de table TLSTT : son histoire depuis 1954, ses valeurs, ses équipements et ses chiffres clés. Club affilié FFTT dans le Var.',
   alternates: { canonical: `${SITE_URL}/club/a-propos` },
   openGraph: {
     title: 'À propos du TLSTT',

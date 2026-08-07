@@ -11,7 +11,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 
 export const metadata: Metadata = {
   title: 'Palmarès - TLSTT | Tennis de Table Toulon La Seyne',
-  description: 'Le palmarès du TLSTT : titres, championnats et distinctions obtenues par le club de tennis de table de Toulon La Seyne depuis 1950.',
+  description: 'Le palmarès du TLSTT : titres, championnats et distinctions obtenues par le club de tennis de table de Toulon La Seyne depuis 1954.',
   keywords: ['palmarès', 'titres', 'championnats', 'TLSTT', 'tennis de table', 'Toulon', 'La Seyne', 'distinctions'],
   alternates: { canonical: `${SITE_URL}/palmares` },
   openGraph: {

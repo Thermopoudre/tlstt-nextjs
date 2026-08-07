@@ -5,6 +5,14 @@ import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd } from '@/lib/seo'
 
+// Saison sportive courante (bascule au 1er juillet)
+function saisonActuelle(): string {
+  const now = new Date()
+  const start = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1
+  return `${start}-${start + 1}`
+}
+
+
 export const revalidate = 3600
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
@@ -133,7 +141,7 @@ export default async function RejoindreePage() {
           </div>
           <span className="inline-flex items-center gap-2 bg-[#3b9fd8]/10 border border-[#3b9fd8]/30 text-[#3b9fd8] text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
             <i className="fas fa-table-tennis-paddle-ball"></i>
-            Saison 2024-2025 ouverte
+            Saison {saisonActuelle()} ouverte
           </span>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
             Rejoignez le{' '}
@@ -219,7 +227,7 @@ export default async function RejoindreePage() {
         <div className="container-custom">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Tarifs <span className="text-[#3b9fd8]">Saison 2024-2025</span>
+              Tarifs <span className="text-[#3b9fd8]">Saison {saisonActuelle()}</span>
             </h2>
             <p className="text-gray-400 max-w-xl mx-auto">
               Des formules adaptées à chaque profil. Tout est inclus — licence FFTT comprise.
