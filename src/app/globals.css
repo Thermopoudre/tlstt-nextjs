@@ -30,12 +30,16 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-family-heading);
-  font-weight: 700;
-  color: #ffffff;
-  line-height: 1.18;
-  letter-spacing: -0.018em;
+/* Dans @layer base : les classes utilitaires de couleur (text-...) reprennent le dessus.
+   Les titres sans classe restent blancs (site public sombre). */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family-heading);
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.18;
+    letter-spacing: -0.018em;
+  }
 }
 
 /* Back-office : contenu sur fond clair -> titres sombres (la règle globale ci-dessus

@@ -82,7 +82,7 @@ export default function AdminLoginPage() {
 
             <div>
               <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                <i className="fas fa-envelope mr-2 text-primary"></i>
+                <i className="fas fa-envelope mr-2 text-slate-700"></i>
                 Email
               </label>
               <input
@@ -99,7 +99,7 @@ export default function AdminLoginPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
-                <i className="fas fa-lock mr-2 text-primary"></i>
+                <i className="fas fa-lock mr-2 text-slate-700"></i>
                 Mot de passe
               </label>
               <input
@@ -134,7 +134,7 @@ export default function AdminLoginPage() {
           </form>
 
           <div className="mt-6 text-center text-sm text-gray-600">
-            <a href="/" className="text-primary hover:underline">
+            <a href="/" className="text-blue-700 hover:underline">
               <i className="fas fa-arrow-left mr-2"></i>
               Retour au site
             </a>

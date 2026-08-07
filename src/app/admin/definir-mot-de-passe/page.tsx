@@ -83,12 +83,12 @@ export default function DefinirMotDePassePage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary to-primary-light px-4">
       <div className="max-w-md w-full bg-white rounded-xl shadow-2xl p-8">
-        <h1 className="text-2xl font-bold text-primary mb-2 text-center">Définir votre mot de passe</h1>
+        <h1 className="text-2xl font-bold text-slate-900 mb-2 text-center">Définir votre mot de passe</h1>
         <p className="text-gray-500 text-sm text-center mb-6">Bienvenue dans l&apos;équipe d&apos;administration du TLSTT.</p>
 
         {checking && (
           <div className="text-center text-gray-500 py-6">
-            <i className="fas fa-spinner fa-spin text-2xl text-primary mb-2"></i>
+            <i className="fas fa-spinner fa-spin text-2xl text-slate-700 mb-2"></i>
             <p>Vérification du lien…</p>
           </div>
         )}
