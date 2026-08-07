@@ -5,9 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 
 interface Order {
   id: number
-  order_number: string
-  customer_name: string
-  customer_email: string
+  member_id: string | null
+  member_profiles?: { first_name: string | null; last_name: string | null } | null
   total: number
   status: 'pending' | 'processing' | 'completed' | 'cancelled'
   created_at: string
@@ -24,7 +23,7 @@ export default function AdminCommandesPage() {
   useEffect(() => { fetchOrders() }, [])
 
   const fetchOrders = async () => {
-    const { data } = await supabase.from('shop_orders').select('*').order('created_at', { ascending: false })
+    const { data } = await supabase.from('shop_orders').select('*, member_profiles(first_name, last_name)').order('created_at', { ascending: false })
     if (data) setOrders(data)
     setLoading(false)
   }
@@ -63,7 +62,7 @@ export default function AdminCommandesPage() {
         <div className="bg-white rounded-xl shadow p-4"><p className="text-sm text-gray-600">Total</p><p className="text-2xl font-bold text-primary">{orders.length}</p></div>
         <div className="bg-white rounded-xl shadow p-4"><p className="text-sm text-gray-600">En attente</p><p className="text-2xl font-bold text-yellow-600">{orders.filter(o => o.status === 'pending').length}</p></div>
         <div className="bg-white rounded-xl shadow p-4"><p className="text-sm text-gray-600">Terminées</p><p className="text-2xl font-bold text-green-600">{orders.filter(o => o.status === 'completed').length}</p></div>
-        <div className="bg-white rounded-xl shadow p-4"><p className="text-sm text-gray-600">CA</p><p className="text-2xl font-bold text-primary">{orders.filter(o => o.status === 'completed').reduce((sum, o) => sum + o.total, 0)}€</p></div>
+        <div className="bg-white rounded-xl shadow p-4"><p className="text-sm text-gray-600">CA</p><p className="text-2xl font-bold text-primary">{orders.filter(o => o.status === 'completed').reduce((sum, o) => sum + Number(o.total || 0), 0).toFixed(2)}€</p></div>
       </div>
 
       <div className="bg-white rounded-xl shadow p-4">
@@ -96,9 +95,9 @@ export default function AdminCommandesPage() {
               <tbody className="divide-y">
                 {filteredOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-4 lg:px-6 py-4"><p className="font-semibold text-gray-900">#{order.order_number}</p><p className="text-xs text-gray-500">{new Date(order.created_at).toLocaleDateString('fr-FR')}</p></td>
-                    <td className="px-4 lg:px-6 py-4 hidden sm:table-cell"><p className="text-gray-900">{order.customer_name}</p><p className="text-xs text-gray-500">{order.customer_email}</p></td>
-                    <td className="px-4 lg:px-6 py-4 text-right"><span className="font-bold text-primary">{order.total}€</span></td>
+                    <td className="px-4 lg:px-6 py-4"><p className="font-semibold text-gray-900">#{order.id.slice(0, 8).toUpperCase()}</p><p className="text-xs text-gray-500">{new Date(order.created_at).toLocaleDateString('fr-FR')}</p></td>
+                    <td className="px-4 lg:px-6 py-4 hidden sm:table-cell"><p className="text-gray-900">{order.member_profiles ? `${order.member_profiles.first_name || ''} ${order.member_profiles.last_name || ''}`.trim() || 'Membre' : 'Membre supprimé'}</p></td>
+                    <td className="px-4 lg:px-6 py-4 text-right"><span className="font-bold text-primary">{Number(order.total || 0).toFixed(2)}€</span></td>
                     <td className="px-4 lg:px-6 py-4 text-center">{getStatusBadge(order.status)}</td>
                     <td className="px-4 lg:px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
@@ -121,13 +120,13 @@ export default function AdminCommandesPage() {
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
               <div className="p-6 border-b flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-800">Commande #{selectedOrder.order_number}</h2>
+                <h2 className="text-xl font-bold text-gray-800">Commande #{selectedOrder.id.slice(0, 8).toUpperCase()}</h2>
                 <button onClick={() => setSelectedOrder(null)} className="p-2 text-gray-400 hover:text-gray-700 rounded-lg"><i className="fas fa-times"></i></button>
               </div>
               <div className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div><p className="text-sm text-gray-500">Client</p><p className="font-semibold">{selectedOrder.customer_name}</p></div>
-                  <div><p className="text-sm text-gray-500">Email</p><p className="font-semibold">{selectedOrder.customer_email}</p></div>
+                  <div><p className="text-sm text-gray-500">Client</p><p className="font-semibold">{selectedOrder.member_profiles ? `${selectedOrder.member_profiles.first_name || ''} ${selectedOrder.member_profiles.last_name || ''}`.trim() || 'Membre' : 'Membre supprimé'}</p></div>
+                  <div><p className="text-sm text-gray-500">Notes</p><p className="font-semibold">{(selectedOrder as unknown as {notes?: string}).notes || '-'}</p></div>
                   <div><p className="text-sm text-gray-500">Date</p><p className="font-semibold">{new Date(selectedOrder.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
                   <div><p className="text-sm text-gray-500">Statut</p>{getStatusBadge(selectedOrder.status)}</div>
                 </div>
@@ -152,7 +151,7 @@ export default function AdminCommandesPage() {
                 </div>
                 <div className="border-t pt-4 flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">Total</span>
-                  <span className="text-2xl font-bold text-primary">{selectedOrder.total}€</span>
+                  <span className="text-2xl font-bold text-primary">{Number(selectedOrder.total || 0).toFixed(2)}€</span>
                 </div>
                 <div className="flex gap-2 pt-2">
                   {selectedOrder.status === 'pending' && (
