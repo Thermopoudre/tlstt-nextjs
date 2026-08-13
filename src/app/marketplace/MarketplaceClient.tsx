@@ -13,6 +13,9 @@ interface Listing {
   description: string
   price: number | null
   condition: string
+  category?: string | null
+  is_exchange?: boolean | null
+  is_gift?: boolean | null
   type: 'vente' | 'echange' | 'don'
   images: string[]
   created_at: string
@@ -35,11 +38,17 @@ export default function MarketplaceClient() {
         .from('marketplace_listings')
         .select(`
           *,
-          seller:profiles(first_name, last_name)
+          seller:member_profiles!marketplace_listings_seller_id_fkey(first_name, last_name)
         `)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
-      setListings(data || [])
+      // La base stocke is_exchange / is_gift : on en deduit le type affiche
+      setListings(
+        (data || []).map((l: Listing) => ({
+          ...l,
+          type: l.is_gift ? 'don' : l.is_exchange ? 'echange' : 'vente',
+        })) as Listing[]
+      )
       setIsLoading(false)
     }
     if (user) fetchListings()

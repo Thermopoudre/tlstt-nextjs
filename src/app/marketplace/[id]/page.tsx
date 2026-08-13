@@ -18,7 +18,9 @@ interface ListingDetail {
   images: string[]
   status: string
   created_at: string
-  user_id: string
+  seller_id: string
+  is_exchange?: boolean | null
+  is_gift?: boolean | null
   seller: {
     first_name: string | null
     last_name: string | null
@@ -65,7 +67,7 @@ export default function ListingDetailPage() {
         .from('marketplace_listings')
         .select(`
           *,
-          seller:profiles(first_name, last_name)
+          seller:member_profiles!marketplace_listings_seller_id_fkey(first_name, last_name)
         `)
         .eq('id', id)
         .single()
@@ -73,8 +75,12 @@ export default function ListingDetailPage() {
       if (error || !data) {
         setNotFound(true)
       } else {
-        setListing(data as ListingDetail)
-        if (user && data.user_id === user.id) {
+        const normalized = {
+          ...data,
+          type: data.is_gift ? 'don' : data.is_exchange ? 'echange' : 'vente',
+        }
+        setListing(normalized as ListingDetail)
+        if (user && data.seller_id === user.id) {
           setIsOwner(true)
         }
       }
@@ -169,7 +175,7 @@ export default function ListingDetailPage() {
       const { error } = await supabase.from('marketplace_messages').insert({
         listing_id: listing.id,
         sender_id: user.id,
-        receiver_id: listing.user_id,
+        receiver_id: listing.seller_id,
         message: `Bonjour, je suis intéressé(e) par votre annonce "${listing.title}". Pouvez-vous me recontacter ?`,
         read: false,
       })

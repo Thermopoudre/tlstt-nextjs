@@ -25,6 +25,7 @@ export default function NouvelleAnnoncePage() {
     description: '',
     price: '',
     condition: 'bon',
+    category: 'raquette',
   })
   const [imageFiles, setImageFiles] = useState<File[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
@@ -169,15 +170,18 @@ export default function NouvelleAnnoncePage() {
     try {
       const imageUrls = await uploadImages()
       const supabase = createClient()
+      // Le schéma de la table utilise seller_id + is_exchange/is_gift + category (obligatoire)
       const { error: err } = await supabase.from('marketplace_listings').insert({
         title: form.title.trim(),
         description: form.description.trim(),
-        type,
-        price: type === 'vente' && form.price ? parseFloat(form.price) : null,
+        category: form.category,
         condition: form.condition,
+        is_exchange: type === 'echange',
+        is_gift: type === 'don',
+        price: type === 'vente' && form.price ? parseFloat(form.price) : null,
         images: imageUrls,
         status: 'active',
-        user_id: user!.id,
+        seller_id: user!.id,
       })
       if (err) throw err
       router.push('/marketplace')
@@ -294,6 +298,23 @@ export default function NouvelleAnnoncePage() {
                 <p className={`text-xs mt-1 text-right ${form.description.length > 950 ? 'text-yellow-400' : 'text-gray-600'}`}>
                   {form.description.length}/1000
                 </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-1.5">Catégorie</label>
+                <select
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                  className="w-full px-4 py-3 bg-[#111] border border-[#333] rounded-lg text-white focus:outline-none focus:border-[#3b9fd8] transition-colors"
+                >
+                  <option value="raquette">Raquette / bois</option>
+                  <option value="revetement">Revêtements</option>
+                  <option value="balles">Balles</option>
+                  <option value="textile">Textile / chaussures</option>
+                  <option value="table">Table / filet</option>
+                  <option value="robot">Robot / accessoires</option>
+                  <option value="autre">Autre</option>
+                </select>
               </div>
 
               <div>
