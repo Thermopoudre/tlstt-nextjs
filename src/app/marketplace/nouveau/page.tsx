@@ -182,7 +182,18 @@ export default function NouvelleAnnoncePage() {
       if (err) throw err
       router.push('/marketplace')
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erreur lors de la publication'
+      const raw = err instanceof Error ? err.message : ''
+      // Messages techniques -> messages compréhensibles pour l'utilisateur
+      let message = raw || 'Erreur lors de la publication'
+      if (/bucket not found/i.test(raw)) {
+        message = "L'envoi des photos est momentanément indisponible. Publiez l'annonce sans photo, ou réessayez plus tard (l'équipe est prévenue)."
+      } else if (/payload too large|exceeded the maximum|file size/i.test(raw)) {
+        message = 'Une photo dépasse la taille maximale autorisée (5 Mo). Choisissez une image plus légère.'
+      } else if (/mime|content type|invalid file/i.test(raw)) {
+        message = "Format d'image non accepté. Utilisez du JPG, PNG ou WebP."
+      } else if (/row-level security|permission|not authorized/i.test(raw)) {
+        message = "Vous n'avez pas les droits pour publier. Reconnectez-vous puis réessayez."
+      }
       setError(message)
     } finally {
       setSubmitting(false)
