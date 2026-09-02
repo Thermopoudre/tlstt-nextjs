@@ -13,6 +13,9 @@ interface Article {
   status: string
   created_at: string
   image_url: string | null
+  is_external?: boolean | null
+  source_url?: string | null
+  notified_at?: string | null
 }
 
 export default function AdminActualitesPage() {
@@ -22,6 +25,8 @@ export default function AdminActualitesPage() {
   const [filter, setFilter] = useState('all')
   const [deleteTarget, setDeleteTarget] = useState<{ id: string, title: string } | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [notifEnCours, setNotifEnCours] = useState<string | null>(null)
+  const [notifMessage, setNotifMessage] = useState<string | null>(null)
 
   useEffect(() => { fetchNews() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -30,6 +35,29 @@ export default function AdminActualitesPage() {
     if (error) setActionError('Erreur lors du chargement des articles')
     else if (data) setNews(data)
     setLoading(false)
+  }
+
+  const notifierMembres = async (article: Article) => {
+    setNotifEnCours(article.id)
+    setNotifMessage(null)
+    try {
+      const res = await fetch('/api/admin/notify-article', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ articleId: article.id }),
+      })
+      const info = await res.json()
+      if (info.sent) {
+        setNotifMessage(`${info.sent} destinataire${info.sent > 1 ? 's ont' : ' a'} été prévenu${info.sent > 1 ? 's' : ''} pour « ${article.title} ».`)
+        fetchNews()
+      } else {
+        setNotifMessage(info.reason || info.error || "L'envoi n'a pas abouti.")
+      }
+    } catch {
+      setNotifMessage("L'envoi n'a pas abouti (problème de connexion).")
+    } finally {
+      setNotifEnCours(null)
+    }
   }
 
   const confirmDelete = async () => {
@@ -79,6 +107,16 @@ export default function AdminActualitesPage() {
           <button onClick={() => setActionError(null)} className="ml-auto"><i className="fas fa-times"></i></button>
         </div>
       )}
+      {notifMessage && (
+        <div className="mb-4 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 text-sm flex items-start gap-2">
+          <i className="fas fa-circle-info mt-0.5"></i>
+          <span className="flex-1">{notifMessage}</span>
+          <button onClick={() => setNotifMessage(null)} className="text-blue-700 hover:text-blue-900" aria-label="Fermer">
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-primary">Actualites</h1>
@@ -166,6 +204,23 @@ export default function AdminActualitesPage() {
                   <td className="px-4 py-3 text-right">
                     <Link href={`/actualites/${article.category}/${article.id}`} target="_blank" className="p-2 text-primary hover:bg-primary/10 rounded-lg inline-flex"><i className="fas fa-eye"></i></Link>
                     <Link href={`/admin/actualites/${article.id}/edit`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg inline-flex"><i className="fas fa-edit"></i></Link>
+                    {article.status === 'published' && !article.is_external && !article.source_url && (
+                      <button
+                        onClick={() => notifierMembres(article)}
+                        disabled={notifEnCours === article.id || !!article.notified_at}
+                        title={article.notified_at
+                          ? `Membres déjà prévenus le ${new Date(article.notified_at).toLocaleDateString('fr-FR')}`
+                          : 'Prévenir les membres par email'}
+                        aria-label={article.notified_at ? 'Membres déjà prévenus' : 'Prévenir les membres par email'}
+                        className={`p-2 rounded-lg ${
+                          article.notified_at
+                            ? 'text-gray-300 cursor-default'
+                            : 'text-emerald-600 hover:bg-emerald-50'
+                        }`}
+                      >
+                        <i className={`fas ${notifEnCours === article.id ? 'fa-spinner fa-spin' : article.notified_at ? 'fa-envelope-circle-check' : 'fa-paper-plane'}`}></i>
+                      </button>
+                    )}
                     <button onClick={() => setDeleteTarget({ id: article.id, title: article.title })} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><i className="fas fa-trash"></i></button>
                   </td>
                 </tr>

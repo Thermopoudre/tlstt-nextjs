@@ -25,6 +25,8 @@ export default function NewActualitePage() {
     meta_description: '',
   })
   const [showSeo, setShowSeo] = useState(false)
+  // Prévenir les membres par email à la publication (décochable)
+  const [prevenirMembres, setPrevenirMembres] = useState(true)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,8 +65,25 @@ export default function NewActualitePage() {
         }).catch(() => {}) // fire-and-forget
       }
 
-      setMessage({ type: 'success', text: 'Article créé avec succès !' })
-      setTimeout(() => router.push('/admin/actualites'), 1000)
+      let complement = ''
+      if (formData.status === 'published' && prevenirMembres && newArticle) {
+        try {
+          const res = await fetch('/api/admin/notify-article', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ articleId: newArticle.id }),
+          })
+          const info = await res.json()
+          if (info.sent) complement = ` ${info.sent} membre${info.sent > 1 ? 's ont' : ' a'} été prévenu${info.sent > 1 ? 's' : ''} par email.`
+          else if (info.reason) complement = ` (${info.reason})`
+          else if (info.error) complement = ` (envoi impossible : ${info.error})`
+        } catch {
+          complement = " (l'email n'a pas pu partir, l'article est bien enregistré)"
+        }
+      }
+
+      setMessage({ type: 'success', text: 'Article créé avec succès !' + complement })
+      setTimeout(() => router.push('/admin/actualites'), complement ? 2500 : 1000)
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || 'Erreur lors de la création' })
     } finally {
@@ -177,6 +196,24 @@ export default function NewActualitePage() {
                 <p className="text-xs mt-0.5 opacity-70">Visible par tous</p>
               </button>
             </div>
+
+            {formData.status === 'published' && (
+              <label className="mt-4 flex items-start gap-3 p-3 rounded-lg bg-blue-50 border border-blue-200 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={prevenirMembres}
+                  onChange={e => setPrevenirMembres(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-[#3b9fd8]"
+                />
+                <span className="text-sm text-gray-700">
+                  <span className="font-semibold text-gray-900">Prévenir les membres par email</span>
+                  <span className="block text-xs text-gray-600 mt-0.5">
+                    Un message avec le titre, le chapeau et un lien vers l&apos;article est envoyé aux membres
+                    du site et aux abonnés à la newsletter. Chaque article n&apos;est notifié qu&apos;une seule fois.
+                  </span>
+                </span>
+              </label>
+            )}
           </div>
         </div>
 

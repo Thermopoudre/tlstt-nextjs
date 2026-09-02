@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 
 const SMTP_PRESETS: Record<string, { host: string; port: string; secure: string }> = {
+  brevo: { host: 'smtp-relay.brevo.com', port: '587', secure: 'false' },
   gmail: { host: 'smtp.gmail.com', port: '587', secure: 'false' },
   outlook: { host: 'smtp.office365.com', port: '587', secure: 'false' },
   ionos: { host: 'smtp.ionos.fr', port: '465', secure: 'true' },
@@ -140,6 +141,14 @@ export default function AdminEmailPage() {
         </h2>
         <p className="text-sm text-gray-600 mb-4">Selectionnez votre fournisseur pour pre-remplir les parametres du serveur :</p>
         <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => handlePreset('brevo')}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-emerald-300 bg-emerald-50 hover:bg-emerald-100 transition-all text-sm font-medium"
+          >
+            <i className="fas fa-paper-plane text-emerald-600"></i>
+            Brevo <span className="text-xs text-emerald-700">(conseillé)</span>
+          </button>
           <button
             type="button"
             onClick={() => handlePreset('gmail')}
@@ -423,11 +432,38 @@ export default function AdminEmailPage() {
         )}
       </div>
 
+      {/* Guide Brevo */}
+      <div className="bg-white rounded-xl shadow p-6">
+        <h2 className="text-lg font-bold text-gray-800 mb-4">
+          <i className="fas fa-paper-plane mr-2 text-emerald-600"></i>
+          Guide : configuration Brevo (conseillé)
+        </h2>
+        <div className="space-y-4 text-gray-600">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+            <p className="text-sm text-emerald-900 mb-3">
+              Brevo est un service d&apos;envoi d&apos;emails gratuit jusqu&apos;à 300 messages par jour. Il est
+              préférable à une boîte personnelle pour écrire à tous les membres : les messages arrivent
+              beaucoup moins souvent dans les indésirables.
+            </p>
+            <ol className="list-decimal list-inside space-y-2 text-sm text-emerald-800">
+              <li>Créez un compte gratuit sur <a href="https://www.brevo.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">brevo.com</a></li>
+              <li>Dans le menu de votre compte : <strong>SMTP &amp; API</strong> → onglet <strong>SMTP</strong></li>
+              <li>Cliquez sur <strong>Générer une nouvelle clé SMTP</strong></li>
+              <li>Recopiez ici : <strong>Serveur</strong> smtp-relay.brevo.com, <strong>Port</strong> 587,
+                  <strong> Identifiant</strong> (l&apos;adresse affichée par Brevo) et <strong>Mot de passe</strong> (la clé générée)</li>
+              <li>Dans « Adresse expéditeur », mettez l&apos;adresse du club, puis validez-la dans Brevo
+                  (rubrique <em>Expéditeurs</em>) — sans cette validation, les envois sont refusés</li>
+              <li>Enregistrez, puis utilisez « Tester la connexion » et « Envoyer un email de test »</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
       {/* Guide Gmail */}
       <div className="bg-white rounded-xl shadow p-6">
         <h2 className="text-lg font-bold text-gray-800 mb-4">
           <i className="fab fa-google mr-2 text-red-500"></i>
-          Guide : Configuration Gmail
+          Guide : configuration Gmail (solution de repli)
         </h2>
         <div className="space-y-4 text-gray-600">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
