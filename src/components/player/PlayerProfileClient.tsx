@@ -144,6 +144,37 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
   const partiesToShow = showAllParties ? parties : parties.slice(0, 20)
   const smartpingFailed = source === 'cache' && lastRefresh !== null
 
+  // L'historique officiel (xml_histo_classement) est refusé par la FFTT pour ce
+  // compte (401). On reconstitue donc l'évolution de la saison à partir des
+  // parties : points de début de saison + cumul des gains/pertes, mois par mois.
+  const courbeSaison = (() => {
+    if (historique.length > 1 || parties.length === 0) return [] as { libelle: string; points: number; date: string }[]
+    const depart = Number(player.pointsInitiaux || player.valeurInitiale || player.fftt_points_initial || 0)
+    if (!depart) return []
+    const parDate = [...parties]
+      .map(p => ({ ...p, d: new Date(p.date.includes('/') ? p.date.split('/').reverse().join('-') : p.date) }))
+      .filter(p => !isNaN(p.d.getTime()))
+      .sort((a, b) => a.d.getTime() - b.d.getTime())
+    if (parDate.length === 0) return []
+    const points: { libelle: string; points: number; date: string }[] = []
+    let cumul = depart
+    let moisCourant = ''
+    const premier = parDate[0].d
+    points.push({ libelle: 'Début', points: Math.round(depart), date: premier.toISOString() })
+    for (const p of parDate) {
+      cumul += Number(p.pointsResultat) || 0
+      const cle = `${p.d.getFullYear()}-${p.d.getMonth()}`
+      const libelle = p.d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
+      if (cle === moisCourant) {
+        points[points.length - 1] = { libelle, points: Math.round(cumul * 10) / 10, date: p.d.toISOString() }
+      } else {
+        moisCourant = cle
+        points.push({ libelle, points: Math.round(cumul * 10) / 10, date: p.d.toISOString() })
+      }
+    }
+    return points
+  })()
+
   const historiqueReversed = [...historique].reverse()
   const minPoints = historique.length > 0 ? Math.min(...historique.map(h => h.points)) - 50 : 500
   const maxPoints = historique.length > 0 ? Math.max(...historique.map(h => h.points)) + 50 : 2000
@@ -316,6 +347,65 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
         )}
 
         {/* Graphique d'évolution */}
+        {courbeSaison.length > 1 && (() => {
+          const vals = courbeSaison.map(c => c.points)
+          const mn = Math.floor(Math.min(...vals) / 10) * 10 - 10
+          const mx = Math.ceil(Math.max(...vals) / 10) * 10 + 10
+          const W = 600, H = 200, PAD = 8
+          const x = (i: number) => PAD + (i * (W - 2 * PAD)) / Math.max(1, courbeSaison.length - 1)
+          const y = (v: number) => H - PAD - ((v - mn) / (mx - mn || 1)) * (H - 2 * PAD)
+          const chemin = courbeSaison.map((c, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${y(c.points).toFixed(1)}`).join(' ')
+          const aire = `${chemin} L ${x(courbeSaison.length - 1).toFixed(1)} ${H - PAD} L ${x(0).toFixed(1)} ${H - PAD} Z`
+          const dernier = courbeSaison[courbeSaison.length - 1]
+          const delta = Math.round((dernier.points - courbeSaison[0].points) * 10) / 10
+          return (
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-5 sm:p-6 mb-8">
+              <div className="flex flex-wrap items-baseline justify-between gap-2 mb-4">
+                <h2 className="text-xl font-bold text-white">
+                  <i className="fas fa-chart-line mr-2 text-[#3b9fd8]"></i>Progression sur la saison
+                </h2>
+                <span className={`text-sm font-semibold ${delta >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {delta >= 0 ? '+' : ''}{delta} pts depuis le début de saison
+                </span>
+              </div>
+              <div className="relative">
+                <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-44 sm:h-56" role="img" aria-label={`Évolution des points sur la saison : ${courbeSaison.map(c => `${c.libelle} ${c.points}`).join(', ')}`}>
+                  <defs>
+                    <linearGradient id="aireProgression" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3b9fd8" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#3b9fd8" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  {[0.25, 0.5, 0.75].map(t => (
+                    <line key={t} x1={PAD} x2={W - PAD} y1={PAD + t * (H - 2 * PAD)} y2={PAD + t * (H - 2 * PAD)} stroke="#2a2a2a" strokeDasharray="4 4" />
+                  ))}
+                  <path d={aire} fill="url(#aireProgression)" />
+                  <path d={chemin} fill="none" stroke="#3b9fd8" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+                  {courbeSaison.map((c, i) => (
+                    <g key={i}>
+                      <circle cx={x(i)} cy={y(c.points)} r="4.5" fill="#0a0a0a" stroke="#3b9fd8" strokeWidth="2.5">
+                        <title>{`${c.libelle} : ${c.points} pts`}</title>
+                      </circle>
+                    </g>
+                  ))}
+                </svg>
+                <div className="flex justify-between text-[11px] sm:text-xs text-gray-500 mt-1 px-1">
+                  {courbeSaison.map((c, i) => (
+                    <span key={i} className={courbeSaison.length > 8 && i % 2 === 1 ? 'hidden sm:inline' : ''}>{c.libelle}</span>
+                  ))}
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 mt-2">
+                  <span>Min {Math.min(...vals)} pts</span>
+                  <span>Max {Math.max(...vals)} pts</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-3">
+                Courbe calculée à partir des {parties.length} parties de la saison (points de début de saison + gains et pertes).
+              </p>
+            </div>
+          )
+        })()}
+
         {historique.length > 1 && (
           <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 mb-8">
             <h2 className="text-xl font-bold text-white mb-4">

@@ -2,10 +2,13 @@
 
 import { usePathname } from 'next/navigation'
 import BackToTop from '@/components/ui/BackToTop'
-import CookieBanner from '@/components/ui/CookieBanner'
 
 /**
  * Habillage public (bandeau d'alerte, en-tête, pied de page…).
+ *
+ * Plus de bandeau cookies : le site n'utilise que des cookies techniques
+ * (session, thème) et une mesure d'audience sans cookie — rien à consentir,
+ * et le bandeau masquait les boutons d'action sur mobile.
  *
  * Masqué dans le back-office : sinon deux barres de navigation se superposent
  * et le menu public recouvre le haut du menu latéral d'administration.
@@ -38,7 +41,6 @@ export default function PublicChrome({
       <main className="flex-1 py-0">{children}</main>
       {footer}
       <BackToTop />
-      <CookieBanner />
     </>
   )
 }

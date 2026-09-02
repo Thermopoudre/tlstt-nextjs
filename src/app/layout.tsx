@@ -1,10 +1,12 @@
 import PublicChrome from '@/components/layout/PublicChrome'
+import { Analytics } from '@vercel/analytics/next'
 import AlertBanner from '@/components/ui/AlertBanner'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import type { Metadata } from 'next'
 import { Montserrat, Open_Sans } from 'next/font/google'
 import './globals.css'
+import './fontawesome-subset.css'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import JsonLd from '@/components/seo/JsonLd'
 import { organizationJsonLd } from '@/lib/seo'
@@ -87,10 +89,6 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${montserrat.variable} ${openSans.variable}`}>
       <head>
-        <link
-          rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-        />
         <meta name="theme-color" content="#0a0a0a" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -112,6 +110,9 @@ export default function RootLayout({
             {children}
           </PublicChrome>
         </AuthProvider>
+        {/* Mesure d'audience sans cookie (Vercel Web Analytics) : agrégée, anonyme,
+            pas de consentement requis. À activer dans le projet Vercel → Analytics. */}
+        <Analytics />
       </body>
     </html>
   )
