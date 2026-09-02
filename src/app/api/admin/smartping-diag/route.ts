@@ -16,10 +16,16 @@ import { estAppelAutorise } from '@/lib/api-auth'
 const BASE = 'https://www.fftt.com/mobile/pxml'
 const CLUB = '13830083'
 
-function timestamp(): string {
+/** Timestamp YYYYMMDDHHMMSSmmm, en heure de Paris (spec : « dateheuresys », exemple Windev « dhParis ») ou UTC. */
+function timestamp(zone: 'paris' | 'utc'): string {
   const n = new Date()
   const p = (x: number, l = 2) => x.toString().padStart(l, '0')
-  return `${n.getFullYear()}${p(n.getMonth() + 1)}${p(n.getDate())}${p(n.getHours())}${p(n.getMinutes())}${p(n.getSeconds())}${p(n.getMilliseconds(), 3)}`
+  if (zone === 'utc') {
+    return `${n.getUTCFullYear()}${p(n.getUTCMonth() + 1)}${p(n.getUTCDate())}${p(n.getUTCHours())}${p(n.getUTCMinutes())}${p(n.getUTCSeconds())}${p(n.getUTCMilliseconds(), 3)}`
+  }
+  const f = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+  const parts = Object.fromEntries(f.formatToParts(n).map(x => [x.type, x.value]))
+  return `${parts.year}${parts.month}${parts.day}${parts.hour === '24' ? '00' : parts.hour}${parts.minute}${parts.second}${p(n.getMilliseconds(), 3)}`
 }
 
 function serieAleatoire(): string {
@@ -36,6 +42,7 @@ export async function GET(req: NextRequest) {
   const password = process.env.SMARTPING_PASSWORD || ''
   const serieEnv = process.env.SMARTPING_SERIE || ''
   const licence = req.nextUrl.searchParams.get('licence') || '8311494'
+  const zone = (req.nextUrl.searchParams.get('tz') === 'utc' ? 'utc' : 'paris') as 'paris' | 'utc'
 
   if (!id || !password) {
     return NextResponse.json({ error: 'SMARTPING_APP_ID / SMARTPING_PASSWORD absents des variables d’environnement' }, { status: 500 })
@@ -43,7 +50,7 @@ export async function GET(req: NextRequest) {
 
   const cle = crypto.createHash('md5').update(password).digest('hex')
   const appeler = async (script: string, params: Record<string, string>, serie: string) => {
-    const tm = timestamp()
+    const tm = timestamp(zone)
     const tmc = crypto.createHmac('sha1', cle).update(tm).digest('hex')
     const url = `${BASE}/${script}?${new URLSearchParams({ serie, tm, tmc, id, ...params })}`
     const t0 = Date.now()
@@ -97,6 +104,8 @@ export async function GET(req: NextRequest) {
       serieSource: serieEnv ? 'variable d’environnement SMARTPING_SERIE' : 'générée pour ce diagnostic',
       serieLongueur: serie.length,
       licenceTestee: licence,
+      fuseauTimestamp: zone,
+      heureServeurUTC: new Date().toISOString(),
     },
     initialisation: init,
     resultats,
