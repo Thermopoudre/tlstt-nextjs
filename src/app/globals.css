@@ -679,3 +679,30 @@ textarea[class*="border-gray-300"]::placeholder {
 .admin-root .apercu-article a {
   color: #3b9fd8;
 }
+
+
+/* ------------------------------------------------------------------
+   Champs de formulaire dans le back-office
+   .input-field est dessinée pour le site public (fond sombre). Dans
+   l'administration, qui est sur fond clair, elle donnait des champs noirs au
+   milieu de cartes blanches. On la repasse donc en version claire ici.
+------------------------------------------------------------------ */
+.admin-root .input-field {
+  background-color: #ffffff;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
+.admin-root .input-field::placeholder {
+  color: #9ca3af;
+}
+
+.admin-root .input-field:focus {
+  border-color: #3b9fd8;
+  box-shadow: 0 0 0 3px rgba(59, 159, 216, 0.18);
+}
+
+.admin-root select.input-field option {
+  background-color: #ffffff;
+  color: #111827;
+}

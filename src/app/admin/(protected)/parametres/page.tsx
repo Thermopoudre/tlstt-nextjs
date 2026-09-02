@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function AdminParametresPage() {
@@ -10,6 +10,9 @@ export default function AdminParametresPage() {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
   const [modifie, setModifie] = useState(false)
+  // empreinte des réglages tels qu'ils ont été chargés, pour ne signaler que
+  // les vraies modifications de l'utilisateur
+  const empreinteChargee = useRef<string | null>(null)
 
   // General settings
   const [settings, setSettings] = useState({
@@ -77,8 +80,13 @@ export default function AdminParametresPage() {
   // des modifications à enregistrer, et on avertit avant de quitter la page.
   useEffect(() => {
     if (loading) return
-    setModifie(true)
-  }, [settings, contactSettings, clubSettings, planningSettings]) // eslint-disable-line react-hooks/exhaustive-deps
+    const empreinte = JSON.stringify({ settings, contactSettings, clubSettings, planningSettings })
+    if (empreinteChargee.current === null) {
+      empreinteChargee.current = empreinte
+      return
+    }
+    setModifie(empreinte !== empreinteChargee.current)
+  }, [loading, settings, contactSettings, clubSettings, planningSettings])
 
   useEffect(() => {
     if (!modifie) return
@@ -134,6 +142,7 @@ export default function AdminParametresPage() {
       setMessage({ type: 'error', text: `L'enregistrement a échoué : ${error.message}` })
     } else {
       setMessage({ type: 'success', text: 'Paramètres enregistrés (tous les onglets).' })
+      empreinteChargee.current = JSON.stringify({ settings, contactSettings, clubSettings, planningSettings })
       setModifie(false)
       // le site public relit les réglages : on force son rafraîchissement
       fetch('/api/admin/revalidate', { method: 'POST' }).catch(() => {})
