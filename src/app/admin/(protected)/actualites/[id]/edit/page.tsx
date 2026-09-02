@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import ApercuArticle from '@/components/admin/ApercuArticle'
 import dynamic from 'next/dynamic'
 import ImageUpload from '@/components/admin/ImageUpload'
 import ConfirmModal from '@/components/admin/ConfirmModal'
@@ -34,6 +35,7 @@ export default function EditActualitePage({ params }: EditActualitePageProps) {
     meta_description: '',
   })
   const [showSeo, setShowSeo] = useState(false)
+  const [apercuOuvert, setApercuOuvert] = useState(false)
 
   useEffect(() => {
     params.then(({ id }) => {
@@ -331,10 +333,17 @@ export default function EditActualitePage({ params }: EditActualitePageProps) {
             <i className="fas fa-trash mr-2"></i>
             Supprimer
           </button>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <Link href="/admin/actualites" className="text-gray-600 hover:text-gray-900 font-semibold px-5 py-3 text-base">
               Annuler
             </Link>
+            <button
+              type="button"
+              onClick={() => setApercuOuvert(true)}
+              className="border-2 border-gray-300 text-gray-700 px-5 sm:px-6 py-3 rounded-xl font-bold text-base hover:border-primary hover:text-primary transition-colors"
+            >
+              <i className="fas fa-eye mr-2"></i>Prévisualiser
+            </button>
             <button
               type="submit"
               disabled={saving}
@@ -345,6 +354,16 @@ export default function EditActualitePage({ params }: EditActualitePageProps) {
           </div>
         </div>
       </form>
+
+      <ApercuArticle
+        ouvert={apercuOuvert}
+        onFermer={() => setApercuOuvert(false)}
+        titre={formData.title}
+        chapeau={formData.excerpt}
+        contenuHtml={formData.content}
+        imageUrl={formData.image_url}
+        categorie={formData.category}
+      />
 
       <ConfirmModal
         isOpen={showDeleteModal}

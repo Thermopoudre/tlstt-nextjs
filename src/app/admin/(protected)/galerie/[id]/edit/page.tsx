@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createUiClient as createClient } from '@/lib/supabase/ui-client'
+import { compresserImage } from '@/lib/image-compression'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -144,9 +145,12 @@ export default function EditAlbumPage({ params }: EditAlbumPageProps) {
     let uploaded = 0
 
     try {
-      for (const file of Array.from(files)) {
+      for (const fichierOrigine of Array.from(files)) {
         uploaded++
-        setUploadProgress(`Upload ${uploaded}/${files.length} : ${file.name}`)
+        setUploadProgress(`Photo ${uploaded}/${files.length} : ${fichierOrigine.name}`)
+
+        // Réduction avant envoi (photos de téléphone souvent > 3 Mo)
+        const file = await compresserImage(fichierOrigine)
 
         // Generate unique filename
         const ext = file.name.split('.').pop()

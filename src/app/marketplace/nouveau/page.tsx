@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { createClient } from '@/lib/supabase/client'
+import { compresserImage } from '@/lib/image-compression'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 
 type ListingType = 'vente' | 'echange' | 'don'
@@ -123,7 +124,9 @@ export default function NouvelleAnnoncePage() {
     const supabase = createClient()
     const urls: string[] = []
 
-    for (const file of imageFiles) {
+    for (const fichierOrigine of imageFiles) {
+      // Réduction avant envoi : les photos de téléphone dépassent souvent la limite de 5 Mo
+      const file = await compresserImage(fichierOrigine)
       const ext = file.name.split('.').pop()
       const path = `marketplace/${user!.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
       const { error: uploadError } = await supabase.storage

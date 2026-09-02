@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import ApercuArticle from '@/components/admin/ApercuArticle'
 import dynamic from 'next/dynamic'
 import ImageUpload from '@/components/admin/ImageUpload'
 
@@ -27,6 +28,7 @@ export default function NewActualitePage() {
   const [showSeo, setShowSeo] = useState(false)
   // Prévenir les membres par email à la publication (décochable)
   const [prevenirMembres, setPrevenirMembres] = useState(true)
+  const [apercuOuvert, setApercuOuvert] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -325,11 +327,19 @@ export default function NewActualitePage() {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-between bg-white p-6 rounded-xl shadow">
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-4 sm:p-6 rounded-xl shadow">
           <Link href="/admin/actualites" className="text-gray-600 hover:text-gray-900 font-semibold text-base">
             <i className="fas fa-arrow-left mr-2"></i>
             Retour
           </Link>
+          <div className="flex flex-wrap items-center gap-3 ml-auto">
+          <button
+            type="button"
+            onClick={() => setApercuOuvert(true)}
+            className="border-2 border-gray-300 text-gray-700 px-5 sm:px-6 py-3 rounded-xl font-bold text-base hover:border-primary hover:text-primary transition-colors"
+          >
+            <i className="fas fa-eye mr-2"></i>Prévisualiser
+          </button>
           <button
             type="submit"
             disabled={loading}
@@ -341,8 +351,19 @@ export default function NewActualitePage() {
               <><i className="fas fa-save mr-2"></i>Enregistrer l&apos;article</>
             )}
           </button>
+          </div>
         </div>
       </form>
+
+      <ApercuArticle
+        ouvert={apercuOuvert}
+        onFermer={() => setApercuOuvert(false)}
+        titre={formData.title}
+        chapeau={formData.excerpt}
+        contenuHtml={formData.content}
+        imageUrl={formData.image_url}
+        categorie={formData.category}
+      />
     </div>
   )
 }

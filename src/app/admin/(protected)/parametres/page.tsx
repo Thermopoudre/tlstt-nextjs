@@ -9,6 +9,7 @@ export default function AdminParametresPage() {
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
+  const [modifie, setModifie] = useState(false)
 
   // General settings
   const [settings, setSettings] = useState({
@@ -72,6 +73,20 @@ export default function AdminParametresPage() {
 
   useEffect(() => { fetchAllSettings() }, [])
 
+  // Dès qu'un réglage change (quel que soit l'onglet), on prévient qu'il reste
+  // des modifications à enregistrer, et on avertit avant de quitter la page.
+  useEffect(() => {
+    if (loading) return
+    setModifie(true)
+  }, [settings, contactSettings, clubSettings, planningSettings]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!modifie) return
+    const avant = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
+    window.addEventListener('beforeunload', avant)
+    return () => window.removeEventListener('beforeunload', avant)
+  }, [modifie])
+
   const fetchAllSettings = async () => {
     const { data: allSettings } = await supabase.from('site_settings').select('*')
     
@@ -94,36 +109,35 @@ export default function AdminParametresPage() {
     setLoading(false)
   }
 
+  /**
+   * Enregistre les QUATRE onglets d'un coup.
+   * Auparavant, seul l'onglet affiché était sauvegardé : toute modification
+   * faite dans un autre onglet était perdue sans aucun message.
+   */
   const handleSave = async () => {
     setSaving(true)
     setMessage(null)
 
-    let page: string
-    let data: Record<string, unknown>
+    const maintenant = new Date().toISOString()
+    const lignes = [
+      { page: 'global', settings: settings as unknown as Record<string, unknown>, updated_at: maintenant },
+      { page: 'contact', settings: contactSettings as unknown as Record<string, unknown>, updated_at: maintenant },
+      { page: 'club', settings: clubSettings as unknown as Record<string, unknown>, updated_at: maintenant },
+      { page: 'planning', settings: planningSettings as unknown as Record<string, unknown>, updated_at: maintenant },
+    ]
 
-    if (activeTab === 'general') {
-      page = 'global'
-      data = settings as unknown as Record<string, unknown>
-    } else if (activeTab === 'contact') {
-      page = 'contact'
-      data = contactSettings as unknown as Record<string, unknown>
-    } else if (activeTab === 'club') {
-      page = 'club'
-      data = clubSettings as unknown as Record<string, unknown>
+    const { error } = await supabase
+      .from('site_settings')
+      .upsert(lignes, { onConflict: 'page' })
+
+    if (error) {
+      setMessage({ type: 'error', text: `L'enregistrement a échoué : ${error.message}` })
     } else {
-      page = 'planning'
-      data = planningSettings as unknown as Record<string, unknown>
+      setMessage({ type: 'success', text: 'Paramètres enregistrés (tous les onglets).' })
+      setModifie(false)
+      // le site public relit les réglages : on force son rafraîchissement
+      fetch('/api/admin/revalidate', { method: 'POST' }).catch(() => {})
     }
-
-    const { error } = await supabase.from('site_settings').upsert(
-      { page, settings: data, updated_at: new Date().toISOString() },
-      { onConflict: 'page' }
-    )
-
-    setMessage(error
-      ? { type: 'error', text: 'Erreur lors de la sauvegarde' }
-      : { type: 'success', text: 'Paramètres enregistrés !' }
-    )
     setSaving(false)
   }
 
@@ -163,11 +177,24 @@ export default function AdminParametresPage() {
           <h1 className="text-2xl lg:text-3xl font-bold text-primary">Paramètres</h1>
           <p className="text-gray-600 mt-1">Configuration du site et du club</p>
         </div>
-        <button onClick={handleSave} disabled={saving} className="btn-primary flex items-center gap-2">
-          <i className={`fas ${saving ? 'fa-spinner fa-spin' : 'fa-save'}`}></i>
-          {saving ? 'Sauvegarde...' : 'Enregistrer'}
-        </button>
+        <div className="flex items-center gap-3">
+          {modifie && !saving && (
+            <span className="text-sm text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
+              <i className="fas fa-circle-exclamation mr-1.5"></i>Modifications non enregistrées
+            </span>
+          )}
+          <button onClick={handleSave} disabled={saving} className="btn-primary flex items-center gap-2">
+            <i className={`fas ${saving ? 'fa-spinner fa-spin' : 'fa-save'}`}></i>
+            {saving ? 'Sauvegarde...' : 'Tout enregistrer'}
+          </button>
+        </div>
       </div>
+
+      <p className="text-sm text-gray-500 -mt-2">
+        <i className="fas fa-circle-info mr-1.5 text-primary"></i>
+        Le bouton enregistre les quatre onglets en une seule fois : vous pouvez passer de l&apos;un à
+        l&apos;autre sans rien perdre.
+      </p>
 
       {message && <div className={`p-4 rounded-lg ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{message.text}</div>}
 

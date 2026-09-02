@@ -9,6 +9,7 @@ import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { compresserImage } from '@/lib/image-compression'
 
 interface RichTextEditorProps {
   content: string
@@ -53,10 +54,12 @@ export default function RichTextEditor({
   if (!editor) return null
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const fichierOrigine = e.target.files?.[0]
+    if (!fichierOrigine) return
 
     setUploading(true)
+    // Réduction avant envoi (photos de téléphone souvent > 3 Mo)
+    const file = await compresserImage(fichierOrigine)
     const supabase = createClient()
     const ext = file.name.split('.').pop()
     const fileName = `${storageFolder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`

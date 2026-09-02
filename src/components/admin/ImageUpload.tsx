@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { compresserImage, formaterPoids } from '@/lib/image-compression'
 
 interface ImageUploadProps {
   value: string
@@ -21,11 +22,18 @@ export default function ImageUpload({
   className = '',
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false)
+  const [infoPoids, setInfoPoids] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleUpload = async (file: File) => {
+  const handleUpload = async (fichierOrigine: File) => {
     setUploading(true)
+    setInfoPoids(null)
+    // Réduction avant envoi : une photo de téléphone fait souvent plusieurs Mo.
+    const file = await compresserImage(fichierOrigine)
+    if (file.size < fichierOrigine.size) {
+      setInfoPoids(`Photo allégée : ${formaterPoids(fichierOrigine.size)} → ${formaterPoids(file.size)}`)
+    }
     const supabase = createClient()
     const ext = file.name.split('.').pop()
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
@@ -59,6 +67,12 @@ export default function ImageUpload({
   return (
     <div className={className}>
       <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>
+
+      {infoPoids && (
+        <p className="text-xs text-emerald-700 mb-2">
+          <i className="fas fa-feather mr-1"></i>{infoPoids}
+        </p>
+      )}
 
       {/* Preview */}
       {value && (
