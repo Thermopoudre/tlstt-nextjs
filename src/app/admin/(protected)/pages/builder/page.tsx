@@ -214,7 +214,7 @@ export default function PageBuilderPage() {
           {!selectedPage ? (
             <div className="bg-white rounded-xl shadow p-12 text-center">
               <i className="fas fa-mouse-pointer text-4xl text-gray-300 mb-4"></i>
-              <h3 className="text-lg font-bold text-gray-600">Selectionnez une page</h3>
+              <h3 className="text-lg font-bold text-gray-600">Sélectionnez une page</h3>
               <p className="text-gray-400 text-sm">Choisissez une page dans la liste ou creez-en une nouvelle</p>
             </div>
           ) : (

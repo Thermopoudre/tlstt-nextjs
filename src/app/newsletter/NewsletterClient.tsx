@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 
@@ -17,49 +16,24 @@ export default function NewsletterClient() {
     setLoading(true)
     setMessage(null)
 
-    const supabase = createClient()
-
     try {
-      // Vérifier si l'email existe déjà
-      const { data: existing } = await supabase
-        .from('newsletter_subscribers')
-        .select('*')
-        .eq('email', email)
-        .single()
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, firstName, lastName }),
+      })
+      const info = await res.json().catch(() => ({}))
 
-      if (existing) {
-        if (existing.is_subscribed) {
-          setMessage({ type: 'error', text: 'Cet email est déjà inscrit à la newsletter.' })
-        } else {
-          // Réactiver l'abonnement
-          await supabase
-            .from('newsletter_subscribers')
-            .update({ is_subscribed: true, unsubscribed_at: null })
-            .eq('email', email)
-
-          setMessage({ type: 'success', text: 'Votre abonnement a été réactivé !' })
-        }
-      } else {
-        // Nouvel abonnement
-        const { error } = await supabase
-          .from('newsletter_subscribers')
-          .insert([{
-            email,
-            first_name: firstName,
-            last_name: lastName,
-            is_subscribed: true
-          }])
-
-        if (error) throw error
-
-        setMessage({ type: 'success', text: 'Merci pour votre inscription ! Vous recevrez bientôt notre newsletter.' })
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Merci ! Si cette adresse n\'était pas encore inscrite, elle l\'est maintenant : vous recevrez notre prochaine newsletter.' })
         setEmail('')
         setFirstName('')
         setLastName('')
+      } else {
+        setMessage({ type: 'error', text: info.error || 'Une erreur est survenue. Veuillez réessayer.' })
       }
-    } catch (error: any) {
+    } catch {
       setMessage({ type: 'error', text: 'Une erreur est survenue. Veuillez réessayer.' })
-      console.error('Error:', error)
     } finally {
       setLoading(false)
     }

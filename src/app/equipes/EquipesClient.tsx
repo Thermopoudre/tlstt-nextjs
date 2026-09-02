@@ -232,7 +232,7 @@ export default function EquipesClient() {
                   ? 'bg-amber-500/20 text-amber-300'
                   : 'bg-gray-700/50 text-gray-500'
               }`}>
-                Terminee
+                Terminée
               </span>
             </div>
           </button>
@@ -282,7 +282,7 @@ export default function EquipesClient() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-4 text-center">
               <p className="text-3xl font-bold text-[#3b9fd8]">{teamsWithData.length}<span className="text-gray-600 text-lg">/{teams.length}</span></p>
-              <p className="text-xs text-gray-500 uppercase tracking-wider mt-1">Equipes actives</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider mt-1">Équipes actives</p>
             </div>
             <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-4 text-center">
               <p className="text-3xl font-bold text-white">{totalMatchs}</p>
@@ -333,7 +333,7 @@ export default function EquipesClient() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <i className="fas fa-th-large text-[#3b9fd8]"></i>
-              Details par equipe
+              Détails par equipe
             </h2>
           </div>
           <div className="flex flex-wrap gap-2">

@@ -200,7 +200,7 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Prenom *</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Prénom *</label>
                   <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5bc0de] focus:border-transparent" />
                 </div>
@@ -212,7 +212,7 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Telephone</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Téléphone</label>
                 <input type="tel" name="phone" value={formData.phone} onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5bc0de] focus:border-transparent"
                   placeholder="06 12 34 56 78" />
@@ -314,14 +314,14 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
           {step === 3 && (
             <>
               <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                <h3 className="font-semibold text-gray-800 mb-3"><i className="fas fa-clipboard-check mr-2 text-[#5bc0de]"></i>Recapitulatif</h3>
+                <h3 className="font-semibold text-gray-800 mb-3"><i className="fas fa-clipboard-check mr-2 text-[#5bc0de]"></i>Récapitulatif</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <span className="text-gray-500">Prenom</span><span className="font-medium text-gray-800">{formData.firstName}</span>
+                  <span className="text-gray-500">Prénom</span><span className="font-medium text-gray-800">{formData.firstName}</span>
                   <span className="text-gray-500">Nom</span><span className="font-medium text-gray-800">{formData.lastName}</span>
                   <span className="text-gray-500">Email</span><span className="font-medium text-gray-800">{formData.email}</span>
                   <span className="text-gray-500">Type</span><span className="font-medium text-gray-800">{formData.accountType === 'member' ? 'Membre' : 'Visiteur'}</span>
                   {formData.licenceFFTT && <><span className="text-gray-500">Licence</span><span className="font-medium text-gray-800">{formData.licenceFFTT}</span></>}
-                  {formData.phone && <><span className="text-gray-500">Telephone</span><span className="font-medium text-gray-800">{formData.phone}</span></>}
+                  {formData.phone && <><span className="text-gray-500">Téléphone</span><span className="font-medium text-gray-800">{formData.phone}</span></>}
                 </div>
               </div>
 

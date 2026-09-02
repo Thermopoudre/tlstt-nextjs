@@ -51,13 +51,13 @@ export default function NotFound() {
           <p className="text-gray-500 text-sm mb-4">Pages populaires</p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link href="/actualites/club" className="text-sm text-gray-400 hover:text-[#3b9fd8] transition-colors px-3 py-1 rounded-full bg-white/5 hover:bg-white/10">
-              Actualites
+              Actualités
             </Link>
             <Link href="/joueurs" className="text-sm text-gray-400 hover:text-[#3b9fd8] transition-colors px-3 py-1 rounded-full bg-white/5 hover:bg-white/10">
               Joueurs
             </Link>
             <Link href="/equipes" className="text-sm text-gray-400 hover:text-[#3b9fd8] transition-colors px-3 py-1 rounded-full bg-white/5 hover:bg-white/10">
-              Equipes
+              Équipes
             </Link>
             <Link href="/planning" className="text-sm text-gray-400 hover:text-[#3b9fd8] transition-colors px-3 py-1 rounded-full bg-white/5 hover:bg-white/10">
               Planning

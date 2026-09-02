@@ -109,7 +109,7 @@ export default function AdminPlanningPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-primary">Planning</h1>
-          <p className="text-gray-600 mt-1">Gerez les creneaux d&apos;entrainement</p>
+          <p className="text-gray-600 mt-1">Gérez les creneaux d&apos;entrainement</p>
         </div>
         <button onClick={openNew} className="btn-primary flex items-center gap-2">
           <i className="fas fa-plus"></i>Nouveau creneau
@@ -195,7 +195,7 @@ export default function AdminPlanningPage() {
               </div>
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Nom de l&apos;activite *</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Nom de l&apos;activité *</label>
                   <input type="text" required value={form.activity_name} onChange={e => setForm({ ...form, activity_name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Ecole de Ping" />
                 </div>

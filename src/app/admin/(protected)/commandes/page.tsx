@@ -161,7 +161,7 @@ export default function AdminCommandesPage() {
                   )}
                   {selectedOrder.status === 'processing' && (
                     <button onClick={() => { updateStatus(selectedOrder.id, 'completed'); setSelectedOrder(null); }} className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                      <i className="fas fa-check mr-2"></i>Terminee
+                      <i className="fas fa-check mr-2"></i>Terminée
                     </button>
                   )}
                   <button onClick={() => setSelectedOrder(null)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Fermer</button>

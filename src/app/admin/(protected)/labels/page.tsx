@@ -110,7 +110,7 @@ export default function AdminLabelsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-primary">Labels FFTT</h1>
-          <p className="text-gray-600 mt-1">Gerez les labels et certifications du club</p>
+          <p className="text-gray-600 mt-1">Gérez les labels et certifications du club</p>
         </div>
         <button onClick={openNewForm} className="btn-primary flex items-center gap-2">
           <i className="fas fa-plus"></i>Ajouter un label

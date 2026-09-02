@@ -139,7 +139,7 @@ export default function AdminEmailPage() {
           <i className="fas fa-bolt mr-2 text-yellow-500"></i>
           Configuration rapide
         </h2>
-        <p className="text-sm text-gray-600 mb-4">Selectionnez votre fournisseur pour pre-remplir les parametres du serveur :</p>
+        <p className="text-sm text-gray-600 mb-4">Sélectionnez votre fournisseur pour pré-remplir les paramètres du serveur :</p>
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
@@ -187,7 +187,7 @@ export default function AdminEmailPage() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-all text-sm"
           >
             <i className="fas fa-cog text-gray-500"></i>
-            Personnalise
+            Personnalisé
           </button>
         </div>
       </div>
@@ -197,7 +197,7 @@ export default function AdminEmailPage() {
         <div className="bg-white rounded-xl shadow p-6 space-y-6">
           <h2 className="text-lg font-bold text-gray-800">
             <i className="fas fa-server mr-2 text-primary"></i>
-            Parametres du serveur SMTP
+            Paramètres du serveur SMTP
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -467,10 +467,10 @@ export default function AdminEmailPage() {
         </h2>
         <div className="space-y-4 text-gray-600">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-800 mb-2">Etapes pour Gmail :</h3>
+            <h3 className="font-semibold text-blue-800 mb-2">Étapes pour Gmail :</h3>
             <ol className="list-decimal list-inside space-y-2 text-sm text-blue-700">
               <li>Connectez-vous a votre compte Gmail du club</li>
-              <li>Activez la <strong>validation en 2 etapes</strong> dans les parametres de securite Google</li>
+              <li>Activez la <strong>validation en 2 etapes</strong> dans les paramètres de securite Google</li>
               <li>Allez sur <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer" className="underline font-semibold">myaccount.google.com/apppasswords</a></li>
               <li>Creez un mot de passe d&apos;application pour &quot;Mail&quot;</li>
               <li>Copiez le mot de passe genere (16 caracteres) dans le champ ci-dessus</li>

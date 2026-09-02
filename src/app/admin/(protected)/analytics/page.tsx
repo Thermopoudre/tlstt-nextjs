@@ -115,8 +115,8 @@ export default function AdminAnalyticsPage() {
   const kpis = [
     { label: 'Membres', value: s.totalMembers, icon: 'fa-users', color: 'text-blue-600', bgColor: 'bg-blue-50', sub: `${s.pendingMembers} en attente` },
     { label: 'Articles', value: s.publishedArticles, icon: 'fa-newspaper', color: 'text-green-600', bgColor: 'bg-green-50', sub: `${s.totalArticles} total` },
-    { label: 'Abonnes newsletter', value: s.activeSubscribers, icon: 'fa-envelope', color: 'text-purple-600', bgColor: 'bg-purple-50', sub: `${s.totalSubscribers} total` },
-    { label: 'Equipes', value: s.totalTeams, icon: 'fa-users-line', color: 'text-orange-600', bgColor: 'bg-orange-50', sub: `${s.totalPlayers} joueurs` },
+    { label: 'Abonnés newsletter', value: s.activeSubscribers, icon: 'fa-envelope', color: 'text-purple-600', bgColor: 'bg-purple-50', sub: `${s.totalSubscribers} total` },
+    { label: 'Équipes', value: s.totalTeams, icon: 'fa-users-line', color: 'text-orange-600', bgColor: 'bg-orange-50', sub: `${s.totalPlayers} joueurs` },
     { label: 'Albums / Photos', value: s.totalAlbums, icon: 'fa-images', color: 'text-pink-600', bgColor: 'bg-pink-50', sub: `${s.totalPhotos} photos` },
     { label: 'Boutique', value: s.totalProducts, icon: 'fa-store', color: 'text-teal-600', bgColor: 'bg-teal-50', sub: `${s.totalOrders} commandes` },
   ]
@@ -125,7 +125,7 @@ export default function AdminAnalyticsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl lg:text-3xl font-bold text-primary">Dashboard Analytics</h1>
-        <p className="text-gray-600 mt-1">Vue d&apos;ensemble du site et de l&apos;activite</p>
+        <p className="text-gray-600 mt-1">Vue d&apos;ensemble du site et de l&apos;activité</p>
       </div>
 
       {/* KPIs */}

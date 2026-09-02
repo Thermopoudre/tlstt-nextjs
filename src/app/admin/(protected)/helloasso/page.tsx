@@ -62,7 +62,7 @@ export default function AdminHelloAssoPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-primary">Integration HelloAsso</h1>
+        <h1 className="text-2xl lg:text-3xl font-bold text-primary">Intégration HelloAsso</h1>
         <p className="text-gray-600 mt-1">Configurez les liens de paiement HelloAsso pour les cotisations et la boutique</p>
       </div>
 
@@ -169,7 +169,7 @@ export default function AdminHelloAssoPage() {
       <div className="bg-white rounded-xl shadow p-6">
         <h2 className="text-lg font-bold text-gray-800 mb-4">
           <i className="fas fa-eye mr-2 text-primary"></i>
-          Apercu de l&apos;integration
+          Aperçu de l&apos;integration
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className={`border rounded-lg p-4 ${form.helloasso_cotisation_url ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>

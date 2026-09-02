@@ -79,7 +79,7 @@ export default function NouveauProduitPage() {
                 placeholder="ex: Maillot TLSTT" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Categorie *</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Catégorie *</label>
               <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
                 <option value="textile">Textile</option>

@@ -83,7 +83,7 @@ export default function AdminBoutiquePage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-primary">Boutique</h1>
-          <p className="text-gray-600 mt-1">Gerez les produits de la boutique</p>
+          <p className="text-gray-600 mt-1">Gérez les produits de la boutique</p>
         </div>
         <Link href="/admin/boutique/nouveau" className="btn-primary flex items-center gap-2">
           <i className="fas fa-plus"></i>Nouveau produit
@@ -199,7 +199,7 @@ export default function AdminBoutiquePage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Categorie</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Catégorie</label>
                     <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg">
                       <option value="textile">Textile</option>

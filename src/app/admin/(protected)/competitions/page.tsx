@@ -114,7 +114,7 @@ export default function AdminCompetitionsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-primary">Competitions</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold text-primary">Compétitions</h1>
           <p className="text-gray-600 mt-1">Calendrier des matchs et resultats</p>
         </div>
         <button onClick={openNew} className="btn-primary flex items-center gap-2">
@@ -218,9 +218,9 @@ export default function AdminCompetitionsPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Equipe TLSTT *</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Équipe TLSTT *</label>
                     <input type="text" required value={form.team_name} onChange={e => setForm({ ...form, team_name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Equipe 1" />
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Équipe 1" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">Adversaire *</label>

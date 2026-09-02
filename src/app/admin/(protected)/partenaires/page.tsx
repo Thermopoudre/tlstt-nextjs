@@ -99,7 +99,7 @@ export default function AdminPartenairesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-primary">Partenaires</h1>
-          <p className="text-gray-600 mt-1">Gerez vos partenaires et sponsors</p>
+          <p className="text-gray-600 mt-1">Gérez vos partenaires et sponsors</p>
         </div>
         <button onClick={openNew} className="btn-primary flex items-center gap-2">
           <i className="fas fa-plus"></i>Nouveau partenaire
@@ -129,7 +129,7 @@ export default function AdminPartenairesPage() {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Partenaire</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600 hidden md:table-cell">Categorie</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600 hidden md:table-cell">Catégorie</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600 hidden sm:table-cell">Site web</th>
                 <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Statut</th>
                 <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">Actions</th>
@@ -195,7 +195,7 @@ export default function AdminPartenairesPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Categorie</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Catégorie</label>
                     <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg">
                       {Object.entries(CATEGORIES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}

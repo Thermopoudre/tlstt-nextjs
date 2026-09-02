@@ -167,8 +167,8 @@ export default function AdminEquipesPage() {
       )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-primary">Equipes</h1>
-          <p className="text-gray-600 mt-1">Gerez les equipes du club et leurs resultats</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-primary">Équipes</h1>
+          <p className="text-gray-600 mt-1">Gérez les equipes du club et leurs resultats</p>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={handleSync} disabled={syncing}
@@ -211,7 +211,7 @@ export default function AdminEquipesPage() {
         <p className="text-blue-800 text-sm">
           <i className="fas fa-info-circle mr-2"></i>
           Mettez a jour les resultats apres chaque journee de championnat.
-          Les modifications sont visibles immediatement sur la page Equipes du site.
+          Les modifications sont visibles immediatement sur la page Équipes du site.
         </p>
       </div>
 
@@ -336,7 +336,7 @@ export default function AdminEquipesPage() {
                 </div>
 
                 <div className="border-t pt-4">
-                  <h3 className="text-sm font-bold text-gray-700 mb-3">Resultats</h3>
+                  <h3 className="text-sm font-bold text-gray-700 mb-3">Résultats</h3>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
                       <label className="block text-xs text-gray-500 mb-1">Matchs joues</label>
@@ -391,7 +391,7 @@ export default function AdminEquipesPage() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })}
                     className="w-5 h-5 rounded text-primary" />
-                  <span className="text-sm font-semibold text-gray-700">Equipe active (visible sur le site)</span>
+                  <span className="text-sm font-semibold text-gray-700">Équipe active (visible sur le site)</span>
                 </label>
 
                 <div className="flex gap-3 pt-4">

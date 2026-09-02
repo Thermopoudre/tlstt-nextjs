@@ -124,7 +124,7 @@ export default function CompetitionsContent({ competitions }: { competitions: Co
                 <span className={`font-bold ${activePhase === 1 ? 'text-amber-400' : 'text-gray-300'}`}>Phase 1</span>
                 <span className={`text-xs px-2 py-0.5 rounded-full ${
                   activePhase === 1 ? 'bg-amber-500/20 text-amber-300' : 'bg-gray-700/50 text-gray-600'
-                }`}>Terminee</span>
+                }`}>Terminée</span>
               </div>
               <p className={`text-xs ${activePhase === 1 ? 'text-amber-300/60' : 'text-gray-600'}`}>
                 {p1Comps.length} resultats

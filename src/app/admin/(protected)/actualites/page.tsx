@@ -92,7 +92,7 @@ export default function AdminActualitesPage() {
 
   const filters = [
     { key: 'all', label: 'Toutes', count: stats.total },
-    { key: 'published', label: 'Publiees', count: stats.published },
+    { key: 'published', label: 'Publiées', count: stats.published },
     { key: 'draft', label: 'Brouillons', count: stats.draft },
     { key: 'club', label: 'Club', count: stats.club },
     { key: 'tt', label: 'TT', count: stats.tt },
@@ -119,8 +119,8 @@ export default function AdminActualitesPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-primary">Actualites</h1>
-          <p className="text-gray-600 mt-1">Gerez toutes vos actualites</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-primary">Actualités</h1>
+          <p className="text-gray-600 mt-1">Gérez toutes vos actualites</p>
         </div>
         <Link href="/admin/actualites/nouveau" className="btn-primary flex items-center gap-2">
           <i className="fas fa-plus"></i>Nouvelle actualite
@@ -130,7 +130,7 @@ export default function AdminActualitesPage() {
       <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
         {[
           { label: 'Total', value: stats.total, color: 'blue' },
-          { label: 'Publiees', value: stats.published, color: 'green' },
+          { label: 'Publiées', value: stats.published, color: 'green' },
           { label: 'Brouillons', value: stats.draft, color: 'yellow' },
           { label: 'Club', value: stats.club, color: 'purple' },
           { label: 'TT', value: stats.tt, color: 'cyan' },
@@ -170,7 +170,7 @@ export default function AdminActualitesPage() {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Article</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600 hidden md:table-cell">Categorie</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600 hidden md:table-cell">Catégorie</th>
                 <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Statut</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600 hidden sm:table-cell">Date</th>
                 <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">Actions</th>
