@@ -26,7 +26,8 @@ export async function GET(req: NextRequest) {
   // ou un appel portant le secret. Sinon : refus (avant, sans CRON_SECRET configuré,
   // cette route était ouverte à tout le monde).
   const cronSecret = process.env.CRON_SECRET
-  const estCronVercel = !!req.headers.get('x-vercel-cron')
+  // en-tête accepté seulement en l'absence de secret (voir rss-import)
+  const estCronVercel = !cronSecret && !!req.headers.get('x-vercel-cron')
   const secretOk = !!cronSecret && req.headers.get('authorization') === `Bearer ${cronSecret}`
   // …ou un administrateur connecté (bouton « Synchroniser » du back-office).
   if (!estCronVercel && !secretOk && !(await estAdminConnecte())) {

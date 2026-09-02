@@ -99,10 +99,10 @@ function escapeAttr(url: string): string {
 async function isAuthorized(req: NextRequest): Promise<boolean> {
   const secret = process.env.CRON_SECRET
   if (secret && req.headers.get('authorization') === 'Bearer ' + secret) return true
-  // Vercel ajoute cet en-tête sur ses tâches planifiées et filtre les en-têtes
-  // « x-vercel-* » entrants : il ne peut donc pas être falsifié depuis l'extérieur.
-  // Permet au cron de fonctionner même sans CRON_SECRET configuré.
-  if (req.headers.get('x-vercel-cron')) return true
+  // Mode dégradé : tant qu'aucun CRON_SECRET n'est configuré côté hébergement,
+  // on accepte la tâche planifiée Vercel sur son en-tête. Dès que le secret existe,
+  // seule l'authentification par secret est acceptée (cet en-tête est falsifiable).
+  if (!secret && req.headers.get('x-vercel-cron')) return true
   try {
     const sb = await createReadOnlyClient()
     const { data: { user } } = await sb.auth.getUser()
