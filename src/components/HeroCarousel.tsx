@@ -75,7 +75,11 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
             {/* Background Image (fallback si pas de vidéo) */}
             {!youtubeId && (
               <div
-                className="absolute inset-0 bg-cover bg-center"
+                className={`absolute inset-0 bg-center bg-no-repeat ${
+                  // Slide sans texte = affiche auto-porteuse : on la montre en entier
+                  // (bg-contain) au lieu de la rogner, notamment sur mobile.
+                  (image.title?.trim() || image.subtitle?.trim()) ? 'bg-cover' : 'bg-contain'
+                }`}
                 style={{ backgroundImage: `url(${image.url})` }}
               />
             )}
