@@ -91,6 +91,13 @@ export async function GET(req: NextRequest) {
     ['xml_partie.php', { numlic: licence }],
     ['xml_histo_classement.php', { numlic: licence }],
     ['xml_organisme.php', { type: 'D' }],
+    ['xml_epreuve.php', { organisme: '1', type: 'E' }],
+    ['xml_division.php', { organisme: '1', epreuve: '1', type: 'E' }],
+    ['xml_result_equ.php', { action: 'classement', auto: '1', D1: '1' }],
+    ['xml_result_equ.php', { action: 'poule', auto: '1', D1: '1' }],
+    ['xml_rencontre_equ.php', { poule: '1' }],
+    ['xml_result_indiv.php', { action: 'poule', epr: '1', res_division: '1' }],
+    ['xml_res_cla.php', { res_division: '1' }],
     ['xml_new_actu.php', {}],
   ]
   const resultats = []
