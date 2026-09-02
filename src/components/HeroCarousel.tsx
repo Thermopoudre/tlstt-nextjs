@@ -22,6 +22,12 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
     return () => clearInterval(timer)
   }, [images.length])
 
+  // Un slide sans texte est une image auto-porteuse (affiche, bannière) : on
+  // n'assombrit presque pas. Un slide avec titre a besoin d'un voile plus dense
+  // pour que le texte reste lisible quelle que soit la photo.
+  const slideCourant = images[currentIndex]
+  const aDuTexte = !!(slideCourant?.title?.trim() || slideCourant?.subtitle?.trim())
+
   const goToSlide = (index: number) => setCurrentIndex(index)
   const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
   const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % images.length)
@@ -47,7 +53,13 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
       )}
 
       {/* Overlay fixe — reste constant pendant les transitions du carousel */}
-      <div className="absolute inset-0 z-10 bg-gradient-to-b from-[#0a0a0a]/45 via-[#0a0a0a]/35 to-[#0a0a0a]/70" />
+      <div
+        className={`absolute inset-0 z-10 transition-all duration-700 ${
+          aDuTexte
+            ? 'bg-gradient-to-b from-[#0a0a0a]/55 via-[#0a0a0a]/60 to-[#0a0a0a]/80'
+            : 'bg-[#0a0a0a]/15'
+        }`}
+      />
 
       {/* Slides — uniquement le contenu texte, pas d'overlay */}
       <AnimatePresence mode="wait">
@@ -73,7 +85,7 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center px-4 max-w-4xl">
                 <motion.h1
-                  className="text-5xl md:text-7xl font-bold mb-6"
+                  className="text-5xl md:text-7xl font-bold mb-6 [text-shadow:0_2px_18px_rgba(0,0,0,.85)]"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 }}
@@ -88,7 +100,7 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
                   })}
                 </motion.h1>
                 <motion.p
-                  className="text-xl md:text-2xl text-white/90 mb-8"
+                  className="text-xl md:text-2xl text-white/90 mb-8 [text-shadow:0_2px_12px_rgba(0,0,0,.9)]"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.25 }}
