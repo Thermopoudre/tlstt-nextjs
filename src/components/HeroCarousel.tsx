@@ -78,7 +78,12 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
 
       {/* Texte du slide courant */}
       {texteVisible && (
-        <div key={currentIndex} className="absolute inset-0 z-20 flex items-center justify-center animate-fadeInUp">
+        <div
+          key={currentIndex}
+          /* Aucune animation d'apparition ici : le message du premier écran doit
+             rester visible même si les animations ne démarrent pas. */
+          className="absolute inset-0 z-20 flex items-center justify-center"
+        >
           <div className="text-center px-4 max-w-4xl">
             <h1 className="text-5xl md:text-7xl font-bold mb-6 [text-shadow:0_2px_18px_rgba(0,0,0,.85)]">
               {slideCourant.title.split(' ').map((word, i) => {
