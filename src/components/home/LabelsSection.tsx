@@ -58,9 +58,12 @@ export default function LabelsSection() {
   }
 
   const shouldShowBadge = (label: Label) => {
-    return !label.image_url || 
-           label.image_url.includes('placeholder') || 
-           failedImages.has(label.id)
+    const url = (label.image_url || '').trim()
+    // Une adresse locale (file:///Users/…, C:\…) collée depuis un ordinateur
+    // ne s'affichera jamais chez les visiteurs : on bascule directement sur le
+    // badge stylisé plutôt que de laisser une image cassée sur la page d'accueil.
+    const adresseLocale = /^(file:|[a-zA-Z]:\\)/.test(url)
+    return !url || url.includes('placeholder') || adresseLocale || failedImages.has(label.id)
   }
 
   return (

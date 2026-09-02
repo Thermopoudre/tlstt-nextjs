@@ -137,9 +137,7 @@ export default function AdminLabelsPage() {
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
         <p className="text-blue-800 text-sm">
           <i className="fas fa-info-circle mr-2"></i>
-          Les labels sont affiches sur la page d&apos;accueil du site. Vous pouvez uploader les images des labels
-          dans Supabase Storage et utiliser l&apos;URL publique, ou utiliser une URL externe.
-        </p>
+          Les labels sont affichés sur la page d&apos;accueil du site. Choisissez le fichier depuis votre ordinateur : il est mis en ligne automatiquement. Si aucune image valide n&apos;est fournie, un badge aux couleurs du club est affiché à la place.</p>
       </div>
 
       {/* Labels List */}
