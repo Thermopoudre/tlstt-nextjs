@@ -93,7 +93,14 @@ export class SmartPingAPI {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       // Le contenu est en UTF-8 (malgré l'en-tête XML qui annonce ISO-8859-1) : décodage UTF-8
-      return await response.text()
+      const texte = await response.text()
+      // Certains scripts répondent 200 avec <autorisation><statut>0</statut> quand le
+      // compte n'y a pas droit : ce n'est pas une donnée, on le signale comme un refus.
+      if (/<autorisation>[\s\S]*<statut>\s*0\s*<\/statut>/i.test(texte)) {
+        const motif = (texte.match(/<motif>([^<]*)<\/motif>/i) || [])[1] || 'non autorisé'
+        throw new Error(`SmartPing ${endpoint} refusé pour ce compte (${motif})`)
+      }
+      return texte
     } catch (error) {
       // 401 attendus sur endpoints non activés par la FFTT pour ce compte -> warn, fallback Supabase côté routes
       console.warn('SmartPing API:', error instanceof Error ? error.message : error)

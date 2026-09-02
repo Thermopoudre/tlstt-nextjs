@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createReadOnlyClient } from '@/lib/supabase/server'
+import { smartPingAPI } from '@/lib/smartping/api'
 
 // Import quotidien d'actualités TT en catégorie "tt".
 // - FFTT/France : Google News FR (actu TT française : FFTT, équipe de France, Lebrun...)
@@ -12,9 +13,11 @@ import { createReadOnlyClient } from '@/lib/supabase/server'
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
 
-interface Source { name: string; via: 'gnews'; url: string; lang: 'fr' | 'en' }
+interface Source { name: string; via: 'gnews' | 'fftt'; url: string; lang: 'fr' | 'en' }
 const SOURCES: Source[] = [
-  { name: 'FFTT / France', via: 'gnews', url: 'https://news.google.com/rss/search?q=%22tennis%20de%20table%22%20(FFTT%20OR%20%22%C3%A9quipe%20de%20France%22%20OR%20championnat%20OR%20Lebrun)&hl=fr&gl=FR&ceid=FR:fr', lang: 'fr' },
+  // Flux officiel de la FFTT via l'API SmartPing (xml_new_actu) : titre, résumé,
+  // lien direct fftt.com ET photo — bien mieux que Google News (liens opaques, sans image).
+  { name: 'FFTT', via: 'fftt', url: '', lang: 'fr' },
   { name: 'ITTF / WTT', via: 'gnews', url: 'https://news.google.com/rss/search?q=ITTF%20OR%20%22World%20Table%20Tennis%22%20table%20tennis&hl=en-US&gl=US&ceid=US:en', lang: 'en' },
 ]
 const MAX_PER_SOURCE = 8
@@ -60,6 +63,23 @@ async function viaGnews(feedUrl: string): Promise<Item[]> {
     image: null,
     desc: stripTags(pick(b, 'description')).slice(0, 600),
   }))
+}
+
+// Flux d'actualités officiel FFTT (API SmartPing, script xml_new_actu autorisé pour notre compte)
+async function viaFftt(): Promise<Item[]> {
+  let xml = ''
+  try { xml = await smartPingAPI.getActualites() } catch { return [] }
+  const blocks = (xml.match(/<news>[\s\S]*?<\/news>/gi) || []).slice(0, MAX_PER_SOURCE)
+  return blocks.map((b): Item => {
+    const photo = stripTags(pick(b, 'photo'))
+    return {
+      title: stripTags(pick(b, 'titre')),
+      link: stripTags(pick(b, 'url')),
+      pubDate: stripTags(pick(b, 'date')),
+      image: /^https?:\/\//.test(photo) ? photo : null,
+      desc: stripTags(pick(b, 'description')).slice(0, 600),
+    }
+  })
 }
 
 async function translateToFr(text: string): Promise<string> {
@@ -123,7 +143,7 @@ export async function GET(req: NextRequest) {
   for (const src of SOURCES) {
     let added = 0, withImg = 0
     try {
-      const items = await viaGnews(src.url)
+      const items = src.via === 'fftt' ? await viaFftt() : await viaGnews(src.url)
       for (const it of items) {
         if (!it.link) continue
         const { data: existing } = await supabase.from('news').select('id').eq('source_url', it.link).maybeSingle()
