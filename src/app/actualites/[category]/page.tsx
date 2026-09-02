@@ -10,6 +10,12 @@ import ExternalNewsWidget from '@/components/news/ExternalNewsWidget'
 
 export const revalidate = 3600
 
+// Les trois rubriques sont connues : on les pré-rend au déploiement, puis le
+// cache est rafraîchi toutes les heures ou dès qu'un admin publie.
+export function generateStaticParams() {
+  return [{ category: 'club' }, { category: 'tt' }, { category: 'handi' }]
+}
+
 const categoryLabels: Record<string, string> = {
   club: 'Actualités du Club',
   tt: 'Tennis de Table',
