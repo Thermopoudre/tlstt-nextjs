@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getGlobalSettings } from '@/lib/settings'
+import { VILLES, SALLES } from '@/lib/villes'
 
 export default async function Footer() {
   const settings = await getGlobalSettings()
@@ -132,11 +133,33 @@ export default async function Footer() {
                 <i className="fas fa-envelope w-4"></i>
                 {settings.contact_email}
               </a>
-              <p className="text-gray-500 flex items-center gap-2">
-                <i className="fas fa-map-marker-alt w-4"></i>
-                {settings.city}, {settings.postal_code}
+              <p className="text-gray-500 flex items-start gap-2">
+                <i className="fas fa-map-marker-alt w-4 mt-1"></i>
+                <span>
+                  {SALLES.lery.nom}, {SALLES.lery.adresse}, {SALLES.lery.codePostal} {SALLES.lery.ville}
+                  <br />
+                  {SALLES.valfleuri.nom}, {SALLES.valfleuri.adresse}, {SALLES.valfleuri.codePostal} {SALLES.valfleuri.ville}
+                </span>
               </p>
+              {settings.contact_phone && (
+                <a href={`tel:${String(settings.contact_phone).replace(/\s/g, '')}`} className="text-gray-400 hover:text-[#3b9fd8] transition-colors flex items-center gap-2">
+                  <i className="fas fa-phone w-4"></i>
+                  {settings.contact_phone}
+                </a>
+              )}
             </div>
+          </div>
+        </div>
+
+        {/* Communes desservies (référencement local) */}
+        <div className="border-t border-[#222] mt-8 pt-6">
+          <p className="text-gray-500 text-xs uppercase tracking-wider mb-3">Tennis de table près de chez vous</p>
+          <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            {VILLES.map(v => (
+              <Link key={v.slug} href={`/tennis-de-table/${v.slug}`} className="text-gray-400 hover:text-[#3b9fd8] transition-colors">
+                Tennis de table {v.prep}
+              </Link>
+            ))}
           </div>
         </div>
 

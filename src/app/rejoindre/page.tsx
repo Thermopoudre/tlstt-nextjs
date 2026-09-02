@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { createPublicClient as createClient } from '@/lib/supabase/public'
 import Link from 'next/link'
 import { saisonActuelle } from '@/lib/saison'
+import { VILLES } from '@/lib/villes'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd } from '@/lib/seo'
@@ -428,6 +429,21 @@ export default async function RejoindreePage() {
                 nos salles et adresses
               </Link>
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Pages par commune (référencement local) */}
+      <section className="py-10 border-t border-[#1e1e1e]">
+        <div className="container-custom">
+          <h2 className="text-xl font-bold text-white mb-2">Vous habitez près de Toulon ou de La Seyne ?</h2>
+          <p className="text-gray-400 text-sm mb-5">Salle la plus proche, temps de trajet, horaires et questions fréquentes, commune par commune.</p>
+          <div className="flex flex-wrap gap-3">
+            {VILLES.map(v => (
+              <Link key={v.slug} href={`/tennis-de-table/${v.slug}`} className="border border-[#333] hover:border-[#3b9fd8] text-gray-300 hover:text-white px-4 py-2 rounded-full text-sm transition-colors">
+                <i className="fas fa-location-dot mr-2 text-[#3b9fd8]"></i>{v.nom}
+              </Link>
+            ))}
           </div>
         </div>
       </section>

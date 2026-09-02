@@ -151,16 +151,33 @@ export function organizationJsonLd(settings?: {
     foundingDate: s.foundingDate ? `${s.foundingDate}` : '1954',
     address: {
       '@type': 'PostalAddress',
-      streetAddress: s.address || 'Gymnase Léo Lagrange, Avenue Maréchal Juin',
+      streetAddress: s.address || "Complexe sportif Léry, 42 boulevard de l'Europe",
       addressLocality: s.city || 'La Seyne-sur-Mer',
       postalCode: s.postalCode || '83500',
       addressCountry: 'FR',
     },
     sameAs: [
-      s.facebook || 'https://www.facebook.com/tlstt83',
-      s.instagram || 'https://www.instagram.com/tlstt_officiel',
+      s.facebook || 'https://www.facebook.com/pingToulon',
+      s.instagram || 'https://www.instagram.com/toulon_laseyne_tt',
     ].filter(Boolean),
-    areaServed: ['La Seyne-sur-Mer', 'Toulon', 'Var', "Provence-Alpes-Côte d'Azur"],
+    // zone desservie : les communes du secteur (référencement local)
+    areaServed: [
+      'Toulon', 'La Seyne-sur-Mer', 'Six-Fours-les-Plages', 'Ollioules', 'Sanary-sur-Mer',
+      'Saint-Mandrier-sur-Mer', 'Var', "Provence-Alpes-Côte d'Azur",
+    ].map(nom => ({ '@type': 'City', name: nom })),
+    // les deux salles du club
+    location: [
+      {
+        '@type': 'SportsActivityLocation',
+        name: 'Complexe sportif Léry',
+        address: { '@type': 'PostalAddress', streetAddress: "42 boulevard de l'Europe", addressLocality: 'La Seyne-sur-Mer', postalCode: '83500', addressCountry: 'FR' },
+      },
+      {
+        '@type': 'SportsActivityLocation',
+        name: "Gymnase de l'école Val Fleuri",
+        address: { '@type': 'PostalAddress', streetAddress: 'Place Lieutenant Roger Lauret', addressLocality: 'Toulon', postalCode: '83000', addressCountry: 'FR' },
+      },
+    ],
     openingHoursSpecification: [
       { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Thursday', 'Friday'], opens: '17:30', closes: '23:00' },
       { '@type': 'OpeningHoursSpecification', dayOfWeek: 'Wednesday', opens: '14:00', closes: '23:00' },
@@ -300,5 +317,46 @@ export function faqJsonLd(questions: { question: string; answer: string }[]) {
         text: q.answer,
       },
     })),
+  }
+}
+
+
+/**
+ * Page locale « Tennis de table à <ville> » : le club vu comme un
+ * SportsActivityLocation desservant cette commune, avec sa salle de référence.
+ */
+export function pageLocaleJsonLd(opts: {
+  ville: string
+  codePostal: string
+  slug: string
+  salleNom: string
+  salleAdresse: string
+  salleCodePostal: string
+  salleVille: string
+  telephone?: string
+  email?: string
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SportsActivityLocation',
+    name: `TLSTT — Tennis de table ${opts.ville}`,
+    description: `Club de tennis de table affilié FFTT accueillant les habitants de ${opts.ville} : loisirs, jeunes dès 5 ans, compétition, handisport.`,
+    url: `${SITE_URL}/tennis-de-table/${opts.slug}`,
+    image: DEFAULT_OG_IMAGE,
+    telephone: opts.telephone || undefined,
+    email: opts.email || 'contact@tlstt.fr',
+    sport: 'Tennis de table',
+    priceRange: '90€ - 180€ / saison',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: `${opts.salleNom}, ${opts.salleAdresse}`,
+      addressLocality: opts.salleVille,
+      postalCode: opts.salleCodePostal,
+      addressCountry: 'FR',
+    },
+    areaServed: { '@type': 'City', name: opts.ville, postalCode: opts.codePostal },
+    parentOrganization: { '@type': 'SportsOrganization', name: 'TLSTT - Toulon La Seyne Tennis de Table', url: SITE_URL },
+    isAccessibleForFree: false,
+    publicAccess: true,
   }
 }

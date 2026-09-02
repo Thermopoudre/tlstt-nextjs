@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next'
+import { VILLES } from '@/lib/villes'
 import { createClient } from '@/lib/supabase/server'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
@@ -236,7 +237,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  return [
+    // pages locales (référencement par commune)
+  const pagesVilles: MetadataRoute.Sitemap = VILLES.map(v => ({
+    url: `${SITE_URL}/tennis-de-table/${v.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.9,
+  }))
+
+return [
+    ...pagesVilles,
     ...staticPages,
     ...categoryPages,
     ...cmsPageEntries,
