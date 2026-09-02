@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { createPublicClient as createClient } from '@/lib/supabase/public'
 import Link from 'next/link'
+import { saisonActuelle } from '@/lib/saison'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd } from '@/lib/seo'
@@ -40,7 +41,7 @@ export default async function TarifsPage() {
       .single(),
   ])
 
-  const saisonLabel: string = (globalSettings as any)?.settings?.tarifs_saison_label || 'Saison 2025-2026'
+  const saisonLabel: string = (globalSettings as any)?.settings?.tarifs_saison_label || `Saison ${saisonActuelle()}`
 
   // Grouper par catégorie, triées par position de catégorie
   const groupedMap: Record<string, { category: string; position: number; items: any[] }> = {}

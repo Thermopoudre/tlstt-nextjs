@@ -1,5 +1,7 @@
 'use client'
 
+import { saisonActuelle } from '@/lib/saison'
+
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -345,7 +347,7 @@ export default function BoutiqueClient() {
               <div className="flex-1">
                 <h2 className="text-2xl font-bold text-white mb-2">
                   <i className="fas fa-id-card mr-2 text-[#4c40cf]"></i>
-                  Cotisation Saison 2025/2026
+                  Cotisation Saison {saisonActuelle('/')}
                 </h2>
                 <p className="text-gray-400 mb-4">
                   Renouvelez votre licence ou inscrivez-vous pour la nouvelle saison.

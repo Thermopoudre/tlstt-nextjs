@@ -1,16 +1,12 @@
 import type { Metadata } from 'next'
 import { createPublicClient as createClient } from '@/lib/supabase/public'
 import Link from 'next/link'
+import { saisonActuelle } from '@/lib/saison'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd } from '@/lib/seo'
 
 // Saison sportive courante (bascule au 1er juillet)
-function saisonActuelle(): string {
-  const now = new Date()
-  const start = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1
-  return `${start}-${start + 1}`
-}
 
 
 export const revalidate = 3600
