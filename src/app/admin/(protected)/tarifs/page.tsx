@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createUiClient as createClient } from '@/lib/supabase/ui-client'
 
 export default function AdminTarifsPage() {
   const [tarifs, setTarifs] = useState<any[]>([])

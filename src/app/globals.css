@@ -384,7 +384,8 @@ textarea.input-field {
 }
 
 .tiptap a {
-  color: #3b9fd8;
+  /* #3b9fd8 sur fond clair = 2,9:1 (sous le seuil AA de 4,5:1) -> teinte assombrie */
+  color: #2275ab;
   text-decoration: underline;
 }
 
@@ -485,8 +486,13 @@ textarea.input-field {
   color: #374151 !important;
 }
 
+.light-mode .text-white\/90,
 .light-mode .text-white\/80,
 .light-mode .text-white\/70 {
+  color: #374151 !important;
+}
+
+.light-mode .text-gray-200 {
   color: #374151 !important;
 }
 
@@ -538,7 +544,7 @@ textarea.input-field {
 
 .light-mode nav a:hover,
 .light-mode nav button:hover {
-  color: #3b9fd8;
+  color: #2275ab;
 }
 
 /* Contenu riche (prose / prose-invert) en mode clair : les classes prose-*

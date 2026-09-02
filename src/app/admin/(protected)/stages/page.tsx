@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createUiClient as createClient } from '@/lib/supabase/ui-client'
 
 const STAGE_TYPES = [
   { value: 'vacances', label: 'Stages Vacances', icon: 'fa-sun', color: 'orange' },

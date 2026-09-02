@@ -160,7 +160,9 @@ export default function AdminAnalyticsPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-800 truncate">{a.title}</p>
                   <p className="text-xs text-gray-400">
-                    {a.category} - {a.published_at ? new Date(a.published_at).toLocaleDateString('fr-FR') : 'Brouillon'}
+                    {a.category} - {a.status === 'published'
+                      ? (a.published_at ? new Date(a.published_at).toLocaleDateString('fr-FR') : 'Publie')
+                      : 'Brouillon'}
                   </p>
                 </div>
               </div>

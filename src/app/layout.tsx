@@ -1,14 +1,13 @@
+import PublicChrome from '@/components/layout/PublicChrome'
+import AlertBanner from '@/components/ui/AlertBanner'
+import Header from '@/components/layout/Header'
+import Footer from '@/components/layout/Footer'
 import type { Metadata } from 'next'
 import { Montserrat, Open_Sans } from 'next/font/google'
 import './globals.css'
-import Header from '@/components/layout/Header'
-import Footer from '@/components/layout/Footer'
 import { AuthProvider } from '@/components/auth/AuthProvider'
-import CookieBanner from '@/components/ui/CookieBanner'
-import BackToTop from '@/components/ui/BackToTop'
 import JsonLd from '@/components/seo/JsonLd'
 import { organizationJsonLd } from '@/lib/seo'
-import AlertBanner from '@/components/ui/AlertBanner'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 
@@ -109,14 +108,9 @@ export default function RootLayout({
         `}} />
         <JsonLd data={organizationJsonLd()} />
         <AuthProvider>
-          <AlertBanner />
-          <Header />
-          <main className="flex-1 py-0">
+          <PublicChrome alertBanner={<AlertBanner />} header={<Header />} footer={<Footer />}>
             {children}
-          </main>
-          <Footer />
-          <BackToTop />
-          <CookieBanner />
+          </PublicChrome>
         </AuthProvider>
       </body>
     </html>

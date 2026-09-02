@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createUiClient as createClient } from '@/lib/supabase/ui-client'
+import ImageUpload from '@/components/admin/ImageUpload'
 
 interface Label {
   id: string
@@ -250,17 +251,14 @@ export default function AdminLabelsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">URL de l&apos;image *</label>
-                  <input
-                    type="url"
-                    required
+                  <ImageUpload
+                    label="Image du label *"
                     value={form.image_url}
-                    onChange={e => setForm({ ...form, image_url: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="https://... ou /images/labels/..."
+                    onChange={(url) => setForm({ ...form, image_url: url })}
+                    folder="labels"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Uploadez l&apos;image dans Supabase Storage puis collez l&apos;URL publique
+                    Choisissez le fichier depuis votre ordinateur : il est envoyé sur le site automatiquement.
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">

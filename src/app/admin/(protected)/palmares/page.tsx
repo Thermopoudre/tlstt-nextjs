@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createUiClient as createClient } from '@/lib/supabase/ui-client'
 
 const MEDAL_OPTIONS = [
   { value: 'or', label: 'Or', icon: 'fa-trophy', color: 'text-yellow-500' },

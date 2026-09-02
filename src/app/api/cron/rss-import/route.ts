@@ -86,9 +86,23 @@ async function translateToFr(text: string): Promise<string> {
   return clean
 }
 
+// Neutralise les caractères qui pourraient casser l'attribut href d'un lien.
+function escapeAttr(url: string): string {
+  return String(url)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
 async function isAuthorized(req: NextRequest): Promise<boolean> {
   const secret = process.env.CRON_SECRET
   if (secret && req.headers.get('authorization') === 'Bearer ' + secret) return true
+  // Vercel ajoute cet en-tête sur ses tâches planifiées et filtre les en-têtes
+  // « x-vercel-* » entrants : il ne peut donc pas être falsifié depuis l'extérieur.
+  // Permet au cron de fonctionner même sans CRON_SECRET configuré.
+  if (req.headers.get('x-vercel-cron')) return true
   try {
     const sb = await createReadOnlyClient()
     const { data: { user } } = await sb.auth.getUser()
@@ -130,10 +144,11 @@ export async function GET(req: NextRequest) {
 
         const dt = it.pubDate ? new Date(it.pubDate) : new Date()
         const publishedAt = isNaN(dt.getTime()) ? new Date().toISOString() : dt.toISOString()
+        const lienSur = escapeAttr(it.link)
         const content =
           '<p>' + (excerpt || title) + '</p>' +
           '<p><em>Source : ' + publisher + '</em></p>' +
-          '<p><a href="' + it.link + '" target="_blank" rel="noopener noreferrer">Lire l&apos;article complet sur ' + publisher + ' &rarr;</a></p>'
+          '<p><a href="' + lienSur + '" target="_blank" rel="noopener noreferrer">Lire l&apos;article complet sur ' + publisher + ' &rarr;</a></p>'
 
         const { error } = await supabase.from('news').insert({
           category: 'tt',

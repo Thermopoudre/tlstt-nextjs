@@ -24,6 +24,7 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
   })
   const [step, setStep] = useState(1)
   const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -54,7 +55,17 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
   })()
 
   const canGoStep2 = formData.accountType && formData.firstName && formData.lastName
-  const canGoStep3 = formData.email && formData.password.length >= 6 && formData.password === formData.confirmPassword
+  const emailValide = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(formData.email)
+  const canGoStep3 = emailValide && formData.password.length >= 6 && formData.password === formData.confirmPassword
+  const blocageEtape2 = !formData.email
+    ? 'Renseignez votre adresse email pour continuer.'
+    : !emailValide
+      ? 'Vérifiez votre adresse email pour continuer.'
+      : formData.password.length < 6
+        ? 'Votre mot de passe doit contenir au moins 6 caractères.'
+        : formData.password !== formData.confirmPassword
+          ? 'Les deux mots de passe doivent être identiques.'
+          : ''
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -229,15 +240,33 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
           {step === 2 && (
             <>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Email *</label>
-                <input type="email" name="email" value={formData.email} onChange={handleChange} required
+                <label htmlFor="register-email" className="block text-sm font-semibold text-gray-700 mb-1">Email *</label>
+                <input id="register-email" type="email" name="email" value={formData.email} onChange={handleChange} required autoComplete="email"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5bc0de] focus:border-transparent" />
+                {formData.email && !emailValide && (
+                  <p className="text-xs text-red-600 mt-1"><i className="fas fa-times-circle mr-1"></i>Cette adresse email ne semble pas valide.</p>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Mot de passe *</label>
-                <input type="password" name="password" value={formData.password} onChange={handleChange} required minLength={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5bc0de] focus:border-transparent" />
+                <label htmlFor="register-password" className="block text-sm font-semibold text-gray-700 mb-1">Mot de passe *</label>
+                <div className="relative">
+                  <input id="register-password" type={showPassword ? 'text' : 'password'} name="password" value={formData.password}
+                    onChange={handleChange} required minLength={6} autoComplete="new-password"
+                    className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5bc0de] focus:border-transparent" />
+                  <button type="button" onClick={() => setShowPassword(v => !v)}
+                    aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                    <i className={showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">6 caractères minimum.</p>
+                {formData.password && formData.password.length < 6 && (
+                  <p className="text-xs text-red-600 mt-1">
+                    <i className="fas fa-times-circle mr-1"></i>
+                    Encore {6 - formData.password.length} caractère{6 - formData.password.length > 1 ? 's' : ''} pour atteindre le minimum.
+                  </p>
+                )}
                 {formData.password && (
                   <div className="mt-2">
                     <div className="flex gap-1">
@@ -251,8 +280,9 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Confirmer *</label>
-                <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required
+                <label htmlFor="register-confirm" className="block text-sm font-semibold text-gray-700 mb-1">Confirmer *</label>
+                <input id="register-confirm" type={showPassword ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword}
+                  onChange={handleChange} required autoComplete="new-password"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5bc0de] focus:border-transparent" />
                 {formData.confirmPassword && formData.password !== formData.confirmPassword && (
                   <p className="text-xs text-red-500 mt-1"><i className="fas fa-times-circle mr-1"></i>Les mots de passe ne correspondent pas</p>
@@ -272,6 +302,11 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
                   Suivant <i className="fas fa-arrow-right ml-2"></i>
                 </button>
               </div>
+              {blocageEtape2 && (
+                <p className="text-xs text-gray-500 text-center -mt-1">
+                  <i className="fas fa-circle-info mr-1"></i>{blocageEtape2}
+                </p>
+              )}
             </>
           )}
 

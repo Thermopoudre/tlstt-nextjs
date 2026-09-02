@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createUiClient as createClient } from '@/lib/supabase/ui-client'
+import ImageUpload from '@/components/admin/ImageUpload'
 
 interface Partner {
   id: string
@@ -207,9 +208,12 @@ export default function AdminPartenairesPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">URL du logo</label>
-                  <input type="url" value={form.logo_url} onChange={e => setForm({ ...form, logo_url: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="https://..." />
+                  <ImageUpload
+                    label="Logo du partenaire"
+                    value={form.logo_url}
+                    onChange={(url) => setForm({ ...form, logo_url: url })}
+                    folder="partenaires"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Site web</label>

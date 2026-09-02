@@ -47,7 +47,7 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
       )}
 
       {/* Overlay fixe — reste constant pendant les transitions du carousel */}
-      <div className="absolute inset-0 z-10 bg-[#0a0a0a]/75" />
+      <div className="absolute inset-0 z-10 bg-gradient-to-b from-[#0a0a0a]/45 via-[#0a0a0a]/35 to-[#0a0a0a]/70" />
 
       {/* Slides — uniquement le contenu texte, pas d'overlay */}
       <AnimatePresence mode="wait">
@@ -68,7 +68,8 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
               />
             )}
 
-            {/* Content */}
+            {/* Content — masque si le slide n'a ni titre ni sous-titre (sinon : bandeau vide) */}
+            {(image.title?.trim() || image.subtitle?.trim()) && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center px-4 max-w-4xl">
                 <motion.h1
@@ -127,6 +128,7 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
                 </motion.div>
               </div>
             </div>
+            )}
           </motion.div>
         ))}
       </AnimatePresence>
@@ -134,12 +136,14 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
       {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
+        aria-label="Diapositive précédente"
         className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-[#3b9fd8] hover:border-[#3b9fd8] transition-colors"
       >
         <i className="fas fa-chevron-left text-xl"></i>
       </button>
       <button
         onClick={nextSlide}
+        aria-label="Diapositive suivante"
         className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-[#3b9fd8] hover:border-[#3b9fd8] transition-colors"
       >
         <i className="fas fa-chevron-right text-xl"></i>

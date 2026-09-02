@@ -23,7 +23,8 @@ export default async function AdminCarouselPage() {
     'use server'
     const supabase = await createReadOnlyClient()
     const id = formData.get('id') as string
-    await supabase.from('carousel_slides').delete().eq('id', id)
+    const { error } = await supabase.from('carousel_slides').delete().eq('id', id)
+    if (error) throw new Error('Suppression impossible : ' + error.message)
     revalidatePath('/', 'layout')
   }
 
@@ -32,7 +33,8 @@ export default async function AdminCarouselPage() {
     const supabase = await createReadOnlyClient()
     const id = formData.get('id') as string
     const currentStatus = formData.get('is_active') === 'true'
-    await supabase.from('carousel_slides').update({ is_active: !currentStatus }).eq('id', id)
+    const { error } = await supabase.from('carousel_slides').update({ is_active: !currentStatus }).eq('id', id)
+    if (error) throw new Error('Modification impossible : ' + error.message)
     revalidatePath('/', 'layout')
   }
 

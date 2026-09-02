@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { smartPingAPI } from '@/lib/smartping/api'
+import { createReadOnlyClient } from '@/lib/supabase/server'
 
 export const maxDuration = 60
 
@@ -9,13 +10,27 @@ export const maxDuration = 60
 // (xml_joueur/xml_licence_b renvoient "Compte incorrect"). On fait donc UN SEUL
 // appel en masse (rapide, pas de timeout) et on met à jour roster + noms + échelon,
 // SANS écraser les points exacts déjà présents en base.
+
+async function estAdminConnecte(): Promise<boolean> {
+  try {
+    const sb = await createReadOnlyClient()
+    const { data: { user } } = await sb.auth.getUser()
+    if (!user?.email) return false
+    const { data } = await sb.from('admins').select('id').eq('email', user.email).eq('is_active', true).single()
+    return !!data
+  } catch { return false }
+}
+
 export async function GET(req: NextRequest) {
+  // Autorise : la tâche planifiée Vercel (en-tête x-vercel-cron, non falsifiable),
+  // ou un appel portant le secret. Sinon : refus (avant, sans CRON_SECRET configuré,
+  // cette route était ouverte à tout le monde).
   const cronSecret = process.env.CRON_SECRET
-  if (cronSecret) {
-    const auth = req.headers.get('authorization')
-    if (auth !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
-    }
+  const estCronVercel = !!req.headers.get('x-vercel-cron')
+  const secretOk = !!cronSecret && req.headers.get('authorization') === `Bearer ${cronSecret}`
+  // …ou un administrateur connecté (bouton « Synchroniser » du back-office).
+  if (!estCronVercel && !secretOk && !(await estAdminConnecte())) {
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
   // Client service-role : indispensable pour écrire (les crons n'ont pas de session admin -> RLS bloquerait)

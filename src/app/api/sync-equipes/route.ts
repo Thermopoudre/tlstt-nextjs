@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { smartPingAPI } from '@/lib/smartping/api'
+import { createReadOnlyClient } from '@/lib/supabase/server'
 
 const CLUB_ID = '13830083'
 
@@ -113,13 +114,27 @@ function parseResultatsXml(xml: string): Rencontre[] {
 // ============================================
 // MAIN SYNC HANDLER
 // ============================================
+
+async function estAdminConnecte(): Promise<boolean> {
+  try {
+    const sb = await createReadOnlyClient()
+    const { data: { user } } = await sb.auth.getUser()
+    if (!user?.email) return false
+    const { data } = await sb.from('admins').select('id').eq('email', user.email).eq('is_active', true).single()
+    return !!data
+  } catch { return false }
+}
+
 export async function GET(req: NextRequest) {
+  // Autorise : la tâche planifiée Vercel (en-tête x-vercel-cron, non falsifiable),
+  // ou un appel portant le secret. Sinon : refus (avant, sans CRON_SECRET configuré,
+  // cette route était ouverte à tout le monde).
   const cronSecret = process.env.CRON_SECRET
-  if (cronSecret) {
-    const auth = req.headers.get('authorization')
-    if (auth !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
-    }
+  const estCronVercel = !!req.headers.get('x-vercel-cron')
+  const secretOk = !!cronSecret && req.headers.get('authorization') === `Bearer ${cronSecret}`
+  // …ou un administrateur connecté (bouton « Synchroniser » du back-office).
+  if (!estCronVercel && !secretOk && !(await estAdminConnecte())) {
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
   const supabase = createAdminClient()

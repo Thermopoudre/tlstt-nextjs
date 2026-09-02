@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createReadOnlyClient } from '@/lib/supabase/server'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminHeader from '@/components/admin/AdminHeader'
+import ErreurToaster from '@/components/admin/ErreurToaster'
 
 export default async function AdminProtectedLayout({
   children,
@@ -47,6 +48,7 @@ export default async function AdminProtectedLayout({
           {children}
         </main>
       </div>
+      <ErreurToaster />
     </div>
   )
 }
