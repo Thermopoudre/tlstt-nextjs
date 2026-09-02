@@ -32,7 +32,7 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
   const texteVisible = aDuTexte(slideCourant)
 
   return (
-    <section className="relative h-[70vh] min-h-[500px] max-h-[700px] overflow-hidden bg-gradient-to-br from-[#10325F] via-[#0a1a2e] to-[#0a0a0a]">
+    <section className="relative h-[56vh] min-h-[340px] sm:h-[70vh] sm:min-h-[500px] max-h-[700px] overflow-hidden bg-gradient-to-br from-[#10325F] via-[#0a1a2e] to-[#0a0a0a]">
       {/* Fond vidéo YouTube — plein écran, centré */}
       {youtubeId && (
         <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
@@ -85,7 +85,7 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
           className="absolute inset-0 z-20 flex items-center justify-center"
         >
           <div className="text-center px-4 max-w-4xl">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 [text-shadow:0_2px_18px_rgba(0,0,0,.85)]">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-4 sm:mb-6 [text-shadow:0_2px_18px_rgba(0,0,0,.85)]">
               {slideCourant.title.split(' ').map((word, i) => {
                 const isBlue =
                   word.toUpperCase() === 'TLSTT' ||
@@ -99,21 +99,21 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
               })}
             </h1>
             {slideCourant.subtitle && (
-              <p className="text-xl md:text-2xl text-white/90 mb-8 [text-shadow:0_2px_12px_rgba(0,0,0,.9)]">
+              <p className="text-base sm:text-xl md:text-2xl text-white/90 mb-6 sm:mb-8 [text-shadow:0_2px_12px_rgba(0,0,0,.9)]">
                 {slideCourant.subtitle}
               </p>
             )}
             <div className="flex flex-wrap justify-center gap-4">
               <Link
                 href={slideCourant.buttonLink || '/club'}
-                className="bg-[#3b9fd8] text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-[#2d8bc9] transition-colors"
+                className="bg-[#3b9fd8] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold text-base sm:text-lg hover:bg-[#2d8bc9] transition-colors"
               >
                 <i className="fas fa-arrow-right mr-2"></i>
                 {slideCourant.buttonText || 'Découvrir'}
               </Link>
               <Link
                 href="/contact"
-                className="bg-white/10 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/20 transition-colors border border-white/30"
+                className="bg-white/10 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold text-base sm:text-lg hover:bg-white/20 transition-colors border border-white/30"
               >
                 <i className="fas fa-envelope mr-2"></i>
                 Nous contacter
@@ -128,14 +128,14 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
           <button
             onClick={prevSlide}
             aria-label="Diapositive précédente"
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-[#3b9fd8] hover:border-[#3b9fd8] transition-colors"
+            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-[#3b9fd8] hover:border-[#3b9fd8] transition-colors"
           >
             <i className="fas fa-chevron-left text-xl"></i>
           </button>
           <button
             onClick={nextSlide}
             aria-label="Diapositive suivante"
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-[#3b9fd8] hover:border-[#3b9fd8] transition-colors"
+            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-[#3b9fd8] hover:border-[#3b9fd8] transition-colors"
           >
             <i className="fas fa-chevron-right text-xl"></i>
           </button>
