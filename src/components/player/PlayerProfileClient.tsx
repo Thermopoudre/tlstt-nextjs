@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 
@@ -122,13 +122,21 @@ export default function PlayerProfileClient({ initialPlayer, initialHistory }: P
     }
   }, [player.smartping_licence])
 
+  // Rafraîchissement automatique UNE seule fois à l'ouverture de la fiche.
+  // Avant, l'effet dépendait de player.last_sync : chaque réponse de l'API
+  // remplaçait « player » (sans last_sync à jour), ce qui relançait l'effet…
+  // et la fiche appelait l'API FFTT en boucle sans fin.
+  const rafraichissementAutoFait = useRef(false)
   useEffect(() => {
+    if (rafraichissementAutoFait.current) return
+    rafraichissementAutoFait.current = true
     const lastSync = player.last_sync ? new Date(player.last_sync) : null
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
     if (!lastSync || lastSync < oneHourAgo) {
       refreshData()
     }
-  }, [player.last_sync, refreshData])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const isNational = player.category?.match(/^N(\d+)$/i)
   const nationalRank = isNational ? parseInt(isNational[1]) : null
