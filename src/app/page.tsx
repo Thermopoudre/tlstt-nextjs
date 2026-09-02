@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import Link from 'next/link'
 import HeroCarousel from '@/components/HeroCarousel'
 import NewsCard from '@/components/NewsCard'
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
-  const supabase = await createClient()
+  const supabase = createClient()
   const globalSettings = await getGlobalSettings()
   const yearsOfHistory = globalSettings.foundation_year ? new Date().getFullYear() - globalSettings.foundation_year : null
 

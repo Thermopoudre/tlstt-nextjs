@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createUiClient as createClient } from '@/lib/supabase/ui-client'
 
 export default function AdminParametresPage() {
   const supabase = createClient()
@@ -144,8 +144,6 @@ export default function AdminParametresPage() {
       setMessage({ type: 'success', text: 'Paramètres enregistrés (tous les onglets).' })
       empreinteChargee.current = JSON.stringify({ settings, contactSettings, clubSettings, planningSettings })
       setModifie(false)
-      // le site public relit les réglages : on force son rafraîchissement
-      fetch('/api/admin/revalidate', { method: 'POST' }).catch(() => {})
     }
     setSaving(false)
   }

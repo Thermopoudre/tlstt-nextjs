@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
@@ -54,7 +54,7 @@ export default async function ActualitesPage({
     notFound()
   }
 
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: news } = await supabase
     .from('news')

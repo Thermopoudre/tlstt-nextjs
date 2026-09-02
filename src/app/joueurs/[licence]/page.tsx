@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import { notFound } from 'next/navigation'
 import PlayerProfileClient from '@/components/player/PlayerProfileClient'
 import JsonLd from '@/components/seo/JsonLd'
@@ -16,7 +16,7 @@ interface PlayerPageProps {
 
 export default async function PlayerPage({ params }: PlayerPageProps) {
   const { licence } = await params
-  const supabase = await createClient()
+  const supabase = createClient()
 
   // Récupérer le joueur depuis Supabase (affichage INSTANTANÉ)
   const { data: player, error } = await supabase
@@ -68,7 +68,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 // Metadata dynamique pour SEO
 export async function generateMetadata({ params }: PlayerPageProps) {
   const { licence } = await params
-  const supabase = await createClient()
+  const supabase = createClient()
   
   const { data: player } = await supabase
     .from('players')

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
@@ -14,7 +14,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createClient()
+  const supabase = createClient()
   const { data: page } = await supabase.from('pages').select('title, meta_description').eq('slug', slug).single()
 
   if (!page) return { title: 'Page introuvable' }
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function DynamicPage({ params }: Props) {
   const { slug } = await params
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: page } = await supabase.from('pages').select('*').eq('slug', slug).single()
   if (!page) notFound()

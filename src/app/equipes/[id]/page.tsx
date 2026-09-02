@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import JsonLd from '@/components/seo/JsonLd'
@@ -17,7 +17,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: team } = await supabase
     .from('teams')
@@ -270,7 +270,7 @@ export default async function EquipeDetailPage({ params }: PageProps) {
   let hasPhase2 = false
 
   try {
-    const supabase = await createClient()
+    const supabase = createClient()
     const { data: teamFromDb } = await supabase
       .from('teams')
       .select('*')
@@ -320,7 +320,7 @@ export default async function EquipeDetailPage({ params }: PageProps) {
 
   // Fallback Supabase si le scraper a échoué et que des données locales existent
   if (phase1Data.error && phase1Data.classement.length === 0) {
-    const supabaseFallback = await createClient()
+    const supabaseFallback = createClient()
     const { data: teamFallback } = await supabaseFallback
       .from('teams')
       .select('name, cla, pts, vic, def, nul, joue')

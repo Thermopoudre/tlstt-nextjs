@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createUiClient as createClient } from '@/lib/supabase/ui-client'
 import dynamic from 'next/dynamic'
 
 const RichTextEditor = dynamic(() => import('@/components/admin/RichTextEditor'), { ssr: false })

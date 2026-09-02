@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { Metadata } from 'next'
@@ -50,7 +50,7 @@ const activityConfig: Record<string, { emoji: string; bgClass: string }> = {
 }
 
 export default async function PlanningPage() {
-  const supabase = await createClient()
+  const supabase = createClient()
   const planningSettings = await getPlanningSettings()
   const globalSettings = await getGlobalSettings()
 

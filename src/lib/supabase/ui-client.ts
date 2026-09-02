@@ -15,6 +15,23 @@ import { createClient } from './client'
 let derniereErreur = ''
 let derniereErreurAt = 0
 
+/**
+ * Le site public est mis en cache (30 à 60 min). Après chaque écriture réussie
+ * depuis le back-office, on demande au serveur de rafraîchir ce cache, sinon
+ * une modification n'apparaît sur le site qu'une heure plus tard.
+ * Regroupé : plusieurs écritures rapprochées = une seule demande.
+ */
+let minuterieRevalidation: ReturnType<typeof setTimeout> | null = null
+export function demanderRafraichissementSite() {
+  if (typeof window === 'undefined') return
+  if (minuterieRevalidation) clearTimeout(minuterieRevalidation)
+  minuterieRevalidation = setTimeout(() => {
+    fetch('/api/admin/revalidate', { method: 'POST' }).catch(() => {})
+  }, 1500)
+}
+
+const METHODES_ECRITURE = new Set(['insert', 'update', 'delete', 'upsert'])
+
 export function signalerErreurSupabase(error: { message?: string; code?: string; details?: string } | null) {
   if (!error) return
   const message = error.message || error.details || 'Erreur inconnue'

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import Link from 'next/link'
 import FaqAccordion from '@/components/FaqAccordion'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 }
 
 export default async function FaqPage() {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: faqItems } = await supabase
     .from('faq')

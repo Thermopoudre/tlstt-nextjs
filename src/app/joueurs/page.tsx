@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import { Metadata } from 'next'
 import JoueursClient from './JoueursClient'
 import JsonLd from '@/components/seo/JsonLd'
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 }
 
 export default async function JoueursPage() {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   // Récupérer tous les joueurs avec leurs points
   const { data: players, error } = await supabase

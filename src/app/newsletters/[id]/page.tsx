@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -15,7 +15,7 @@ interface NewsletterPageProps {
 
 export default async function NewsletterDetailPage({ params }: NewsletterPageProps) {
   const { id } = await params
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: newsletter } = await supabase
     .from('newsletters')
@@ -128,7 +128,7 @@ export default async function NewsletterDetailPage({ params }: NewsletterPagePro
 
 export async function generateMetadata({ params }: NewsletterPageProps): Promise<Metadata> {
   const { id } = await params
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: newsletter } = await supabase
     .from('newsletters')

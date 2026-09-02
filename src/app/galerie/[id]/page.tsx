@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import JsonLd from '@/components/seo/JsonLd'
@@ -15,7 +15,7 @@ interface AlbumPageProps {
 
 export async function generateMetadata({ params }: AlbumPageProps): Promise<Metadata> {
   const { id } = await params
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: album } = await supabase
     .from('albums')
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: AlbumPageProps): Promise<Meta
 
 export default async function AlbumPage({ params }: AlbumPageProps) {
   const { id } = await params
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: album, error } = await supabase
     .from('albums')

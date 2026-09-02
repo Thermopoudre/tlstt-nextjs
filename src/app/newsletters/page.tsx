@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import Image from 'next/image'
 import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 }
 
 export default async function NewslettersPage() {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: newsletters } = await supabase
     .from('newsletters')

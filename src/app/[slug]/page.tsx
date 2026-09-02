@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -15,7 +15,7 @@ interface PageProps {
 
 export default async function DynamicPage({ params }: PageProps) {
   const { slug } = await params
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: page } = await supabase
     .from('pages')
@@ -108,7 +108,7 @@ export default async function DynamicPage({ params }: PageProps) {
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: page } = await supabase
     .from('pages')

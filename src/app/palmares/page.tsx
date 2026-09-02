@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import JsonLd from '@/components/seo/JsonLd'
@@ -32,7 +32,7 @@ const medalConfig = {
 }
 
 export default async function PalmaresPage() {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: palmares } = await supabase
     .from('palmares')

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createUiClient as createClient } from '@/lib/supabase/ui-client'
 import Link from 'next/link'
 import ImageUpload from '@/components/admin/ImageUpload'
 

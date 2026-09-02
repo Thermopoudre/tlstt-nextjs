@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -36,7 +36,7 @@ interface ArticlePageProps {
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
   const { category, id } = await params
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: article } = await supabase
     .from('news')
@@ -69,7 +69,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { category, id } = await params
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: article, error } = await supabase
     .from('news')

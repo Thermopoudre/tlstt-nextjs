@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createUiClient as createClient } from '@/lib/supabase/ui-client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import ApercuArticle from '@/components/admin/ApercuArticle'

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import Link from 'next/link'
 import Image from 'next/image'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 export const revalidate = 3600
 
 export default async function GaleriePage() {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: albums } = await supabase
     .from('albums')

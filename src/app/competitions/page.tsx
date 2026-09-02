@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient as createClient } from '@/lib/supabase/public'
 import EnConstructionBanner from '@/components/ui/EnConstructionBanner'
 import Link from 'next/link'
 import CompetitionsContent from './CompetitionsContent'
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 }
 
 export default async function CompetitionsPage() {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: competitions } = await supabase
     .from('competitions')

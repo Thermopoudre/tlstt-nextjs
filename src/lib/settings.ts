@@ -1,4 +1,4 @@
-import { createClient } from './supabase/server'
+import { createPublicClient as createClient } from './supabase/public'
 
 export interface GlobalSettings {
   site_name: string
@@ -45,7 +45,7 @@ const defaultGlobalSettings: GlobalSettings = {
 }
 
 export async function getGlobalSettings(): Promise<GlobalSettings> {
-  const supabase = await createClient()
+  const supabase = createClient()
   const { data } = await supabase
     .from('site_settings')
     .select('settings')
@@ -56,7 +56,7 @@ export async function getGlobalSettings(): Promise<GlobalSettings> {
 }
 
 export async function getContactSettings() {
-  const supabase = await createClient()
+  const supabase = createClient()
   const { data } = await supabase
     .from('site_settings')
     .select('settings')
@@ -78,7 +78,7 @@ export async function getContactSettings() {
 }
 
 export async function getClubSettings() {
-  const supabase = await createClient()
+  const supabase = createClient()
   const { data } = await supabase
     .from('site_settings')
     .select('settings')
@@ -99,7 +99,7 @@ export async function getClubSettings() {
 }
 
 export async function getPlanningSettings() {
-  const supabase = await createClient()
+  const supabase = createClient()
   const { data } = await supabase
     .from('site_settings')
     .select('settings')
@@ -118,7 +118,7 @@ export async function getPlanningSettings() {
 }
 
 export async function getPageContent(slug: string) {
-  const supabase = await createClient()
+  const supabase = createClient()
   const { data } = await supabase
     .from('pages_content')
     .select('*')
