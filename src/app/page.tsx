@@ -18,7 +18,8 @@ export const revalidate = 1800
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 
 export const metadata: Metadata = {
-  title: 'Club de tennis de table à Toulon et La Seyne-sur-Mer | TLSTT (FFTT, Var)',
+  // titre absolu : on ne veut pas du suffixe automatique du gabarit sur l'accueil
+  title: { absolute: 'Club de tennis de table à Toulon et La Seyne-sur-Mer | TLSTT' },
   description: 'TLSTT, club de tennis de table à Toulon et La Seyne-sur-Mer (Var). Jeunes dès 5 ans, loisirs adultes, compétition, handisport. 2 salles, 230 licenciés, 13 équipes. Première séance gratuite — aussi depuis Six-Fours, Ollioules, Sanary.',
   keywords: ['club tennis de table Toulon', 'tennis de table La Seyne-sur-Mer', 'ping pong Toulon', 'club ping pong Var', 'tennis de table Six-Fours', 'cours tennis de table Toulon', 'TLSTT', 'FFTT', 'handisport tennis de table'],
   alternates: { canonical: SITE_URL },

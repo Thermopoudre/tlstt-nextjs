@@ -22,7 +22,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ville = trouverVille(slug)
   if (!ville) return { title: 'Page introuvable' }
   return generatePageMeta({
-    title: `Club de tennis de table ${ville.prep} — TLSTT (FFTT)`,
+    // le gabarit du site ajoute « | TLSTT - Toulon La Seyne Tennis de Table » : on reste court
+    title: `Club de tennis de table ${ville.prep}`,
     description: `Tennis de table ${ville.prep} : le TLSTT accueille les habitants de ${ville.nom} et alentours. Loisirs adultes, jeunes dès 5 ans, compétition, handisport. Première séance gratuite. Salle à ${SALLES[ville.salle].ville}.`,
     path: `/tennis-de-table/${ville.slug}`,
     keywords: [
