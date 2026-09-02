@@ -76,7 +76,7 @@ export default function ApercuArticle({
           </button>
         </div>
 
-        <article className="px-4 sm:px-8 py-6 sm:py-8">
+        <article className="apercu-article px-4 sm:px-8 py-6 sm:py-8">
           <span className="inline-block bg-[#3b9fd8] text-white text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full">
             {LIBELLE[categorie] || 'Actualité'}
           </span>

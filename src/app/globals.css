@@ -648,3 +648,34 @@ input[class*="border-gray-300"]::placeholder,
 textarea[class*="border-gray-300"]::placeholder {
   color: #9ca3af;
 }
+
+
+/* ------------------------------------------------------------------
+   Aperçu d'article dans le back-office
+   Le back-office force des textes sombres sur fond clair ; l'aperçu, lui,
+   doit montrer exactement le rendu du site public (fond sombre, texte clair).
+   Sélecteurs volontairement plus spécifiques que les règles .admin-root.
+------------------------------------------------------------------ */
+.admin-root .apercu-article h1,
+.admin-root .apercu-article h2,
+.admin-root .apercu-article h3,
+.admin-root .apercu-article h4,
+.admin-root .apercu-article h5,
+.admin-root .apercu-article h6 {
+  color: #ffffff;
+}
+
+.admin-root .apercu-article,
+.admin-root .apercu-article p,
+.admin-root .apercu-article li,
+.admin-root .apercu-article blockquote {
+  color: #d1d5db;
+}
+
+.admin-root .apercu-article strong {
+  color: #ffffff;
+}
+
+.admin-root .apercu-article a {
+  color: #3b9fd8;
+}
