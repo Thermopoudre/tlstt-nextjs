@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { ADRESSE_CLUB } from '@/lib/villes'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { smartPingAPI } from '@/lib/smartping/api'
 import { createReadOnlyClient } from '@/lib/supabase/server'
@@ -269,7 +270,7 @@ export async function GET(req: NextRequest) {
         const scoreFor = isTLSTT_A ? rencontre.resA : rencontre.resB
         const scoreAgainst = isTLSTT_A ? rencontre.resB : rencontre.resA
         const matchType = isTLSTT_A ? 'domicile' : 'exterieur'
-        const location = isTLSTT_A ? 'Gymnase Léo Lagrange' : 'Extérieur'
+        const location = isTLSTT_A ? ADRESSE_CLUB.nom : 'Extérieur'
 
         // Upsert: chercher si le match existe déjà
         const { data: existing } = await supabase

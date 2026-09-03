@@ -1,4 +1,5 @@
 import { createPublicClient as createClient } from './supabase/public'
+import { ADRESSE_CLUB } from './villes'
 
 export interface GlobalSettings {
   site_name: string
@@ -28,9 +29,9 @@ const defaultGlobalSettings: GlobalSettings = {
   club_number: '13830083',
   contact_email: 'contact@tlstt.fr',
   contact_phone: '',
-  address: "Complexe sportif Léry, 42 boulevard de l'Europe",
-  city: 'La Seyne-sur-Mer',
-  postal_code: '83500',
+  address: ADRESSE_CLUB.courte,
+  city: ADRESSE_CLUB.ville,
+  postal_code: ADRESSE_CLUB.codePostal,
   foundation_year: 1954,
   facebook_url: 'https://www.facebook.com/tlstt83',
   instagram_url: 'https://www.instagram.com/tlstt_officiel',
@@ -41,7 +42,7 @@ const defaultGlobalSettings: GlobalSettings = {
   nb_equipes: 13,
   nb_entraineurs: 4,
   president_name: '',
-  maps_url: 'https://www.google.com/maps/search/?api=1&query=Complexe+sportif+L%C3%A9ry+42+boulevard+de+l%27Europe+83500+La+Seyne-sur-Mer',
+  maps_url: ADRESSE_CLUB.mapsUrl,
 }
 
 export async function getGlobalSettings(): Promise<GlobalSettings> {

@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { ADRESSE_CLUB } from './villes'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 const SITE_NAME = 'TLSTT - Toulon La Seyne Tennis de Table'
@@ -151,7 +152,7 @@ export function organizationJsonLd(settings?: {
     foundingDate: s.foundingDate ? `${s.foundingDate}` : '1954',
     address: {
       '@type': 'PostalAddress',
-      streetAddress: s.address || "Complexe sportif Léry, 42 boulevard de l'Europe",
+      streetAddress: s.address || ADRESSE_CLUB.courte,
       addressLocality: s.city || 'La Seyne-sur-Mer',
       postalCode: s.postalCode || '83500',
       addressCountry: 'FR',
@@ -270,7 +271,7 @@ export function eventJsonLd({
     sport: 'Tennis de table',
     location: {
       '@type': 'Place',
-      name: location || 'Gymnase Léo Lagrange',
+      name: location || ADRESSE_CLUB.nom,
       address: {
         '@type': 'PostalAddress',
         addressLocality: 'La Seyne-sur-Mer',

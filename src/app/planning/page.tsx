@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { Metadata } from 'next'
 import { getPlanningSettings, getGlobalSettings } from '@/lib/settings'
-import { SALLES } from '@/lib/villes'
+import { ADRESSE_CLUB } from '@/lib/villes'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd } from '@/lib/seo'
 
@@ -56,8 +56,7 @@ export default async function PlanningPage() {
   const globalSettings = await getGlobalSettings()
   // Adresse de référence : la salle du club (Complexe Léry). Le lien Maps utilise
   // cette adresse, jamais une valeur héritée d'un ancien gymnase.
-  const mapsUrl = globalSettings.maps_url
-    || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${SALLES.lery.nom} ${SALLES.lery.adresse} ${SALLES.lery.codePostal} ${SALLES.lery.ville}`)}`
+  const mapsUrl = globalSettings.maps_url || ADRESSE_CLUB.mapsUrl
 
 
   const { data: trainings } = await supabase
@@ -172,8 +171,8 @@ export default async function PlanningPage() {
               <i className="fas fa-map-marker-alt text-[#3b9fd8]"></i>
               Où nous trouver
             </h3>
-            <p className="text-gray-300 mb-1">{SALLES.lery.nom}, {SALLES.lery.adresse}</p>
-            <p className="text-gray-500 text-sm mb-4">{SALLES.lery.codePostal} {SALLES.lery.ville}</p>
+            <p className="text-gray-300 mb-1">{ADRESSE_CLUB.courte}</p>
+            <p className="text-gray-500 text-sm mb-4">{ADRESSE_CLUB.codePostal} {ADRESSE_CLUB.ville}</p>
             <div className="space-y-2 text-sm">
               <a href={`tel:${(globalSettings.contact_phone || '07 68 60 29 35').replace(/\s/g, '')}`}
                 className="text-gray-300 hover:text-[#3b9fd8] transition-colors flex items-center gap-2">

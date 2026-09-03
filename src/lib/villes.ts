@@ -39,6 +39,24 @@ export const SALLES: Record<Salle['id'], Salle> = {
   },
 }
 
+/**
+ * Adresse officielle du club — **source unique**. Toute page, tout email et
+ * toute donnée structurée doit passer par ici (ou par les réglages du
+ * back-office qui la reprennent) : plus jamais d'adresse recopiée à la main.
+ */
+export const SALLE_PRINCIPALE = SALLES.lery
+export const ADRESSE_CLUB = {
+  nom: SALLES.lery.nom,
+  rue: SALLES.lery.adresse,
+  codePostal: SALLES.lery.codePostal,
+  ville: SALLES.lery.ville,
+  /** « Complexe sportif Léry, 42 boulevard de l'Europe » */
+  courte: `${SALLES.lery.nom}, ${SALLES.lery.adresse}`,
+  /** « Complexe sportif Léry, 42 boulevard de l'Europe, 83500 La Seyne-sur-Mer » */
+  complete: `${SALLES.lery.nom}, ${SALLES.lery.adresse}, ${SALLES.lery.codePostal} ${SALLES.lery.ville}`,
+  mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${SALLES.lery.nom} ${SALLES.lery.adresse} ${SALLES.lery.codePostal} ${SALLES.lery.ville}`)}`,
+}
+
 export type Ville = {
   slug: string
   nom: string

@@ -52,7 +52,7 @@ function buildEmailHtml(newsletter: any, unsubscribeUrl: string | null): string 
     </div>
     <div class="footer">
       <p>TLSTT - Toulon La Seyne Tennis de Table</p>
-      <p>Complexe Léry, 42 bd de l'Europe, 83500 La Seyne-sur-Mer</p>
+      <p>Complexe sportif Léry, 42 boulevard de l'Europe, 83500 La Seyne-sur-Mer</p>
       ${unsubscribeUrl
         ? `<p><a href="${unsubscribeUrl}">Se désabonner</a> | <a href="${SITE_URL}">Visiter le site</a></p>`
         : `<p>Vous recevez cette newsletter en tant que membre du TLSTT. <a href="${SITE_URL}">Visiter le site</a></p>`}
