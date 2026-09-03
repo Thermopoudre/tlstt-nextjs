@@ -1,5 +1,7 @@
 'use client'
 
+import { mesurer } from '@/lib/mesure'
+
 import { useState } from 'react'
 import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
@@ -25,6 +27,7 @@ export default function NewsletterClient() {
       const info = await res.json().catch(() => ({}))
 
       if (res.ok) {
+        mesurer('newsletter')
         setMessage({ type: 'success', text: 'Merci ! Si cette adresse n\'était pas encore inscrite, elle l\'est maintenant : vous recevrez notre prochaine newsletter.' })
         setEmail('')
         setFirstName('')

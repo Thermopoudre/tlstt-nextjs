@@ -1,5 +1,7 @@
 'use client'
 
+import { mesurer } from '@/lib/mesure'
+
 import { useState } from 'react'
 import { useAuth } from './AuthProvider'
 
@@ -94,6 +96,7 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
         is_validated: false,
       } as any)
       setSuccess(true)
+      mesurer('inscription')
     } catch (err: any) {
       const msg = String(err?.message || '')
       if (msg === 'COMPTE_EXISTANT' || /already registered|already exists/i.test(msg)) {

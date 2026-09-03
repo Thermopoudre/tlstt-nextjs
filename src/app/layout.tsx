@@ -1,4 +1,5 @@
 import PublicChrome from '@/components/layout/PublicChrome'
+import MesureAudience from '@/components/MesureAudience'
 import { Analytics } from '@vercel/analytics/next'
 import AlertBanner from '@/components/ui/AlertBanner'
 import Header from '@/components/layout/Header'
@@ -106,6 +107,7 @@ export default function RootLayout({
         `}} />
         <JsonLd data={organizationJsonLd()} />
         <AuthProvider>
+          <MesureAudience />
           <PublicChrome alertBanner={<AlertBanner />} header={<Header />} footer={<Footer />}>
             {children}
           </PublicChrome>

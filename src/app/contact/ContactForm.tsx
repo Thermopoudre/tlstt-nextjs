@@ -1,5 +1,7 @@
 'use client'
 
+import { mesurer } from '@/lib/mesure'
+
 import { useState } from 'react'
 
 interface ContactFormProps {
@@ -43,6 +45,7 @@ export default function ContactForm({ subjects }: ContactFormProps) {
       }
 
       setSuccess(true)
+      mesurer('contact')
       setFormData({ name: '', email: '', phone: '', subject: '', message: '' })
     } catch (err: any) {
       setError(err.message || 'Une erreur est survenue')

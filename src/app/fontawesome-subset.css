@@ -1,7 +1,5 @@
-/* Font Awesome 6.5.1 Free — sous-ensemble auto-hébergé (généré, ne pas éditer à la main).
-   203 icônes réellement utilisées par le site, au lieu des ~2 000 du pack complet.
-   Les classes restent identiques : fas / far / fab + fa-nom. Regénérer via le script
-   scripts/fontawesome-subset.py après ajout d'une nouvelle icône. */
+/* Font Awesome 6.5.1 Free — sous-ensemble auto-hébergé (généré par scripts/fontawesome-subset.py, ne pas éditer).
+   215 icônes réellement utilisées au lieu des ~2 000 du pack complet. Classes inchangées : fas / far / fab + fa-nom. */
 @font-face{font-family:"FA Solid";font-style:normal;font-weight:900;font-display:block;src:url("/fonts/fa-solid-subset.woff2") format("woff2")}
 @font-face{font-family:"FA Regular";font-style:normal;font-weight:400;font-display:block;src:url("/fonts/fa-regular-subset.woff2") format("woff2")}
 @font-face{font-family:"FA Brands";font-style:normal;font-weight:400;font-display:block;src:url("/fonts/fa-brands-subset.woff2") format("woff2")}
@@ -32,6 +30,7 @@
 .fa-box-open::before{content:"\f49e"}
 .fa-building::before{content:"\f1ad"}
 .fa-bullhorn::before{content:"\f0a1"}
+.fa-bullseye::before{content:"\f140"}
 .fa-calendar::before{content:"\f133"}
 .fa-calendar-alt::before{content:"\f073"}
 .fa-calendar-check::before{content:"\f274"}
@@ -42,6 +41,7 @@
 .fa-chalkboard-teacher::before{content:"\f51c"}
 .fa-chart-area::before{content:"\f1fe"}
 .fa-chart-bar::before{content:"\f080"}
+.fa-chart-column::before{content:"\e0e3"}
 .fa-chart-line::before{content:"\f201"}
 .fa-chart-simple::before{content:"\e473"}
 .fa-check::before{content:"\f00c"}
@@ -72,6 +72,8 @@
 .fa-crown::before{content:"\f521"}
 .fa-cube::before{content:"\f1b2"}
 .fa-database::before{content:"\f1c0"}
+.fa-desktop::before{content:"\f390"}
+.fa-display::before{content:"\e163"}
 .fa-download::before{content:"\f019"}
 .fa-dumbbell::before{content:"\f44b"}
 .fa-edit::before{content:"\f044"}
@@ -93,6 +95,7 @@
 .fa-feather::before{content:"\f52d"}
 .fa-file-alt::before{content:"\f15c"}
 .fa-file-csv::before{content:"\f6dd"}
+.fa-file-lines::before{content:"\f15c"}
 .fa-file-medical::before{content:"\f477"}
 .fa-file-pdf::before{content:"\f1c1"}
 .fa-file-signature::before{content:"\f573"}
@@ -118,6 +121,7 @@
 .fa-history::before{content:"\f1da"}
 .fa-home::before{content:"\f015"}
 .fa-hourglass-half::before{content:"\f252"}
+.fa-hourglass-start::before{content:"\f251"}
 .fa-house::before{content:"\f015"}
 .fa-house-chimney::before{content:"\e3af"}
 .fa-id-badge::before{content:"\f2c1"}
@@ -136,11 +140,13 @@
 .fa-list-ol::before{content:"\f0cb"}
 .fa-location-dot::before{content:"\f3c5"}
 .fa-lock::before{content:"\f023"}
+.fa-map::before{content:"\f279"}
 .fa-map-marked-alt::before{content:"\f5a0"}
 .fa-map-marker-alt::before{content:"\f3c5"}
 .fa-map-pin::before{content:"\f276"}
 .fa-medal::before{content:"\f5a2"}
 .fa-microsoft::before{content:"\f3ca"}
+.fa-mobile-screen::before{content:"\f3cf"}
 .fa-money-check::before{content:"\f53c"}
 .fa-moon::before{content:"\f186"}
 .fa-mouse-pointer::before{content:"\f245"}
@@ -178,6 +184,7 @@
 .fa-shopping-cart::before{content:"\f07a"}
 .fa-sign-in-alt::before{content:"\f2f6"}
 .fa-sign-out-alt::before{content:"\f2f5"}
+.fa-signs-post::before{content:"\f277"}
 .fa-sort-alpha-down::before{content:"\f15d"}
 .fa-sort-alpha-up::before{content:"\f15e"}
 .fa-sort-amount-down::before{content:"\f160"}
@@ -190,6 +197,7 @@
 .fa-sync-alt::before{content:"\f2f1"}
 .fa-table-tennis::before{content:"\f45d"}
 .fa-table-tennis-paddle-ball::before{content:"\f45d"}
+.fa-tablet-screen-button::before{content:"\f3fa"}
 .fa-tag::before{content:"\f02b"}
 .fa-tags::before{content:"\f02c"}
 .fa-th::before{content:"\f00a"}
@@ -208,11 +216,13 @@
 .fa-user::before{content:"\f007"}
 .fa-user-check::before{content:"\f4fc"}
 .fa-user-circle::before{content:"\f2bd"}
+.fa-user-friends::before{content:"\f500"}
 .fa-user-group::before{content:"\f500"}
 .fa-user-plus::before{content:"\f234"}
 .fa-user-shield::before{content:"\f505"}
 .fa-user-tag::before{content:"\f507"}
 .fa-users::before{content:"\f0c0"}
+.fa-users-cog::before{content:"\f509"}
 .fa-users-line::before{content:"\e592"}
 .fa-utensils::before{content:"\f2e7"}
 .fa-wand-magic-sparkles::before{content:"\e2ca"}

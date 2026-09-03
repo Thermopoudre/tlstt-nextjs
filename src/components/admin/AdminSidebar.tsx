@@ -16,6 +16,7 @@ const ESSENTIAL_PATHS = new Set<string>([
 // Descriptions courtes -> infobulles d'aide au survol
 const MENU_HELP: Record<string, string> = {
   '/admin': "Vue d'ensemble du site",
+  '/admin/statistiques': 'Fréquentation du site : visites, provenance, pages vues',
   '/admin/accueil': "Modifier la page d'accueil",
   '/admin/parametres': 'Réglages généraux (nom, email, réseaux sociaux)',
   '/admin/actualites': 'Écrire et gérer les actualités du club',
@@ -82,6 +83,7 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
       title: 'Général',
       items: [
         { title: 'Dashboard', icon: 'fa-home', path: '/admin' },
+        { title: 'Statistiques', icon: 'fa-chart-line', path: '/admin/statistiques' },
         { title: 'Page d\'accueil', icon: 'fa-house-chimney', path: '/admin/accueil' },
         { title: 'Paramètres', icon: 'fa-cog', path: '/admin/parametres' },
       ]
