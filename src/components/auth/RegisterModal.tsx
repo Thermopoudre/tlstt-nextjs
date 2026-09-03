@@ -95,7 +95,12 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
       } as any)
       setSuccess(true)
     } catch (err: any) {
-      setError(err.message || 'Erreur lors de l\'inscription')
+      const msg = String(err?.message || '')
+      if (msg === 'COMPTE_EXISTANT' || /already registered|already exists/i.test(msg)) {
+        setError('Un compte existe déjà avec cette adresse email. Cliquez sur « Connexion » puis « Mot de passe oublié ? » si vous ne vous souvenez plus de votre mot de passe.')
+      } else {
+        setError(msg || 'Erreur lors de l\'inscription')
+      }
     } finally {
       setLoading(false)
     }

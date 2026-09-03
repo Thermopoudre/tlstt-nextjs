@@ -127,6 +127,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     })
     if (error) throw error
+    // Supabase répond « succès » même si l'adresse est déjà utilisée (anti-énumération) :
+    // dans ce cas l'utilisateur renvoyé n'a aucune identité et aucun email ne part.
+    if (data.user && Array.isArray((data.user as any).identities) && (data.user as any).identities.length === 0) {
+      throw new Error('COMPTE_EXISTANT')
+    }
 
     // Fallback: si le trigger n'a pas créé le profil et que l'utilisateur est connecté
     if (data.user && data.session) {

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from './AuthProvider'
+import { createClient } from '@/lib/supabase/client'
 
 interface LoginModalProps {
   isOpen: boolean
@@ -17,8 +18,25 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  // Mot de passe oublié : petit formulaire à la place du formulaire de connexion
+  const [modeOubli, setModeOubli] = useState(false)
+  const [oubliEnvoye, setOubliEnvoye] = useState(false)
 
   if (!isOpen) return null
+
+  const envoyerLienOubli = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    if (!email) { setError('Indiquez votre adresse email pour recevoir le lien.'); return }
+    setLoading(true)
+    const supabase = createClient()
+    const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: window.location.origin + '/mot-de-passe',
+    })
+    setLoading(false)
+    if (err) { setError(err.message); return }
+    setOubliEnvoye(true)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,7 +48,12 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
       onClose()
       router.push('/espace-membre')
     } catch (err: any) {
-      setError(err.message || 'Erreur de connexion')
+      const msg = String(err?.message || '')
+      setError(/invalid login credentials/i.test(msg)
+        ? 'Email ou mot de passe incorrect. Si vous avez déjà un compte, utilisez « Mot de passe oublié ? » ci-dessous.'
+        : /email not confirmed/i.test(msg)
+          ? 'Votre adresse email n’a pas encore été confirmée : cliquez le lien reçu par email (vérifiez vos spams).'
+          : msg || 'Erreur de connexion')
     } finally {
       setLoading(false)
     }
@@ -56,6 +79,32 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
           </div>
         )}
 
+        {modeOubli ? (
+          oubliEnvoye ? (
+            <div className="text-center py-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full mx-auto mb-3 flex items-center justify-center">
+                <i className="fas fa-envelope-open-text text-2xl text-green-500"></i>
+              </div>
+              <p className="font-semibold text-gray-800">Email envoyé</p>
+              <p className="text-gray-500 text-sm mt-1">Si un compte existe pour <strong>{email}</strong>, vous allez recevoir un lien pour choisir un nouveau mot de passe. Pensez à vérifier vos spams.</p>
+              <button type="button" onClick={() => { setModeOubli(false); setOubliEnvoye(false) }} className="mt-4 text-[#5bc0de] font-semibold hover:underline">Retour à la connexion</button>
+            </div>
+          ) : (
+            <form onSubmit={envoyerLienOubli} className="space-y-4">
+              <p className="text-gray-600 text-sm">Indiquez votre email : vous recevrez un lien pour choisir un nouveau mot de passe.</p>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoFocus
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5bc0de] focus:border-transparent"
+                placeholder="votre@email.com" />
+              <button type="submit" disabled={loading}
+                className="w-full bg-[#5bc0de] text-white py-3 rounded-lg font-semibold hover:bg-[#4ab0ce] transition-colors disabled:opacity-50">
+                {loading ? <><i className="fas fa-spinner fa-spin mr-2"></i>Envoi...</> : <><i className="fas fa-paper-plane mr-2"></i>Recevoir le lien</>}
+              </button>
+              <button type="button" onClick={() => setModeOubli(false)} className="w-full text-sm text-gray-500 hover:text-[#5bc0de]">
+                <i className="fas fa-arrow-left mr-1"></i>Retour à la connexion
+              </button>
+            </form>
+          )
+        ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
@@ -93,6 +142,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
             )}
           </button>
         </form>
+        )}
 
         <div className="mt-6 text-center">
           <p className="text-gray-600">
@@ -104,9 +154,11 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
         </div>
 
         <div className="mt-4 text-center">
-          <button className="text-sm text-gray-500 hover:text-[#5bc0de]">
-            Mot de passe oublié ?
-          </button>
+          {!modeOubli && (
+            <button type="button" onClick={() => { setError(''); setModeOubli(true) }} className="text-sm text-gray-500 hover:text-[#5bc0de] underline">
+              Mot de passe oublié ?
+            </button>
+          )}
         </div>
       </div>
     </div>
