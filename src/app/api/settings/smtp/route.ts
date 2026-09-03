@@ -9,6 +9,7 @@ const SMTP_KEYS = [
   'smtp_pass',
   'smtp_from',
   'smtp_admin_email',
+  'smtp_reply_to',
 ]
 
 /**

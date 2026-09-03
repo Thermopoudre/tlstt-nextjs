@@ -30,6 +30,7 @@ export default function AdminEmailPage() {
     smtp_pass: '',
     smtp_from: '',
     smtp_admin_email: '',
+    smtp_reply_to: '',
   })
 
   useEffect(() => {
@@ -332,7 +333,26 @@ export default function AdminEmailPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="admin@tlstt.fr (defaut: email SMTP)"
               />
-              <p className="text-xs text-gray-500 mt-1">Recoit les notifications de contact, commandes, etc.</p>
+              <p className="text-xs text-gray-500 mt-1">Reçoit les notifications de contact, commandes, etc.</p>
+            </div>
+
+            {/* Reply-To */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <i className="fas fa-reply mr-1 text-gray-400"></i>
+                Adresse de réponse (Reply-To)
+              </label>
+              <input
+                type="email"
+                value={form.smtp_reply_to}
+                onChange={e => setForm({ ...form, smtp_reply_to: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder="philippe.martin@tennistabletls.com"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Quand un membre clique « Répondre » à un email du site, sa réponse part à cette adresse — même si l&apos;expéditeur
+                (par ex. contact@tlstt.fr) n&apos;a pas de boîte mail. Vide = l&apos;email admin ci-dessus.
+              </p>
             </div>
           </div>
 

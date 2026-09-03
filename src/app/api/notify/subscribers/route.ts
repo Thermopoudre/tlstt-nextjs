@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
       try {
         await transporter.sendMail({
           from: `"TLSTT" <${smtpConfig.from || smtpConfig.user}>`,
+          replyTo: smtpConfig.replyTo || undefined,
           bcc: batch.map(s => s.email).join(','),
           subject: `[TLSTT] ${typeLabel} : ${title}`,
           html,

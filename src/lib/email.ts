@@ -28,6 +28,8 @@ export interface SmtpConfig {
   pass: string
   from: string
   adminEmail: string
+  /** adresse qui reçoit les réponses des destinataires (Reply-To) */
+  replyTo: string
   configured: boolean
 }
 
@@ -43,7 +45,7 @@ export async function getSmtpConfig(): Promise<SmtpConfig> {
     const { data } = await supabase
       .from('settings')
       .select('setting_key, setting_value')
-      .in('setting_key', ['smtp_host', 'smtp_port', 'smtp_secure', 'smtp_user', 'smtp_pass', 'smtp_from', 'smtp_admin_email'])
+      .in('setting_key', ['smtp_host', 'smtp_port', 'smtp_secure', 'smtp_user', 'smtp_pass', 'smtp_from', 'smtp_admin_email', 'smtp_reply_to'])
 
     if (data) {
       data.forEach((s: { setting_key: string; setting_value: string | null }) => {
@@ -63,6 +65,7 @@ export async function getSmtpConfig(): Promise<SmtpConfig> {
   const pass = dbSettings.smtp_pass || process.env.SMTP_PASS || ''
   const from = dbSettings.smtp_from || process.env.SMTP_FROM || user
   const adminEmail = dbSettings.smtp_admin_email || process.env.SMTP_ADMIN_EMAIL || user
+  const replyTo = dbSettings.smtp_reply_to || process.env.SMTP_REPLY_TO || adminEmail
 
   return {
     host,
@@ -72,6 +75,7 @@ export async function getSmtpConfig(): Promise<SmtpConfig> {
     pass,
     from,
     adminEmail,
+    replyTo,
     configured: !!(user && pass),
   }
 }
@@ -119,7 +123,8 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
       subject: options.subject,
       text: options.text,
       html: options.html,
-      replyTo: options.replyTo,
+      // par défaut, les réponses vont à l'adresse de réponse configurée (ex. Philippe)
+      replyTo: options.replyTo || config.replyTo || undefined,
       bcc: options.bcc ? (Array.isArray(options.bcc) ? options.bcc.join(', ') : options.bcc) : undefined,
     })
     return { success: true }

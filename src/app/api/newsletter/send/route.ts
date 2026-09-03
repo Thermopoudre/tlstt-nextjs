@@ -141,6 +141,7 @@ export async function POST(request: NextRequest) {
 
           await transporter.sendMail({
             from: `"TLSTT" <${smtpConfig.from || smtpConfig.user}>`,
+            replyTo: smtpConfig.replyTo || undefined,
             to: sub.email,
             subject: newsletter.title,
             html,
