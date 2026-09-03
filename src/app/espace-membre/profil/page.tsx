@@ -55,7 +55,7 @@ export default function ProfilPage() {
         address: profile.address || '',
         licence_fftt: profile.licence_fftt || '',
         birth_date: profile.birth_date || '',
-        newsletter_subscribed: profile.newsletter_subscribed,
+        newsletter_subscribed: true,
         secretariat_notifications: profile.secretariat_notifications,
       })
     }
@@ -348,19 +348,13 @@ export default function ProfilPage() {
                   Préférences de notifications
                 </h3>
                 <div className="space-y-4">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="newsletter_subscribed"
-                      checked={formData.newsletter_subscribed}
-                      onChange={handleChange}
-                      className="w-5 h-5 text-[#3b9fd8] rounded"
-                    />
+                  <div className="flex items-center gap-3">
+                    <i className="fas fa-check-circle text-[#3b9fd8] text-xl"></i>
                     <div>
                       <span className="text-white font-semibold">Newsletter du club</span>
-                      <p className="text-gray-500 text-sm">Recevez les actualités et événements du club</p>
+                      <p className="text-gray-500 text-sm">Tous les membres reçoivent les actualités et événements du club par email.</p>
                     </div>
-                  </label>
+                  </div>
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"

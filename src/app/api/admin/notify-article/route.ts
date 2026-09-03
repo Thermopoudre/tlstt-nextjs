@@ -3,6 +3,7 @@ import { createReadOnlyClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import nodemailer from 'nodemailer'
 import { getSmtpConfig } from '@/lib/email'
+import { resoudreAudience } from '@/lib/newsletter-audience'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
 
@@ -104,32 +105,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 4. Destinataires : membres validés ayant accepté + abonnés du formulaire public
-    const { data: membres } = await service
-      .from('member_profiles')
-      .select('id, newsletter_subscribed, is_validated')
-      .eq('is_validated', true)
-      .eq('newsletter_subscribed', true)
-
-    const emails = new Set<string>()
-
-    if (membres?.length) {
-      // l'adresse vit dans auth.users : on la récupère via l'API d'administration
-      const { data: liste } = await service.auth.admin.listUsers({ page: 1, perPage: 1000 })
-      const parId = new Map((liste?.users || []).map(u => [u.id, u.email]))
-      for (const m of membres) {
-        const mail = parId.get(m.id)
-        if (mail) emails.add(mail.toLowerCase())
-      }
-    }
-
-    const { data: abonnes } = await service
-      .from('newsletter_subscribers')
-      .select('email')
-      .eq('is_subscribed', true)
-    for (const a of abonnes || []) {
-      if (a.email) emails.add(String(a.email).toLowerCase())
-    }
+    // 4. Destinataires : tous les membres validés du site + abonnés du formulaire public
+    //    (les membres du site reçoivent toujours les informations du club — décision du 03/09/2026)
+    const { emails: listeEmails } = await resoudreAudience({ type: 'all' })
+    const emails = new Set<string>(listeEmails)
 
     const destinataires = [...emails]
     if (destinataires.length === 0) {

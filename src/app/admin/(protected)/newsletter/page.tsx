@@ -5,11 +5,21 @@ import { createUiClient as createClient } from '@/lib/supabase/ui-client'
 import dynamic from 'next/dynamic'
 import ImageUpload from '@/components/admin/ImageUpload'
 import ConfirmModal from '@/components/admin/ConfirmModal'
+import GroupesNewsletter, { chargerGroupes, type Groupe } from '@/components/admin/GroupesNewsletter'
+import EnvoiNewsletterModal from '@/components/admin/EnvoiNewsletterModal'
 
 const RichTextEditor = dynamic(() => import('@/components/admin/RichTextEditor'), { ssr: false })
 
+function libelleAudience(a: string, groupes: Groupe[]): string {
+  if (a === 'members') return 'membres du site'
+  if (a === 'subscribers') return 'abonnés externes'
+  const m = a.match(/^group:(\d+)$/)
+  if (m) { const g = groupes.find(x => x.id === Number(m[1])); return g ? `groupe ${g.name}` : 'groupe supprimé' }
+  return 'tout le monde'
+}
+
 export default function AdminNewsletterPage() {
-  const [activeTab, setActiveTab] = useState<'subscribers' | 'compose' | 'sent'>('subscribers')
+  const [activeTab, setActiveTab] = useState<'subscribers' | 'groups' | 'compose' | 'sent'>('sent')
   const [subscribers, setSubscribers] = useState<any[]>([])
   const [newsletters, setNewsletters] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -18,6 +28,9 @@ export default function AdminNewsletterPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null)
   const [sending, setSending] = useState<number | null>(null)
+  const [groupes, setGroupes] = useState<Groupe[]>([])
+  const [envoiCible, setEnvoiCible] = useState<any | null>(null)
+  const [nbMembres, setNbMembres] = useState<number | null>(null)
   const [sendResult, setSendResult] = useState<{ sent: number, failed: number, total: number } | null>(null)
 
   // Compose form
@@ -37,13 +50,17 @@ export default function AdminNewsletterPage() {
   const loadAll = async () => {
     const supabase = createClient()
     
-    const [{ data: subs }, { data: nls }] = await Promise.all([
+    const [{ data: subs }, { data: nls }, grps, { count }] = await Promise.all([
       supabase.from('newsletter_subscribers').select('*').order('created_at', { ascending: false }),
       supabase.from('newsletters').select('*').order('created_at', { ascending: false }),
+      chargerGroupes(),
+      supabase.from('member_profiles').select('id', { count: 'exact', head: true }).eq('is_validated', true),
     ])
 
     if (subs) setSubscribers(subs)
     if (nls) setNewsletters(nls)
+    setGroupes(grps)
+    setNbMembres(count ?? null)
     setLoading(false)
   }
 
@@ -130,8 +147,7 @@ export default function AdminNewsletterPage() {
     setActiveTab('compose')
   }
 
-  const handleSendNewsletter = async (nlId: number) => {
-    if (!confirm('Envoyer cette newsletter par email a tous les abonnes actifs ?')) return
+  const handleSendNewsletter = async (nlId: number, audience: string) => {
     setSending(nlId)
     setSendResult(null)
     setMessage(null)
@@ -140,27 +156,28 @@ export default function AdminNewsletterPage() {
       const res = await fetch('/api/newsletter/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newsletterId: nlId }),
+        body: JSON.stringify({ newsletterId: nlId, audience }),
       })
       const data = await res.json()
 
       if (data.smtpMissing) {
-        setMessage({ type: 'error', text: 'SMTP non configure. Ajoutez les variables SMTP_HOST, SMTP_USER, SMTP_PASS sur Vercel.' })
+        setMessage({ type: 'error', text: "L'envoi d'emails n'est pas configuré (Administration → Config Email)." })
       } else if (data.error && data.sent === undefined) {
         setMessage({ type: 'error', text: data.error })
       } else {
         setSendResult({ sent: data.sent || 0, failed: data.failed || 0, total: data.total || 0 })
         if (data.sent > 0) {
-          setMessage({ type: 'success', text: `Newsletter envoyee a ${data.sent} abonne(s) !` })
+          setMessage({ type: 'success', text: `Newsletter envoyée à ${data.sent} personne(s) — ${data.audience || ''}${data.failed ? ` (${data.failed} échec(s))` : ''}.` })
         } else {
-          setMessage({ type: 'error', text: data.error || 'Aucun email envoye' })
+          setMessage({ type: 'error', text: data.error || 'Aucun email envoyé' })
         }
         await loadAll()
       }
     } catch (err: any) {
-      setMessage({ type: 'error', text: 'Erreur reseau : ' + err.message })
+      setMessage({ type: 'error', text: 'Erreur réseau : ' + err.message })
     } finally {
       setSending(null)
+      setEnvoiCible(null)
     }
   }
 
@@ -209,9 +226,10 @@ export default function AdminNewsletterPage() {
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 bg-white p-2 rounded-xl shadow">
         {[
-          { id: 'subscribers' as const, label: 'Abonnés', icon: 'fa-users', count: stats.active },
-          { id: 'compose' as const, label: editingId ? 'Modifier' : 'Rédiger', icon: 'fa-pen-fancy' },
           { id: 'sent' as const, label: 'Newsletters', icon: 'fa-newspaper', count: newsletters.length },
+          { id: 'compose' as const, label: editingId ? 'Modifier' : 'Rédiger', icon: 'fa-pen-fancy' },
+          { id: 'groups' as const, label: 'Groupes', icon: 'fa-users-cog', count: groupes.length },
+          { id: 'subscribers' as const, label: 'Destinataires', icon: 'fa-users', count: (nbMembres || 0) + stats.active },
         ].map(tab => (
           <button key={tab.id} onClick={() => { setActiveTab(tab.id); if (tab.id !== 'compose') resetCompose() }}
             className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
@@ -231,18 +249,22 @@ export default function AdminNewsletterPage() {
       {/* SUBSCRIBERS TAB */}
       {activeTab === 'subscribers' && (
         <div className="space-y-6">
+          <div className="bg-blue-50 border border-blue-100 text-blue-900 rounded-xl p-4 text-sm flex gap-3">
+            <i className="fas fa-info-circle mt-0.5 text-primary"></i>
+            <p><b>Tous les membres du site reçoivent la newsletter</b> (compte validé, sans démarche de leur part). La liste ci-dessous montre en plus les personnes inscrites via le formulaire « Newsletter » du site, qui n'ont pas de compte membre.</p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white p-5 rounded-xl shadow border-l-4 border-blue-500">
-              <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
-              <div className="text-gray-600 text-sm">Total inscriptions</div>
+            <div className="bg-white p-5 rounded-xl shadow border-l-4 border-primary">
+              <div className="text-3xl font-bold text-gray-900">{nbMembres ?? '–'}</div>
+              <div className="text-gray-600 text-sm">Membres du site (toujours destinataires)</div>
             </div>
             <div className="bg-white p-5 rounded-xl shadow border-l-4 border-green-500">
               <div className="text-3xl font-bold text-gray-900">{stats.active}</div>
-              <div className="text-gray-600 text-sm">Abonnés actifs</div>
+              <div className="text-gray-600 text-sm">Abonnés externes actifs</div>
             </div>
             <div className="bg-white p-5 rounded-xl shadow border-l-4 border-red-500">
               <div className="text-3xl font-bold text-gray-900">{stats.unsubscribed}</div>
-              <div className="text-gray-600 text-sm">Désabonnés</div>
+              <div className="text-gray-600 text-sm">Abonnés externes désabonnés</div>
             </div>
           </div>
 
@@ -295,6 +317,9 @@ export default function AdminNewsletterPage() {
           </div>
         </div>
       )}
+
+      {/* GROUPS TAB */}
+      {activeTab === 'groups' && <GroupesNewsletter onChange={loadAll} />}
 
       {/* COMPOSE TAB */}
       {activeTab === 'compose' && (
@@ -408,7 +433,7 @@ export default function AdminNewsletterPage() {
                         <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
                           nl.status === 'sent' ? 'bg-blue-100 text-blue-800' : nl.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                         }`}>
-                          {nl.status === 'sent' ? 'Envoyee' : nl.status === 'published' ? 'Publiee' : 'Brouillon'}
+                          {nl.status === 'sent' ? 'Envoyée' : nl.status === 'published' ? 'Publiée' : 'Brouillon'}
                         </span>
                       </div>
                       {nl.excerpt && <p className="text-gray-600 text-sm mb-2">{nl.excerpt}</p>}
@@ -420,22 +445,23 @@ export default function AdminNewsletterPage() {
                         {nl.sent_at && (
                           <span className="text-blue-500">
                             <i className="fas fa-paper-plane mr-1"></i>
-                            Envoyee le {new Date(nl.sent_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            Envoyée le {new Date(nl.sent_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            {nl.sent_count ? ` à ${nl.sent_count} pers.` : ''}
+                            {nl.audience && nl.audience !== 'all' ? ` (${libelleAudience(nl.audience, groupes)})` : ''}
                           </span>
                         )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {nl.status !== 'sent' && (
-                        <button
-                          onClick={() => handleSendNewsletter(nl.id)}
-                          disabled={sending === nl.id}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
-                          title="Envoyer par email"
-                        >
-                          {sending === nl.id ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-paper-plane"></i>}
-                        </button>
-                      )}
+                      <button
+                        onClick={() => setEnvoiCible(nl)}
+                        disabled={sending === nl.id}
+                        className={`px-3 py-2 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 text-sm font-semibold ${nl.status === 'sent' ? 'text-gray-500 hover:bg-gray-100' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                        title={nl.status === 'sent' ? 'Renvoyer par email' : 'Envoyer par email'}
+                      >
+                        {sending === nl.id ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-paper-plane"></i>}
+                        <span className="hidden sm:inline">{nl.status === 'sent' ? 'Renvoyer' : 'Envoyer'}</span>
+                      </button>
                       <button onClick={() => handleEditNewsletter(nl)}
                         className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Modifier">
                         <i className="fas fa-edit"></i>
@@ -452,6 +478,16 @@ export default function AdminNewsletterPage() {
           )}
         </div>
       )}
+
+      <EnvoiNewsletterModal
+        isOpen={envoiCible !== null}
+        titre={envoiCible?.title || ''}
+        dejaEnvoyeeLe={envoiCible?.sent_at || null}
+        groupes={groupes}
+        sending={sending !== null}
+        onCancel={() => { if (sending === null) setEnvoiCible(null) }}
+        onConfirm={(audience) => envoiCible && handleSendNewsletter(envoiCible.id, audience)}
+      />
 
       <ConfirmModal isOpen={deleteTarget !== null} onConfirm={handleDeleteNewsletter}
         onCancel={() => setDeleteTarget(null)} title="Supprimer la newsletter"

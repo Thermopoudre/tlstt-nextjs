@@ -325,13 +325,10 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <input type="checkbox" name="newsletter" id="newsletter" checked={formData.newsletter} onChange={handleChange}
-                  className="w-4 h-4 text-[#5bc0de] rounded" />
-                <label htmlFor="newsletter" className="text-sm text-gray-600">
-                  Je souhaite recevoir les newsletters et informations du club
-                </label>
-              </div>
+              <p className="text-xs text-gray-500 flex items-start gap-2">
+                <i className="fas fa-envelope mt-0.5 text-[#3b9fd8]"></i>
+                <span>En tant que membre, vous recevrez par email les newsletters et informations du club.</span>
+              </p>
 
               <div className="flex gap-3">
                 <button type="button" onClick={() => setStep(2)}

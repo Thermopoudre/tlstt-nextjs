@@ -2,16 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createReadOnlyClient } from '@/lib/supabase/server'
 import nodemailer from 'nodemailer'
 import { getSmtpConfig } from '@/lib/email'
+import { parseAudience, audienceKey, resoudreAudience } from '@/lib/newsletter-audience'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tlstt.fr'
-const BATCH_SIZE = 50 // emails par lot
+const BATCH_SIZE = 40 // destinataires par lot (copie cachée)
 const DELAY_BETWEEN_BATCHES = 2000 // ms
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;')
 }
 
-function buildEmailHtml(newsletter: any, unsubscribeUrl: string): string {
+function buildEmailHtml(newsletter: any, unsubscribeUrl: string | null): string {
   return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -51,8 +52,10 @@ function buildEmailHtml(newsletter: any, unsubscribeUrl: string): string {
     </div>
     <div class="footer">
       <p>TLSTT - Toulon La Seyne Tennis de Table</p>
-      <p>Gymnase Leo Lagrange, La Seyne-sur-Mer 83500</p>
-      <p><a href="${unsubscribeUrl}">Se desabonner</a> | <a href="${SITE_URL}">Visiter le site</a></p>
+      <p>Complexe Léry, 42 bd de l'Europe, 83500 La Seyne-sur-Mer</p>
+      ${unsubscribeUrl
+        ? `<p><a href="${unsubscribeUrl}">Se désabonner</a> | <a href="${SITE_URL}">Visiter le site</a></p>`
+        : `<p>Vous recevez cette newsletter en tant que membre du TLSTT. <a href="${SITE_URL}">Visiter le site</a></p>`}
     </div>
   </div>
 </body>
@@ -106,60 +109,52 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Newsletter introuvable' }, { status: 404 })
     }
 
-    // Get subscribers
-    const { data: subscribers, error: subError } = await supabase
-      .from('newsletter_subscribers')
-      .select('email, first_name')
-      .eq('is_subscribed', true)
-
-    if (subError) {
-      return NextResponse.json({ error: 'Erreur chargement abonnes' }, { status: 500 })
+    // Destinataires selon l'audience choisie (tous / membres / abonnés / groupe)
+    const audience = parseAudience(body.audience)
+    const { emails, label, unsubscribable } = await resoudreAudience(audience)
+    if (emails.length === 0) {
+      return NextResponse.json({ error: `Aucun destinataire pour « ${label} »`, sent: 0 }, { status: 200 })
     }
 
-    if (!subscribers || subscribers.length === 0) {
-      return NextResponse.json({ error: 'Aucun abonne actif', sent: 0 }, { status: 200 })
-    }
-
-    // Send emails in batches using DB config
     const transporter = nodemailer.createTransport({
       host: smtpConfig.host,
       port: smtpConfig.port,
       secure: smtpConfig.secure,
       auth: { user: smtpConfig.user, pass: smtpConfig.pass },
     })
+    const from = `"TLSTT" <${smtpConfig.from || smtpConfig.user}>`
     let sent = 0
     let failed = 0
     const errors: string[] = []
 
-    for (let i = 0; i < subscribers.length; i += BATCH_SIZE) {
-      const batch = subscribers.slice(i, i + BATCH_SIZE)
-
-      for (const sub of batch) {
-        try {
-          const unsubscribeUrl = `${SITE_URL}/newsletter?unsubscribe=${encodeURIComponent(sub.email)}`
-          const html = buildEmailHtml(newsletter, unsubscribeUrl)
-
-          await transporter.sendMail({
-            from: `"TLSTT" <${smtpConfig.from || smtpConfig.user}>`,
-            replyTo: smtpConfig.replyTo || undefined,
-            to: sub.email,
-            subject: newsletter.title,
-            html,
-            headers: {
-              'List-Unsubscribe': `<${unsubscribeUrl}>`,
-            },
-          })
-          sent++
-        } catch (err: unknown) {
-          failed++
-          const errMsg = err instanceof Error ? err.message : 'Erreur inconnue'
-          errors.push(`${sub.email}: ${errMsg}`)
-        }
+    // 1) Les membres du site : en copie cachée par lots (adresses jamais exposées, pas de lien de désabonnement)
+    const membres = emails.filter(e => !unsubscribable.has(e))
+    const htmlMembres = buildEmailHtml(newsletter, null)
+    for (let i = 0; i < membres.length; i += BATCH_SIZE) {
+      const lot = membres.slice(i, i + BATCH_SIZE)
+      try {
+        await transporter.sendMail({ from, replyTo: smtpConfig.replyTo || undefined, to: from, bcc: lot.join(','), subject: newsletter.title, html: htmlMembres })
+        sent += lot.length
+      } catch (err: unknown) {
+        failed += lot.length
+        errors.push(`lot ${i / BATCH_SIZE + 1}: ${err instanceof Error ? err.message : 'Erreur inconnue'}`)
       }
+      if (i + BATCH_SIZE < membres.length) await new Promise(r => setTimeout(r, DELAY_BETWEEN_BATCHES))
+    }
 
-      // Delay between batches to avoid rate limiting
-      if (i + BATCH_SIZE < subscribers.length) {
-        await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES))
+    // 2) Les abonnés du formulaire public : un email chacun, avec leur lien de désabonnement personnel
+    for (const email of emails.filter(e => unsubscribable.has(e))) {
+      try {
+        const unsubscribeUrl = `${SITE_URL}/newsletter?unsubscribe=${encodeURIComponent(email)}`
+        await transporter.sendMail({
+          from, replyTo: smtpConfig.replyTo || undefined, to: email, subject: newsletter.title,
+          html: buildEmailHtml(newsletter, unsubscribeUrl),
+          headers: { 'List-Unsubscribe': `<${unsubscribeUrl}>` },
+        })
+        sent++
+      } catch (err: unknown) {
+        failed++
+        errors.push(`${email}: ${err instanceof Error ? err.message : 'Erreur inconnue'}`)
       }
     }
 
@@ -169,6 +164,8 @@ export async function POST(request: NextRequest) {
       .update({
         status: 'sent',
         sent_at: new Date().toISOString(),
+        audience: audienceKey(audience),
+        sent_count: sent,
       })
       .eq('id', newsletterId)
 
@@ -176,7 +173,8 @@ export async function POST(request: NextRequest) {
       success: true,
       sent,
       failed,
-      total: subscribers.length,
+      total: emails.length,
+      audience: label,
       errors: errors.length > 0 ? errors.slice(0, 10) : undefined,
     })
   } catch (error: unknown) {
@@ -185,12 +183,14 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
-  return NextResponse.json({
-    endpoint: '/api/newsletter/send',
-    method: 'POST',
-    body: { newsletterId: 'number' },
-    description: 'Envoie une newsletter par email a tous les abonnes actifs',
-    smtpConfigured: !!(process.env.SMTP_USER && process.env.SMTP_PASS),
-  })
+/** Aperçu du nombre de destinataires d'une audience (admin) : GET ?audience=all|members|subscribers|group:N */
+export async function GET(request: NextRequest) {
+  const supabase = await createReadOnlyClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user?.email) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+  const { data: admin } = await supabase.from('admins').select('id').eq('email', user.email).single()
+  if (!admin) return NextResponse.json({ error: 'Accès admin requis' }, { status: 403 })
+  const audience = parseAudience(request.nextUrl.searchParams.get('audience'))
+  const { emails, label } = await resoudreAudience(audience)
+  return NextResponse.json({ audience: audienceKey(audience), label, count: emails.length })
 }
