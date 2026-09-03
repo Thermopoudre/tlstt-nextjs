@@ -34,6 +34,15 @@ export default function AdminMessagesPage() {
     await loadMessages()
   }
 
+  // Réponse faite par téléphone, en main propre ou depuis sa propre messagerie
+  const handleMarkAsReplied = async (id: number) => {
+    const supabase = createClient()
+    await supabase.from('contact_messages').update({ status: 'replied' }).eq('id', id)
+    await loadMessages()
+    setSelectedMessage((prev: any) => (prev && prev.id === id ? { ...prev, status: 'replied' } : prev))
+    window.dispatchEvent(new Event('tlstt:messages-changes'))
+  }
+
   const handleMarkAllAsRead = async () => {
     const supabase = createClient()
     await supabase.from('contact_messages').update({ status: 'read' }).eq('status', 'new')
@@ -51,7 +60,10 @@ export default function AdminMessagesPage() {
       })
       setReplySent(true)
       setReplyText('')
-      if (selectedMessage.status === 'new') await handleMarkAsRead(selectedMessage.id)
+      // la route a marqué le message « répondu » : on recharge pour mettre à jour badges et liste
+      await loadMessages()
+      setSelectedMessage((prev: any) => (prev ? { ...prev, status: 'replied' } : prev))
+      window.dispatchEvent(new Event('tlstt:messages-changes'))
     } finally {
       setReplySending(false)
     }
@@ -77,7 +89,8 @@ export default function AdminMessagesPage() {
   const stats = {
     total: messages.length,
     new: messages.filter(m => m.status === 'new').length,
-    read: messages.filter(m => m.status === 'read').length,
+    aTraiter: messages.filter(m => m.status === 'new' || m.status === 'read').length,
+    repondus: messages.filter(m => m.status === 'replied').length,
   }
 
   if (loading) {
@@ -107,13 +120,13 @@ export default function AdminMessagesPage() {
           <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
           <div className="text-gray-600">Total</div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow border-l-4 border-green-500">
-          <div className="text-3xl font-bold text-gray-900">{stats.new}</div>
-          <div className="text-gray-600">Non lus</div>
+        <div className="bg-white p-6 rounded-lg shadow border-l-4 border-red-500">
+          <div className="text-3xl font-bold text-gray-900">{stats.aTraiter}</div>
+          <div className="text-gray-600">À traiter <span className="text-xs text-gray-400">(dont {stats.new} non lu{stats.new > 1 ? 's' : ''})</span></div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow border-l-4 border-gray-500">
-          <div className="text-3xl font-bold text-gray-900">{stats.read}</div>
-          <div className="text-gray-600">Lus</div>
+        <div className="bg-white p-6 rounded-lg shadow border-l-4 border-green-500">
+          <div className="text-3xl font-bold text-gray-900">{stats.repondus}</div>
+          <div className="text-gray-600">Répondus</div>
         </div>
       </div>
 
@@ -126,7 +139,7 @@ export default function AdminMessagesPage() {
               onClick={() => { setSelectedMessage(msg); setReplyText(''); setReplySent(false) }}
               className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${
                 selectedMessage?.id === msg.id ? 'bg-blue-50' : ''
-              } ${msg.status === 'new' ? 'bg-green-50' : ''}`}
+              } ${msg.status === 'new' ? 'bg-red-50/60' : msg.status === 'read' ? 'bg-amber-50/50' : ''}`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -136,7 +149,13 @@ export default function AdminMessagesPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   {msg.status === 'new' && (
-                    <span className="bg-green-500 text-white px-2 py-1 text-xs rounded-full">Nouveau</span>
+                    <span className="bg-red-500 text-white px-2 py-1 text-xs rounded-full whitespace-nowrap">Non lu</span>
+                  )}
+                  {msg.status === 'read' && (
+                    <span className="bg-amber-500 text-white px-2 py-1 text-xs rounded-full whitespace-nowrap">Sans réponse</span>
+                  )}
+                  {msg.status === 'replied' && (
+                    <span className="bg-green-600 text-white px-2 py-1 text-xs rounded-full whitespace-nowrap"><i className="fas fa-check mr-1"></i>Répondu</span>
                   )}
                   <button
                     onClick={(e) => { e.stopPropagation(); handleDelete(msg.id) }}
@@ -160,15 +179,32 @@ export default function AdminMessagesPage() {
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Détails du message</h2>
-                {selectedMessage.status === 'new' && (
-                  <button
-                    onClick={() => handleMarkAsRead(selectedMessage.id)}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700"
-                  >
-                    <i className="fas fa-check mr-2"></i>
-                    Marquer comme lu
-                  </button>
-                )}
+                <div className="flex flex-wrap gap-2">
+                  {selectedMessage.status === 'new' && (
+                    <button
+                      onClick={() => handleMarkAsRead(selectedMessage.id)}
+                      className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-50"
+                    >
+                      <i className="fas fa-envelope-open mr-2"></i>
+                      Marquer comme lu
+                    </button>
+                  )}
+                  {selectedMessage.status !== 'replied' && (
+                    <button
+                      onClick={() => handleMarkAsReplied(selectedMessage.id)}
+                      title="À utiliser si vous avez répondu par téléphone ou depuis votre messagerie"
+                      className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700"
+                    >
+                      <i className="fas fa-check-double mr-2"></i>
+                      Marquer comme traité
+                    </button>
+                  )}
+                  {selectedMessage.status === 'replied' && (
+                    <span className="inline-flex items-center gap-2 text-green-700 bg-green-50 border border-green-200 px-3 py-2 rounded-lg text-sm">
+                      <i className="fas fa-check-circle"></i>Réponse envoyée
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-4">

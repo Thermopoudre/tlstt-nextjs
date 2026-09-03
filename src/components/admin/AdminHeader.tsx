@@ -45,8 +45,9 @@ export default function AdminHeader({ admin }: AdminHeaderProps) {
   useEffect(() => {
     loadNotifications()
     const interval = setInterval(loadNotifications, 30000) // Refresh every 30s
-    return () => clearInterval(interval)
-  }, [])
+    window.addEventListener('tlstt:messages-changes', loadNotifications)
+    return () => { clearInterval(interval); window.removeEventListener('tlstt:messages-changes', loadNotifications) }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close notifications on outside click
   useEffect(() => {
@@ -62,19 +63,19 @@ export default function AdminHeader({ admin }: AdminHeaderProps) {
   const loadNotifications = async () => {
     const supabase = createClient()
     
-    // Count new messages
+    // Messages à traiter : reçus et pas encore répondus (ni archivés)
     const { count } = await supabase
       .from('contact_messages')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'new')
+      .in('status', ['new', 'read'])
 
     setNewMessagesCount(count || 0)
 
     // Get last 5 new messages as notifications
     const { data } = await supabase
       .from('contact_messages')
-      .select('id, name, subject, created_at')
-      .eq('status', 'new')
+      .select('id, name, subject, created_at, status')
+      .in('status', ['new', 'read'])
       .order('created_at', { ascending: false })
       .limit(5)
 
@@ -131,6 +132,8 @@ export default function AdminHeader({ admin }: AdminHeaderProps) {
             <div className="relative" ref={notifRef}>
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
+                aria-label={newMessagesCount > 0 ? `${newMessagesCount} message${newMessagesCount > 1 ? 's' : ''} à traiter` : 'Notifications'}
+                title={newMessagesCount > 0 ? `${newMessagesCount} message${newMessagesCount > 1 ? 's' : ''} sans réponse` : 'Aucun message en attente'}
                 className="relative p-2 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <i className="fas fa-bell text-lg"></i>
@@ -148,7 +151,7 @@ export default function AdminHeader({ admin }: AdminHeaderProps) {
                     <h3 className="font-bold text-gray-900 text-sm">Notifications</h3>
                     {newMessagesCount > 0 && (
                       <span className="bg-red-500 text-white px-2 py-0.5 text-xs rounded-full">
-                        {newMessagesCount} nouveau{newMessagesCount > 1 ? 'x' : ''}
+                        {newMessagesCount} à traiter
                       </span>
                     )}
                   </div>
@@ -162,15 +165,17 @@ export default function AdminHeader({ admin }: AdminHeaderProps) {
                           className="block p-3 hover:bg-gray-50 border-b last:border-b-0 transition-colors"
                         >
                           <div className="flex items-start gap-2">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <i className="fas fa-envelope text-blue-600 text-xs"></i>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${n.status === 'new' ? 'bg-red-100' : 'bg-amber-100'}`}>
+                              <i className={`fas ${n.status === 'new' ? 'fa-envelope text-red-600' : 'fa-envelope-open text-amber-600'} text-xs`}></i>
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-900 truncate">
                                 {n.name}
                               </p>
                               <p className="text-xs text-gray-500 truncate">{n.subject || 'Sans objet'}</p>
-                              <p className="text-xs text-gray-400 mt-0.5">{timeAgo(n.created_at)}</p>
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                {timeAgo(n.created_at)} · {n.status === 'new' ? 'non lu' : 'lu, sans réponse'}
+                              </p>
                             </div>
                           </div>
                         </Link>
@@ -178,7 +183,7 @@ export default function AdminHeader({ admin }: AdminHeaderProps) {
                     ) : (
                       <div className="p-6 text-center text-gray-400">
                         <i className="fas fa-check-circle text-2xl mb-2"></i>
-                        <p className="text-sm">Aucune notification</p>
+                        <p className="text-sm">Tous les messages ont reçu une réponse</p>
                       </div>
                     )}
                   </div>

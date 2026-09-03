@@ -67,7 +67,9 @@ export default function AdminSidebar({ admin }: AdminSidebarProps) {
     }
     fetchBadges()
     const interval = setInterval(fetchBadges, 60_000)
-    return () => clearInterval(interval)
+    // mise à jour immédiate quand un message est traité / répondu
+    window.addEventListener('tlstt:messages-changes', fetchBadges)
+    return () => { clearInterval(interval); window.removeEventListener('tlstt:messages-changes', fetchBadges) }
   }, [])
 
   const isActive = (path: string) => {

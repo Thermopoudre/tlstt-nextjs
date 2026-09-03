@@ -60,11 +60,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: result.error }, { status: 500 })
     }
 
-    // Marquer comme lu si un messageId est fourni
+    // Une réponse envoyée = message traité : il sort du compteur de notifications
     if (messageId) {
       await supabase
         .from('contact_messages')
-        .update({ status: 'read' })
+        .update({ status: 'replied' })
         .eq('id', messageId)
     }
 

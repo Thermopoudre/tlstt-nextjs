@@ -21,10 +21,12 @@ export async function GET() {
         .from('member_profiles')
         .select('*', { count: 'exact', head: true })
         .eq('membership_status', 'pending'),
+      // messages « à traiter » : ni répondus, ni archivés (un message ouvert
+      // mais sans réponse compte toujours)
       supabase
         .from('contact_messages')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'new'),
+        .in('status', ['new', 'read']),
     ])
 
     return NextResponse.json({ membres: membres ?? 0, messages: messages ?? 0 })

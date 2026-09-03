@@ -22,10 +22,10 @@ export default async function AdminDashboard() {
   ] = await Promise.all([
     supabase.from('news').select('*', { count: 'exact', head: true }),
     supabase.from('players').select('*', { count: 'exact', head: true }).like('admin_notes', 'TLSTT%'),
-    supabase.from('contact_messages').select('*', { count: 'exact', head: true }).eq('status', 'new'),
+    supabase.from('contact_messages').select('*', { count: 'exact', head: true }).in('status', ['new', 'read']),
     supabase.from('albums').select('*', { count: 'exact', head: true }),
     supabase.from('news').select('*').order('created_at', { ascending: false }).limit(5),
-    supabase.from('contact_messages').select('*').eq('status', 'new').order('created_at', { ascending: false }).limit(5),
+    supabase.from('contact_messages').select('*').in('status', ['new', 'read']).order('created_at', { ascending: false }).limit(5),
     supabase.from('contact_messages').select('created_at').gte('created_at', sevenDaysAgo.toISOString()),
     supabase.from('member_profiles').select('created_at').gte('created_at', sevenWeeksAgo.toISOString()),
   ])
@@ -127,7 +127,7 @@ export default async function AdminDashboard() {
         <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 font-semibold mb-1">Messages</p>
+              <p className="text-sm text-gray-600 font-semibold mb-1">Messages à traiter</p>
               <p className="text-3xl font-bold text-primary">{totalMessages || 0}</p>
             </div>
             <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -196,12 +196,12 @@ export default async function AdminDashboard() {
           </div>
         </div>
 
-        {/* Messages non lus */}
+        {/* Messages à traiter */}
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold text-primary">
               <i className="fas fa-envelope mr-2"></i>
-              Messages non lus
+              Messages à traiter
             </h3>
             <Link href="/admin/messages" className="text-primary hover:underline text-sm">
               Voir tout →
