@@ -204,7 +204,7 @@ export default async function HomePage() {
                 Les prochains créneaux
               </h2>
               <p className="text-gray-400 text-sm sm:text-base mt-1">
-                Complexe Léry à La Seyne et École Val Fleuri à Toulon
+                Complexe sportif Léry à La Seyne et École Val Fleuri à Toulon
               </p>
             </div>
             <Link href="/planning" className="text-gray-400 hover:text-[#3b9fd8] font-semibold transition-colors text-sm sm:text-base">

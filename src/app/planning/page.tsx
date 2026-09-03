@@ -54,7 +54,7 @@ export default async function PlanningPage() {
   const supabase = createClient()
   const planningSettings = await getPlanningSettings()
   const globalSettings = await getGlobalSettings()
-  // Adresse de référence : la salle du club (Complexe Léry). Le lien Maps utilise
+  // Adresse de référence : la salle du club (Complexe sportif Léry). Le lien Maps utilise
   // cette adresse, jamais une valeur héritée d'un ancien gymnase.
   const mapsUrl = globalSettings.maps_url || ADRESSE_CLUB.mapsUrl
 
