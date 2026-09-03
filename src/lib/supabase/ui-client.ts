@@ -46,7 +46,12 @@ export function signalerErreurSupabase(error: { message?: string; code?: string;
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-function surveiller(cible: any): any {
+/**
+ * `ecriture` : vrai dès qu'un `insert` / `update` / `delete` / `upsert` a été
+ * appelé dans la chaîne. On s'en sert pour rafraîchir le site public une fois
+ * la requête terminée sans erreur.
+ */
+function surveiller(cible: any, ecriture = false): any {
   return new Proxy(cible, {
     get(target, prop, receiver) {
       const valeur = Reflect.get(target, prop, receiver)
@@ -56,6 +61,7 @@ function surveiller(cible: any): any {
             target,
             (res: any) => {
               if (res && res.error) signalerErreurSupabase(res.error)
+              else if (ecriture) demanderRafraichissementSite()
               return onOk ? onOk(res) : res
             },
             onKo
@@ -64,8 +70,9 @@ function surveiller(cible: any): any {
       if (typeof valeur === 'function') {
         return (...args: any[]) => {
           const sortie = valeur.apply(target, args)
+          const estEcriture = ecriture || (typeof prop === 'string' && METHODES_ECRITURE.has(prop))
           return sortie && typeof sortie === 'object' && typeof sortie.then === 'function'
-            ? surveiller(sortie)
+            ? surveiller(sortie, estEcriture)
             : sortie
         }
       }
