@@ -28,7 +28,7 @@ const defaultGlobalSettings: GlobalSettings = {
   club_number: '13830083',
   contact_email: 'contact@tlstt.fr',
   contact_phone: '',
-  address: 'Gymnase Léo Lagrange, Avenue Maréchal Juin',
+  address: "Complexe sportif Léry, 42 boulevard de l'Europe",
   city: 'La Seyne-sur-Mer',
   postal_code: '83500',
   foundation_year: 1954,
@@ -41,7 +41,7 @@ const defaultGlobalSettings: GlobalSettings = {
   nb_equipes: 13,
   nb_entraineurs: 4,
   president_name: '',
-  maps_url: 'https://maps.google.com/?q=Gymnase+Léo+Lagrange+La+Seyne',
+  maps_url: 'https://www.google.com/maps/search/?api=1&query=Complexe+sportif+L%C3%A9ry+42+boulevard+de+l%27Europe+83500+La+Seyne-sur-Mer',
 }
 
 export async function getGlobalSettings(): Promise<GlobalSettings> {

@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient, createReadOnlyClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 
 async function checkAdmin() {
   const supabase = await createReadOnlyClient()
@@ -43,6 +44,7 @@ export async function PUT(
       .single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+    revalidatePath('/', 'layout')
     return NextResponse.json(data)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue'
@@ -71,6 +73,7 @@ export async function DELETE(
       .eq('id', numId)
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+    revalidatePath('/', 'layout')
     return new Response(null, { status: 204 })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue'

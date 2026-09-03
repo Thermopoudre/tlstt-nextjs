@@ -7,6 +7,8 @@ interface Alert {
   type: 'info' | 'warning' | 'success' | 'error'
   link_url?: string | null
   link_label?: string | null
+  starts_at?: string | null
+  ends_at?: string | null
 }
 
 const typeConfig = {
@@ -41,19 +43,32 @@ export default async function AlertBanner() {
 
   try {
     const supabase = createReadOnlyClient()
-    const now = new Date().toISOString()
 
-    const { data } = await supabase
+    // Filtres de dates appliqués en JS : la politique RLS `alerts_public_read`
+    // fait déjà le même contrôle côté base, et deux `.or()` enchaînés sont une
+    // source d'erreurs silencieuses côté PostgREST.
+    const { data, error } = await supabase
       .from('alerts')
-      .select('id, message, type, link_url, link_label')
+      .select('id, message, type, link_url, link_label, starts_at, ends_at')
       .eq('is_active', true)
-      .or(`starts_at.is.null,starts_at.lte.${now}`)
-      .or(`ends_at.is.null,ends_at.gt.${now}`)
       .order('id', { ascending: false })
-      .limit(3)
+      .limit(10)
 
-    alerts = data || []
-  } catch {
+    if (error) {
+      console.error('[AlertBanner] lecture des alertes impossible :', error.message)
+      return null
+    }
+
+    const maintenant = Date.now()
+    alerts = (data || [])
+      .filter((a) => {
+        const debut = a.starts_at ? new Date(a.starts_at).getTime() : null
+        const fin = a.ends_at ? new Date(a.ends_at).getTime() : null
+        return (debut === null || debut <= maintenant) && (fin === null || fin > maintenant)
+      })
+      .slice(0, 3)
+  } catch (e) {
+    console.error('[AlertBanner] erreur inattendue :', e)
     return null
   }
 

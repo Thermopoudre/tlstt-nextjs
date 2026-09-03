@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { Metadata } from 'next'
 import { getPlanningSettings, getGlobalSettings } from '@/lib/settings'
+import { SALLES } from '@/lib/villes'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd } from '@/lib/seo'
 
@@ -53,6 +54,11 @@ export default async function PlanningPage() {
   const supabase = createClient()
   const planningSettings = await getPlanningSettings()
   const globalSettings = await getGlobalSettings()
+  // Adresse de référence : la salle du club (Complexe Léry). Le lien Maps utilise
+  // cette adresse, jamais une valeur héritée d'un ancien gymnase.
+  const mapsUrl = globalSettings.maps_url
+    || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${SALLES.lery.nom} ${SALLES.lery.adresse} ${SALLES.lery.codePostal} ${SALLES.lery.ville}`)}`
+
 
   const { data: trainings } = await supabase
     .from('trainings')
@@ -164,21 +170,27 @@ export default async function PlanningPage() {
           <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10">
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
               <i className="fas fa-map-marker-alt text-[#3b9fd8]"></i>
-              Lieu
+              Où nous trouver
             </h3>
-            <p className="text-gray-300 mb-1">{planningSettings.location || globalSettings.address}</p>
-            <p className="text-gray-500 text-sm">{globalSettings.postal_code} {globalSettings.city}</p>
-            {globalSettings.maps_url && (
-              <a
-                href={globalSettings.maps_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[#3b9fd8] text-sm hover:underline mt-2 inline-block"
-              >
-                <i className="fas fa-external-link-alt mr-1"></i>
+            <p className="text-gray-300 mb-1">{SALLES.lery.nom}, {SALLES.lery.adresse}</p>
+            <p className="text-gray-500 text-sm mb-4">{SALLES.lery.codePostal} {SALLES.lery.ville}</p>
+            <div className="space-y-2 text-sm">
+              <a href={`tel:${(globalSettings.contact_phone || '07 68 60 29 35').replace(/\s/g, '')}`}
+                className="text-gray-300 hover:text-[#3b9fd8] transition-colors flex items-center gap-2">
+                <i className="fas fa-phone w-4 text-[#3b9fd8]"></i>
+                {globalSettings.contact_phone || '07 68 60 29 35'}
+              </a>
+              <a href={`mailto:${globalSettings.contact_email}`}
+                className="text-gray-300 hover:text-[#3b9fd8] transition-colors flex items-center gap-2 break-all">
+                <i className="fas fa-envelope w-4 text-[#3b9fd8]"></i>
+                {globalSettings.contact_email}
+              </a>
+              <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+                className="text-[#3b9fd8] hover:underline transition-colors flex items-center gap-2">
+                <i className="fas fa-map w-4"></i>
                 Voir sur Google Maps
               </a>
-            )}
+            </div>
           </div>
 
           <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#3b9fd8] hover:shadow-xl hover:shadow-[#3b9fd8]/10">
