@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer'
-import { createClient as createServerClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 /** Échappe les caractères HTML pour éviter les injections dans les emails */
 function escapeHtml(str: string): string {
@@ -41,7 +41,10 @@ export async function getSmtpConfig(): Promise<SmtpConfig> {
   const dbSettings: Record<string, string> = {}
 
   try {
-    const supabase = await createServerClient()
+    // Clé de service : la configuration SMTP n'est plus lisible par les visiteurs
+    // (elle contient le mot de passe), mais l'envoi d'emails doit rester possible
+    // depuis le formulaire de contact public.
+    const supabase = createAdminClient()
     const { data } = await supabase
       .from('settings')
       .select('setting_key, setting_value')

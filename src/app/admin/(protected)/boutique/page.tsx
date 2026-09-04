@@ -44,7 +44,14 @@ export default function AdminBoutiquePage() {
 
   const deleteProduct = async (id: string, name: string) => {
     if (!confirm(`Supprimer "${name}" ?`)) return
-    await supabase.from('shop_products').delete().eq('id', id)
+    // `.select()` renvoie les lignes réellement supprimées : sans cela, une
+    // suppression refusée par la base passe inaperçue (aucune erreur, 0 ligne).
+    const { data, error } = await supabase.from('shop_products').delete().eq('id', id).select('id')
+    if (error) {
+      alert(`Suppression impossible : ${error.message}`)
+    } else if (!data || data.length === 0) {
+      alert("Suppression impossible : ce produit n'a pas pu être supprimé. Prévenez Alexis.")
+    }
     fetchProducts()
   }
 

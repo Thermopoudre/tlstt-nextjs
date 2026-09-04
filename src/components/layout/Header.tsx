@@ -51,6 +51,7 @@ export default function Header() {
       { label: 'À Propos', href: '/club/a-propos', icon: 'fa-info-circle' },
       { label: 'Palmarès', href: '/palmares', icon: 'fa-medal' },
       { label: 'Tarifs', href: '/tarifs', icon: 'fa-tags' },
+      { label: 'Cotisation / Adhésion', href: '/cotisation', icon: 'fa-id-card' },
       { label: 'Stages', href: '/stages', icon: 'fa-graduation-cap' },
       { label: 'Galerie', href: '/galerie', icon: 'fa-images' },
       { label: 'Partenaires', href: '/partenaires', icon: 'fa-handshake' },

@@ -10,6 +10,7 @@ interface Label {
   description: string | null
   image_url: string
   display_order: number
+  etoiles?: number
   is_active: boolean
 }
 
@@ -25,6 +26,7 @@ export default function AdminLabelsPage() {
     description: '',
     image_url: '',
     display_order: 0,
+    etoiles: 2,
     is_active: true
   })
 
@@ -41,7 +43,7 @@ export default function AdminLabelsPage() {
 
   const openNewForm = () => {
     setEditingLabel(null)
-    setForm({ name: '', description: '', image_url: '', display_order: labels.length, is_active: true })
+    setForm({ name: '', description: '', image_url: '', display_order: labels.length, etoiles: 2, is_active: true })
     setShowForm(true)
   }
 
@@ -52,6 +54,7 @@ export default function AdminLabelsPage() {
       description: label.description || '',
       image_url: label.image_url,
       display_order: label.display_order,
+      etoiles: label.etoiles ?? 0,
       is_active: label.is_active
     })
     setShowForm(true)
@@ -69,6 +72,7 @@ export default function AdminLabelsPage() {
           description: form.description || null,
           image_url: form.image_url,
           display_order: form.display_order,
+          etoiles: form.etoiles,
           is_active: form.is_active,
           updated_at: new Date().toISOString()
         })
@@ -81,6 +85,7 @@ export default function AdminLabelsPage() {
           description: form.description || null,
           image_url: form.image_url,
           display_order: form.display_order,
+          etoiles: form.etoiles,
           is_active: form.is_active
         })
     }
@@ -184,6 +189,9 @@ export default function AdminLabelsPage() {
                 <p className="text-gray-500 text-sm mb-3 line-clamp-2">{label.description || 'Pas de description'}</p>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-400">Ordre: {label.display_order}</span>
+                  {(label.etoiles ?? 0) > 0 && (
+                    <span className="text-amber-500">{Array.from({ length: label.etoiles ?? 0 }).map((_, i) => <i key={i} className="fas fa-star text-xs"></i>)}</span>
+                  )}
                   <div className="flex gap-2">
                     <button
                       onClick={() => toggleActive(label)}
@@ -258,6 +266,20 @@ export default function AdminLabelsPage() {
                   <p className="text-xs text-gray-500 mt-1">
                     Choisissez le fichier depuis votre ordinateur : il est envoyé sur le site automatiquement.
                   </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Niveau du label</label>
+                  <div className="flex flex-wrap gap-2">
+                    {[0, 1, 2, 3].map(n => (
+                      <button key={n} type="button" onClick={() => setForm({ ...form, etoiles: n })}
+                        className={`px-4 py-2 rounded-lg border-2 text-sm font-semibold transition-colors ${
+                          form.etoiles === n ? 'border-primary bg-primary/10 text-primary' : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                        }`}>
+                        {n === 0 ? 'Sans étoile' : Array.from({ length: n }).map(() => '\u2605').join(' ') + ` ${n} étoile${n > 1 ? 's' : ''}`}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Les étoiles s&apos;affichent sous le label sur la page d&apos;accueil.</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
