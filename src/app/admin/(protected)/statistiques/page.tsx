@@ -159,12 +159,12 @@ export default function StatistiquesPage() {
             {stats.periodes.length === 0 ? (
               <p className="text-gray-500 text-sm py-8 text-center">Aucune visite enregistrée sur cette période.</p>
             ) : (
-              <div className="flex items-end gap-1 h-56 overflow-x-auto">
+              <div className="flex items-end gap-1 h-56 overflow-x-auto justify-start">
                 {stats.periodes.map(p => {
                   const h = Math.round((Number(p.visites) / maxVisites) * 100)
                   const hMembres = Number(p.visites) > 0 ? Math.round((Number(p.visites_membres) / Number(p.visites)) * h) : 0
                   return (
-                    <div key={p.periode} className="flex-1 min-w-[18px] flex flex-col items-center justify-end h-full group relative">
+                    <div key={p.periode} className="flex-1 min-w-[18px] max-w-[64px] flex flex-col items-center justify-end h-full group relative">
                       <div className="absolute -top-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 pointer-events-none">
                         {p.visites} vues · {p.visiteurs} visiteurs
                       </div>
