@@ -68,13 +68,13 @@ export default function NouveauMotDePassePage() {
     if (!emailRenvoi) return
     setRenvoi(true)
     setMessageRenvoi('')
-    const { error } = await supabase.auth.resetPasswordForEmail(emailRenvoi.trim(), {
-      redirectTo: window.location.origin + '/mot-de-passe',
-    })
+    await fetch('/api/auth/mot-de-passe-oublie', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: emailRenvoi.trim() }),
+    }).catch(() => {})
     setRenvoi(false)
-    setMessageRenvoi(error
-      ? 'Erreur : ' + error.message
-      : 'Si un compte existe pour cette adresse, un email vient de partir. Pensez à regarder dans les spams.')
+    setMessageRenvoi('Si un compte existe pour cette adresse, un email vient de partir. Pensez à regarder dans les spams.')
   }
 
   return (

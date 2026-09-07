@@ -71,13 +71,13 @@ export default function DefinirMotDePassePage() {
     setResendMsg('')
     if (!resendEmail) return
     setResending(true)
-    const { error: err } = await supabase.auth.resetPasswordForEmail(resendEmail, {
-      redirectTo: window.location.origin + '/admin/definir-mot-de-passe',
-    })
+    await fetch('/api/auth/mot-de-passe-oublie', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: resendEmail.trim(), espace: 'admin' }),
+    }).catch(() => {})
     setResending(false)
-    setResendMsg(err
-      ? 'Erreur : ' + err.message
-      : 'Si un compte existe pour cet email, un nouveau lien vient d’être envoyé. Pensez à vérifier vos spams, puis cliquez le lien le plus récent.')
+    setResendMsg('Si un compte existe pour cet email, un nouveau lien vient d’être envoyé. Pensez à vérifier vos spams, puis cliquez le lien le plus récent.')
   }
 
   return (

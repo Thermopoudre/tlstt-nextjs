@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from './AuthProvider'
-import { createClient } from '@/lib/supabase/client'
 
 interface LoginModalProps {
   isOpen: boolean
@@ -29,12 +28,14 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
     setError('')
     if (!email) { setError('Indiquez votre adresse email pour recevoir le lien.'); return }
     setLoading(true)
-    const supabase = createClient()
-    const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: window.location.origin + '/mot-de-passe',
-    })
+    // Envoi par le serveur d'emails du club (Brevo) : le service intégré de
+    // Supabase est limité à quelques messages par heure pour tout le site.
+    await fetch('/api/auth/mot-de-passe-oublie', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim() }),
+    }).catch(() => {})
     setLoading(false)
-    if (err) { setError(err.message); return }
     setOubliEnvoye(true)
   }
 
