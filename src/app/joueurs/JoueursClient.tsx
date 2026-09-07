@@ -410,6 +410,9 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
               </button>
             )}
 
+          </div>
+        )}
+
         {/* Chargement progressif : le reste de l'effectif s'affiche à la demande */}
         {sortedPlayers.length > nbAffiches && (
           <div className="mt-8 text-center">
@@ -423,8 +426,6 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
                 ({nbAffiches} sur {sortedPlayers.length})
               </span>
             </button>
-          </div>
-        )}
           </div>
         )}
       </div>
