@@ -40,14 +40,27 @@ export default function AdminMembresPage() {
   }
 
   const validateMember = async (id: string) => {
-    const { error } = await supabase.from('member_profiles').update({
-      is_validated: true,
-      role: 'member',
-      membership_status: 'active',
-      updated_at: new Date().toISOString()
-    }).eq('id', id)
-    if (error) showMsg('error', 'Erreur lors de la validation')
-    else { showMsg('success', 'Membre validé avec succès'); fetchMembers() }
+    // Passe par le serveur : en plus de valider la fiche, il confirme l'adresse
+    // email (sinon la personne ne peut pas se connecter) et envoie le message
+    // de bienvenue depuis l'adresse du club.
+    try {
+      const res = await fetch('/api/admin/valider-membre', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId: id }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        showMsg('error', data.error || 'Erreur lors de la validation')
+        return
+      }
+      showMsg('success', data.emailEnvoye
+        ? 'Membre validé — il vient de recevoir un email de bienvenue.'
+        : 'Membre validé.')
+      fetchMembers()
+    } catch {
+      showMsg('error', 'Erreur réseau lors de la validation')
+    }
   }
 
   const rejectMember = async (id: string) => {
