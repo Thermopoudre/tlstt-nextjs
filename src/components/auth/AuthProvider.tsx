@@ -109,47 +109,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error
   }
 
-  // Inscription
+  // Inscription — passe par notre serveur : le compte est créé côté Supabase et
+  // l'email de confirmation part par le serveur du club (Brevo), pas par le
+  // service intégré de Supabase qui est plafonné à quelques envois par heure.
   const signUp = async (email: string, password: string, profileData: Partial<MemberProfile>) => {
-    // Passer les metadata dans le signUp - le trigger DB crée automatiquement le profil
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
+    const res = await fetch('/api/auth/inscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        password,
+        profil: {
           first_name: profileData.first_name || '',
           last_name: profileData.last_name || '',
           phone: profileData.phone || null,
           licence_fftt: profileData.licence_fftt || null,
           newsletter_subscribed: profileData.newsletter_subscribed ?? true,
           role: profileData.role || 'visitor',
-        }
-      }
+        },
+      }),
     })
-    if (error) throw error
-    // Supabase répond « succès » même si l'adresse est déjà utilisée (anti-énumération) :
-    // dans ce cas l'utilisateur renvoyé n'a aucune identité et aucun email ne part.
-    if (data.user && Array.isArray((data.user as any).identities) && (data.user as any).identities.length === 0) {
-      throw new Error('COMPTE_EXISTANT')
-    }
-
-    // Fallback: si le trigger n'a pas créé le profil et que l'utilisateur est connecté
-    if (data.user && data.session) {
-      const { data: existing } = await supabase
-        .from('member_profiles')
-        .select('id')
-        .eq('id', data.user.id)
-        .single()
-
-      if (!existing) {
-        await supabase.from('member_profiles').insert({
-          id: data.user.id,
-          ...profileData,
-          membership_status: 'pending',
-          is_validated: false,
-        })
-      }
-    }
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data?.error || "L'inscription a échoué.")
   }
 
   // Déconnexion
