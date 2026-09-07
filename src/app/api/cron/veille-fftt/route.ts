@@ -18,6 +18,9 @@ const BASE = 'https://www.fftt.com/mobile/pxml'
 const CLUB = '13830083'
 const LICENCE_TEST = '8311494'
 const CLE_REGLAGE = 'fftt_droits_connus'
+/** Copie systématique au contact technique du site, en plus de l'adresse
+ *  administrateur configurée dans Admin → Config Email. */
+const COPIE_TECHNIQUE = 'contact@thermopoudre.fr'
 
 /** Interfaces suivies : celles demandées à la FFTT + celles déjà ouvertes. */
 const INTERFACES: { script: string; params: Record<string, string>; libelle: string }[] = [
@@ -103,8 +106,10 @@ export async function GET(req: NextRequest) {
 
   if (!premierPassage && (nouvelles.length > 0 || perdues.length > 0)) {
     const smtp = await getSmtpConfig()
-    const destinataire = smtp.adminEmail || smtp.from
-    if (smtp.configured && destinataire) {
+    const destinataires = [...new Set(
+      [smtp.adminEmail || smtp.from, COPIE_TECHNIQUE].filter(Boolean) as string[]
+    )]
+    if (smtp.configured && destinataires.length) {
       const nom = (s: string) => INTERFACES.find(i => i.script === s)?.libelle || s
       const liste = (l: string[]) => l.map(s => `<li><strong>${nom(s)}</strong> <span style="color:#888">(${s})</span></li>`).join('')
       const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"></head>
@@ -123,7 +128,7 @@ export async function GET(req: NextRequest) {
   </div>
 </div></body></html>`
       const envoi = await sendEmail({
-        to: destinataire,
+        to: destinataires,
         subject: nouvelles.length
           ? `[TLSTT] La FFTT a ouvert ${nouvelles.length} accès à l'API`
           : `[TLSTT] ${perdues.length} accès API ne répond plus`,
