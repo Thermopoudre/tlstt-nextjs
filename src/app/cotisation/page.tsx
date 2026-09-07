@@ -170,22 +170,37 @@ export default async function CotisationPage() {
 
           {urlWidget ? (
             <div className="max-w-3xl mx-auto">
+              {/* Bouton toujours visible : certains navigateurs et bloqueurs de
+                  publicité empêchent l'affichage du formulaire dans la page. */}
+              <div className="text-center mb-6">
+                <a
+                  href={urlHelloAsso}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 bg-[#3b9fd8] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#2d8bc9] transition-colors shadow-lg shadow-[#3b9fd8]/20"
+                >
+                  <i className="fas fa-arrow-up-right-from-square"></i>
+                  Adhérer sur HelloAsso
+                </a>
+                <p className="text-gray-500 text-xs mt-3">
+                  S&apos;ouvre dans un nouvel onglet — ou remplissez directement le formulaire ci-dessous.
+                </p>
+              </div>
+
               <div className="rounded-2xl overflow-hidden border border-[#333] bg-white">
                 <iframe
                   id="haWidget"
                   src={urlWidget}
                   title="Formulaire d'adhésion HelloAsso — TLSTT"
                   className="w-full"
-                  style={{ height: '850px', border: 'none' }}
-                  allow="payment"
-                  loading="lazy"
+                  style={{ height: '900px', border: 'none' }}
+                  allow="payment *; clipboard-write"
+                  referrerPolicy="no-referrer-when-downgrade"
                 />
               </div>
               <p className="text-center text-gray-500 text-xs mt-4">
-                Le formulaire ne s&apos;affiche pas ?{' '}
-                <a href={urlHelloAsso} target="_blank" rel="noopener noreferrer" className="text-[#3b9fd8] hover:underline">
-                  Ouvrir la page d&apos;adhésion HelloAsso
-                </a>
+                Le formulaire reste blanc ou ne se charge pas ? C&apos;est souvent un bloqueur de publicité :
+                utilisez le bouton bleu ci-dessus, l&apos;adhésion se fait exactement de la même façon.
               </p>
             </div>
           ) : (

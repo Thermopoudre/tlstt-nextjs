@@ -144,8 +144,15 @@ export default async function TarifsPage() {
             <p className="text-gray-400 mb-6">Première séance d&apos;essai gratuite, tous niveaux acceptés !</p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
-                href="/rejoindre"
+                href="/cotisation"
                 className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-[#3b9fd8] text-white rounded-full font-bold hover:bg-[#2d8bc9] transition-colors"
+              >
+                <i className="fas fa-credit-card"></i>
+                Adhérer en ligne
+              </Link>
+              <Link
+                href="/rejoindre"
+                className="inline-flex items-center justify-center gap-2 px-8 py-3 border border-[#3b9fd8] text-[#3b9fd8] rounded-full font-bold hover:bg-[#3b9fd8]/10 transition-colors"
               >
                 <i className="fas fa-table-tennis-paddle-ball"></i>
                 Rejoindre le club
