@@ -99,7 +99,7 @@ export default async function ActualitesPage({
       {/* Content */}
       <div className="container-custom py-8">
         {/* Categories tabs */}
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
+        <div className="flex flex-wrap gap-2 mb-8">
           {Object.entries(categoryLabels).map(([key, label]) => (
             <Link
               key={key}

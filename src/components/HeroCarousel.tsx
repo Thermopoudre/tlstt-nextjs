@@ -32,7 +32,7 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
   const texteVisible = aDuTexte(slideCourant)
 
   return (
-    <section className="relative h-[56vh] min-h-[340px] sm:h-[70vh] sm:min-h-[500px] max-h-[700px] overflow-hidden bg-gradient-to-br from-[#10325F] via-[#0a1a2e] to-[#0a0a0a]">
+    <section className="relative h-[46vh] min-h-[300px] sm:h-[70vh] sm:min-h-[500px] max-h-[700px] overflow-hidden bg-gradient-to-br from-[#10325F] via-[#0a1a2e] to-[#0a0a0a]">
       {/* Fond vidéo YouTube — plein écran, centré */}
       {youtubeId && (
         <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
@@ -55,16 +55,32 @@ export default function HeroCarousel({ images, youtubeId }: { images: CarouselIm
           Volontairement sans bibliothèque d'animation : le contenu du premier
           écran ne doit jamais dépendre du démarrage d'une animation JavaScript
           (onglet réveillé, économie d'énergie, animations réduites…). */}
-      {!youtubeId && images.map((image, index) => (
-        <div
-          key={index}
-          aria-hidden={index !== currentIndex}
-          className={`absolute inset-0 z-0 bg-center bg-no-repeat transition-opacity duration-700 ${
-            aDuTexte(image) ? 'bg-cover' : 'bg-contain'
-          } ${index === currentIndex ? 'opacity-100' : 'opacity-0'}`}
-          style={{ backgroundImage: `url(${image.url})` }}
-        />
-      ))}
+      {!youtubeId && images.map((image, index) => {
+        const affiche = !aDuTexte(image)
+        return (
+          <div
+            key={index}
+            aria-hidden={index !== currentIndex}
+            className={`absolute inset-0 z-0 transition-opacity duration-700 ${
+              index === currentIndex ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            {/* Une affiche large (bannière FFTT, flyer…) ne remplit pas un écran
+                de téléphone : plutôt que de laisser deux grosses bandes noires,
+                on floute la même image en fond pour combler joliment le cadre. */}
+            {affiche && (
+              <div
+                className="absolute inset-0 bg-center bg-cover scale-110 blur-2xl opacity-60"
+                style={{ backgroundImage: `url(${image.url})` }}
+              />
+            )}
+            <div
+              className={`absolute inset-0 bg-center bg-no-repeat ${affiche ? 'bg-contain' : 'bg-cover'}`}
+              style={{ backgroundImage: `url(${image.url})` }}
+            />
+          </div>
+        )
+      })}
 
       {/* Voile : dense quand le slide porte du texte (lisibilité),
           quasi nul quand l'image se suffit à elle-même (affiche, bannière). */}

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { StaggerContainer, StaggerItem } from '@/components/ui/StaggerContainer'
 
@@ -51,6 +51,10 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
   const [sortType, setSortType] = useState<SortType>('default')
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<string>('')
+  // Affichage progressif : 241 fiches d'un coup, c'est 375 Ko à télécharger et
+  // autant de cartes à dessiner — très lent sur un téléphone en 4G.
+  const PAR_PAGE = 24
+  const [nbAffiches, setNbAffiches] = useState(PAR_PAGE)
 
   // Extraire les catégories uniques
   const categories = useMemo(() => {
@@ -61,6 +65,9 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
     })
     return Array.from(cats).sort()
   }, [initialPlayers])
+
+  // Toute nouvelle recherche ou tri repart du début de liste
+  useEffect(() => { setNbAffiches(PAR_PAGE) }, [searchTerm, categoryFilter, sortType])
 
   const sortedPlayers = useMemo(() => {
     let filtered = [...initialPlayers]
@@ -336,7 +343,7 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
 
         {sortedPlayers.length > 0 ? (
           <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sortedPlayers.map((player, index) => {
+            {sortedPlayers.slice(0, nbAffiches).map((player, index) => {
               const ranking = parseNationalRanking(player.category)
               const points = getPlayerPoints(player)
               const category = getPlayerCategory(player)
@@ -402,6 +409,22 @@ export default function JoueursClient({ initialPlayers }: { initialPlayers: Play
                 <i className="fas fa-times mr-2"></i>Réinitialiser les filtres
               </button>
             )}
+
+        {/* Chargement progressif : le reste de l'effectif s'affiche à la demande */}
+        {sortedPlayers.length > nbAffiches && (
+          <div className="mt-8 text-center">
+            <button
+              onClick={() => setNbAffiches(n => n + 48)}
+              className="px-8 py-3 bg-[#1a1a1a] border border-[#3b9fd8] text-[#3b9fd8] rounded-full font-semibold hover:bg-[#3b9fd8] hover:text-white transition-colors"
+            >
+              <i className="fas fa-plus mr-2"></i>
+              Afficher plus de joueurs
+              <span className="text-sm font-normal opacity-70 ml-2">
+                ({nbAffiches} sur {sortedPlayers.length})
+              </span>
+            </button>
+          </div>
+        )}
           </div>
         )}
       </div>

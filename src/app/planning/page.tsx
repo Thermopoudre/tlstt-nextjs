@@ -114,15 +114,15 @@ export default async function PlanningPage() {
           </div>
         </div>
 
-        {/* Planning */}
-        <div className="bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden mb-8">
+        {/* Planning — tableau sur grand écran */}
+        <div className="hidden md:block bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden mb-8">
           <table className="w-full">
             <thead>
               <tr className="bg-[#111]">
                 <th className="px-4 py-4 text-left font-semibold text-[#3b9fd8]">Jour</th>
                 <th className="px-4 py-4 text-left font-semibold text-[#3b9fd8]">Horaires</th>
                 <th className="px-4 py-4 text-left font-semibold text-[#3b9fd8]">Activité</th>
-                <th className="px-4 py-4 text-left font-semibold text-[#3b9fd8] hidden md:table-cell">Niveau / Public</th>
+                <th className="px-4 py-4 text-left font-semibold text-[#3b9fd8]">Niveau / Public</th>
                 <th className="px-4 py-4 text-left font-semibold text-[#3b9fd8] hidden lg:table-cell">Détails</th>
               </tr>
             </thead>
@@ -149,7 +149,7 @@ export default async function PlanningPage() {
                           <span className="font-medium text-white">{training.activity_name}</span>
                         </span>
                       </td>
-                      <td className="px-4 py-3 hidden md:table-cell">
+                      <td className="px-4 py-3">
                         {training.level && <span className="text-gray-300">{training.level}</span>}
                         {training.age_range && <span className="text-gray-500 text-sm ml-2">{training.age_range}</span>}
                       </td>
@@ -162,6 +162,51 @@ export default async function PlanningPage() {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Planning — cartes sur téléphone : un tableau à 5 colonnes oblige
+            sinon à faire défiler l'écran de côté, et le lieu (l'information la
+            plus demandée) reste invisible. */}
+        <div className="md:hidden space-y-5 mb-8">
+          {[1, 2, 3, 4, 5, 6].map(dayIndex => {
+            const dayTrainings = trainingsByDay[dayIndex] || []
+            if (dayTrainings.length === 0) return null
+
+            return (
+              <div key={dayIndex}>
+                <h3 className="text-[#3b9fd8] font-bold uppercase tracking-wide text-sm mb-2 px-1">
+                  {dayNames[dayIndex]}
+                </h3>
+                <div className="space-y-3">
+                  {dayTrainings.map((training: Training) => {
+                    const config = activityConfig[training.activity_type] || activityConfig.libre
+                    return (
+                      <div key={training.id} className="bg-[#1a1a1a] border border-[#333] rounded-xl p-4">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <span className="text-white font-bold text-lg">
+                            {training.start_time.slice(0, 5)} – {training.end_time.slice(0, 5)}
+                          </span>
+                          <span className={`flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-sm ${config.bgClass}`}>
+                            <span>{config.emoji}</span>
+                            <span className="font-medium text-white">{training.activity_name}</span>
+                          </span>
+                        </div>
+                        {(training.level || training.age_range) && (
+                          <p className="text-gray-300 text-sm">
+                            {training.level}
+                            {training.age_range && <span className="text-gray-500"> · {training.age_range}</span>}
+                          </p>
+                        )}
+                        {training.description && (
+                          <p className="text-gray-500 text-sm mt-1">{training.description}</p>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
         </div>
 
         {/* Infos */}
