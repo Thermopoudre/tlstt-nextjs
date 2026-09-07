@@ -73,7 +73,7 @@ export default function AdminHelloAssoPage() {
           Comment ca fonctionne ?
         </h2>
         <div className="space-y-3 text-gray-600 text-sm">
-          <p><strong>1.</strong> Creez vos campagnes sur <a href="https://www.helloasso.com" target="_blank" rel="noopener noreferrer" className="text-[#4c40cf] underline font-semibold">HelloAsso.com</a> (gratuit pour les associations)</p>
+          <p><strong>1.</strong> Créez vos campagnes sur <a href="https://www.helloasso.com" target="_blank" rel="noopener noreferrer" className="text-[#4c40cf] underline font-semibold">HelloAsso.com</a> (gratuit pour les associations)</p>
           <p><strong>2.</strong> Creez une campagne <strong>Adhesion</strong> pour les cotisations de la saison</p>
           <p><strong>3.</strong> Creez une campagne <strong>Boutique</strong> pour les achats de materiel</p>
           <p><strong>4.</strong> Copiez les URLs de vos campagnes ci-dessous</p>
@@ -111,7 +111,7 @@ export default function AdminHelloAssoPage() {
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               <i className="fas fa-id-card mr-2 text-green-600"></i>
-              URL Cotisation / Adhesion
+              Lien de la campagne d&apos;adhésion
             </label>
             <input
               type="url"
@@ -121,15 +121,15 @@ export default function AdminHelloAssoPage() {
               placeholder="https://www.helloasso.com/associations/tlstt/adhesions/saison-2025-2026"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Lien vers la campagne d&apos;adhesion pour les cotisations.
-              Apparaitra sur la page Boutique.
+              C&apos;est ce lien qui alimente la page <strong>Cotisation / Adhésion</strong> du site
+              (formulaire de paiement intégré) et le bandeau de la Boutique.
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               <i className="fas fa-shopping-bag mr-2 text-blue-600"></i>
-              URL Boutique HelloAsso
+              Lien de la boutique HelloAsso <span className="font-normal text-gray-400">(facultatif)</span>
             </label>
             <input
               type="url"
@@ -138,10 +138,17 @@ export default function AdminHelloAssoPage() {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               placeholder="https://www.helloasso.com/associations/tlstt/boutiques/boutique-tlstt"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Lien vers la boutique HelloAsso pour les achats.
-              Le bouton &quot;Commander&quot; redirigera vers cette page.
-            </p>
+            <div className="text-xs text-gray-500 mt-1 space-y-1">
+              <p>
+                À remplir <strong>uniquement si le club vend en ligne</strong> (maillots, raquettes, textile…).
+                Laissé vide, aucun bouton n&apos;apparaît sur le site : la boutique du site reste une simple
+                vitrine, les commandes se règlent auprès du club.
+              </p>
+              <p>
+                Pour en créer une : sur HelloAsso, <em>Mon association → Créer une action → Boutique en ligne</em>,
+                puis copiez ici l&apos;adresse de la page publique obtenue.
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-4 pt-4 border-t">
@@ -151,14 +158,14 @@ export default function AdminHelloAssoPage() {
               className="btn-primary flex items-center gap-2"
             >
               {saving ? (
-                <><i className="fas fa-spinner fa-spin"></i>Enregistrement...</>
+                <><i className="fas fa-spinner fa-spin"></i>Enregistrement…</>
               ) : (
                 <><i className="fas fa-save"></i>Enregistrer</>
               )}
             </button>
             {saved && (
               <span className="text-green-600 font-semibold text-sm">
-                <i className="fas fa-check-circle mr-1"></i>Enregistre !
+                <i className="fas fa-check-circle mr-1"></i>Enregistré !
               </span>
             )}
           </div>
@@ -169,7 +176,7 @@ export default function AdminHelloAssoPage() {
       <div className="bg-white rounded-xl shadow p-6">
         <h2 className="text-lg font-bold text-gray-800 mb-4">
           <i className="fas fa-eye mr-2 text-primary"></i>
-          Aperçu de l&apos;integration
+          Aperçu de l&apos;intégration
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className={`border rounded-lg p-4 ${form.helloasso_cotisation_url ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
