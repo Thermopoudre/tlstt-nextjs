@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { estAppelAutorise } from '@/lib/api-auth'
 import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createReadOnlyClient } from '@/lib/supabase/server'
 import { smartPingAPI } from '@/lib/smartping/api'
 
 // Import quotidien d'actualités TT en catégorie "tt".
@@ -116,24 +116,8 @@ function escapeAttr(url: string): string {
     .replace(/>/g, '&gt;')
 }
 
-async function isAuthorized(req: NextRequest): Promise<boolean> {
-  const secret = process.env.CRON_SECRET
-  if (secret && req.headers.get('authorization') === 'Bearer ' + secret) return true
-  // Mode dégradé : tant qu'aucun CRON_SECRET n'est configuré côté hébergement,
-  // on accepte la tâche planifiée Vercel sur son en-tête. Dès que le secret existe,
-  // seule l'authentification par secret est acceptée (cet en-tête est falsifiable).
-  if (!secret && req.headers.get('x-vercel-cron')) return true
-  try {
-    const sb = await createReadOnlyClient()
-    const { data: { user } } = await sb.auth.getUser()
-    if (!user?.email) return false
-    const { data } = await sb.from('admins').select('id').eq('email', user.email).eq('is_active', true).single()
-    return !!data
-  } catch { return false }
-}
-
 export async function GET(req: NextRequest) {
-  if (!(await isAuthorized(req))) {
+  if (!(await estAppelAutorise(req))) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
   const supabase = createAdminClient()

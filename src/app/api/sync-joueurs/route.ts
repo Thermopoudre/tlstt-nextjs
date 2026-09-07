@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { estAppelAutorise } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { smartPingAPI } from '@/lib/smartping/api'
 import { createReadOnlyClient } from '@/lib/supabase/server'
@@ -25,12 +26,7 @@ export async function GET(req: NextRequest) {
   // Autorise : la tâche planifiée Vercel (en-tête x-vercel-cron, non falsifiable),
   // ou un appel portant le secret. Sinon : refus (avant, sans CRON_SECRET configuré,
   // cette route était ouverte à tout le monde).
-  const cronSecret = process.env.CRON_SECRET
-  // en-tête accepté seulement en l'absence de secret (voir rss-import)
-  const estCronVercel = !cronSecret && !!req.headers.get('x-vercel-cron')
-  const secretOk = !!cronSecret && req.headers.get('authorization') === `Bearer ${cronSecret}`
-  // …ou un administrateur connecté (bouton « Synchroniser » du back-office).
-  if (!estCronVercel && !secretOk && !(await estAdminConnecte())) {
+  if (!(await estAppelAutorise(req))) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
