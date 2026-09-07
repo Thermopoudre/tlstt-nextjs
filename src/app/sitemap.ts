@@ -16,6 +16,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     {
+      // Page d'adhésion en ligne : cible « adhérer / cotisation tennis de table La Seyne »
+      url: `${SITE_URL}/cotisation`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
       url: `${SITE_URL}/club/a-propos`,
       lastModified: new Date(),
       changeFrequency: 'monthly',

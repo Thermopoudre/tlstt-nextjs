@@ -24,13 +24,13 @@ export const metadata: Metadata = {
     siteName: 'TLSTT - Toulon La Seyne Tennis de Table',
     locale: 'fr_FR',
     type: 'website',
-    images: [{ url: `${SITE_URL}/og-image.png`, width: 1200, height: 630, alt: 'Équipes TLSTT - Championnats 2025/2026' }],
+    images: [{ url: `${SITE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Équipes TLSTT - Championnats 2025/2026' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Équipes TLSTT | Championnats 2025/2026',
     description: 'Classements et résultats des équipes du TLSTT — Nationale, Régionale, Départementale.',
-    images: [`${SITE_URL}/og-image.png`],
+    images: [`${SITE_URL}/og-image.jpg`],
   },
 }
 

@@ -30,13 +30,13 @@ export const metadata: Metadata = {
     siteName: 'TLSTT - Toulon La Seyne Tennis de Table',
     locale: 'fr_FR',
     type: 'website',
-    images: [{ url: `${SITE_URL}/og-image.png`, width: 1200, height: 630, alt: 'TLSTT - Toulon La Seyne Tennis de Table' }],
+    images: [{ url: `${SITE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'TLSTT - Toulon La Seyne Tennis de Table' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'TLSTT - Toulon La Seyne Tennis de Table',
     description: 'Club de tennis de table dans le Var. Rejoignez-nous pour des cours, des compétitions et du sport pour tous !',
-    images: [`${SITE_URL}/og-image.png`],
+    images: [`${SITE_URL}/og-image.jpg`],
   },
 }
 

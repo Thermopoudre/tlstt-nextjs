@@ -21,13 +21,13 @@ export const metadata: Metadata = {
     siteName: 'TLSTT - Toulon La Seyne Tennis de Table',
     locale: 'fr_FR',
     type: 'website',
-    images: [{ url: `${SITE_URL}/og-image.png`, width: 1200, height: 630, alt: 'Joueurs TLSTT - Classement FFTT' }],
+    images: [{ url: `${SITE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Joueurs TLSTT - Classement FFTT' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Joueurs TLSTT - Classement Officiel FFTT',
     description: 'Classement des joueurs du club de tennis de table TLSTT - Données FFTT en temps réel',
-    images: [`${SITE_URL}/og-image.png`],
+    images: [`${SITE_URL}/og-image.jpg`],
   },
 }
 
