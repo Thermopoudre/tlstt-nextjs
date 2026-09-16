@@ -98,12 +98,21 @@ export async function POST(req: NextRequest) {
     })
 
     // Compte inexistant : on répond exactement comme si tout allait bien.
-    if (error || !data?.properties?.action_link) return reponseNeutre
+    const jeton = data?.properties?.hashed_token
+    if (error || !jeton) return reponseNeutre
+
+    // On n'envoie PAS le lien Supabase tel quel : les antivirus de messagerie
+    // (Orange/Wanadoo, Outlook…) ouvrent les liens des emails pour les
+    // vérifier, ce qui consomme le lien à usage unique avant même que la
+    // personne clique — elle tombe alors sur « lien invalide ou expiré ».
+    // En pointant vers notre page, la vérification se fait en JavaScript,
+    // qu'un scanner n'exécute pas : le lien survit jusqu'au vrai clic.
+    const lien = `${redirectTo}?token_hash=${encodeURIComponent(jeton)}&type=recovery`
 
     const envoi = await sendEmail({
       to: email,
       subject: '[TLSTT] Choisir un nouveau mot de passe',
-      html: corpsHtml(data.properties.action_link, espaceAdmin ? 'admin' : 'membre'),
+      html: corpsHtml(lien, espaceAdmin ? 'admin' : 'membre'),
     })
 
     if (!envoi.success) {
