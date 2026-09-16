@@ -140,6 +140,14 @@ export default function NouveauMotDePassePage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3b9fd8] text-gray-900"
                 autoComplete="new-password" required />
             </div>
+            {/* Beaucoup de personnes s'arrêtent ici en pensant que c'est fini :
+                le lien ne sert qu'une fois, tant que le mot de passe n'est pas
+                enregistré, la connexion reste impossible. */}
+            <p className="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-4 py-3 text-sm">
+              <i className="fas fa-circle-info mr-1"></i>
+              Dernière étape : cliquez sur le bouton ci-dessous pour enregistrer votre mot de passe.
+              Sans cela, vous ne pourrez pas vous connecter et il faudra redemander un lien.
+            </p>
             <button type="submit" disabled={enregistrement}
               className="w-full bg-[#3b9fd8] text-white py-3 rounded-lg font-semibold hover:bg-[#2d8bc9] disabled:opacity-60">
               {enregistrement ? <i className="fas fa-spinner fa-spin"></i> : 'Enregistrer mon mot de passe'}
