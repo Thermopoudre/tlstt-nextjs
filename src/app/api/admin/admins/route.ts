@@ -94,17 +94,17 @@ export async function POST(request: NextRequest) {
       options: { redirectTo },
     })
 
-    if (invErr || !lien?.properties?.action_link) {
+    if (invErr || !lien?.properties?.hashed_token) {
       if (invErr && /already|registered|exist/i.test(invErr.message)) {
         // Compte déjà existant : on lui envoie un lien de définition de mot de passe.
         const { data: recup } = await admin.auth.admin.generateLink({
           type: 'recovery', email, options: { redirectTo },
         })
-        if (recup?.properties?.action_link) {
+        if (recup?.properties?.hashed_token) {
           const envoi = await sendEmail({
             to: email,
             subject: '[TLSTT] Votre accès à l’administration du site',
-            html: invitationHtml(name || '', recup.properties.action_link, true),
+            html: invitationHtml(name || '', `${redirectTo}?token_hash=${encodeURIComponent(recup.properties.hashed_token)}&type=recovery`, true),
           })
           message = envoi.success
             ? `${email} avait déjà un compte : un lien pour accéder au back-office vient de lui être envoyé.`
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
       const envoi = await sendEmail({
         to: email,
         subject: '[TLSTT] Votre accès à l’administration du site',
-        html: invitationHtml(name || '', lien.properties.action_link, false),
+        html: invitationHtml(name || '', `${redirectTo}?token_hash=${encodeURIComponent(lien.properties.hashed_token)}&type=invite`, false),
       })
       if (!envoi.success) {
         console.error('[admins] invitation non envoyée :', envoi.error)
